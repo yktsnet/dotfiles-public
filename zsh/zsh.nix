@@ -22,7 +22,7 @@
       
       if [[ -n "$TMUX" ]]; then
         printf "\033Ptmux;\033]52;c;%s\a\033\\" "$b64_data"
-      elif [[ "$HOST" == "<LOCAL_HOST_NAME>" ]]; then # t14等のローカルホスト名をプレースホルダー化
+      elif [[ "$HOST" == "<LOCAL_HOST_NAME>" ]]; then
         printf "%s" "$input" | ${pkgs.wl-clipboard}/bin/wl-copy
       else
         printf "\033]52;c;%s\a" "$b64_data"
