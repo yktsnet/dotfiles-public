@@ -1,21 +1,21 @@
-# Declarative Multi-Node Workspace & AI-Native Terminal IDE
+# NixOS Workspace & Terminal Environment
 
-A production-grade NixOS configuration and terminal workspace architecture. This repository provides a highly deterministic computing environment that scales from stateless network-booted edge nodes to full GUI development machines, integrated with a custom-built, AI-centric terminal IDE.
+A NixOS configuration and terminal workspace setup. This repository provides a reproducible computing environment across multiple devices, integrated with a customized terminal-based workflow tailored for LLM-assisted development.
 
 <details>
 <summary>🇯🇵 日本語による説明を表示する</summary>
 
-## アーキテクチャの設計思想
-本リポジトリは、ハードウェアの境界を越えたインフラの抽象化と、AIベースの開発サイクルに最適化されたCLIワークフローの統合実装テンプレート。
+## アーキテクチャの設計
+本リポジトリは、複数のデバイス間で共通の環境を構築するためのNixOS設定と、LLMを活用した開発向けのCLI環境です。
 
-### 1. 決定論的デプロイによる環境差異の完全な排除
-Nix Flakesの宣言的構成により、極端に異なるハードウェアプロファイル間の環境差異を徹底的に吸収。GUI開発機（ThinkPad T14）からクラウド上のヘッドレスVPS、高度なステート管理が要求されるディスクレスのネットブートノードに至るまで、単一の情報源からシステムを構築し、設定のドリフト（乖離）を許容しない完全な再現性を担保。
+### 1. Nix Flakesによる環境の統一
+Nix Flakesの宣言的構成により、GUI開発機（ThinkPad T14）からクラウド上のヘッドレスVPSに至るまで、同一の設定ソースからシステムを構築します。これにより、ハードウェア間の設定の差異を抑え、環境の再現性を確保しています。
 
-### 2. ローカルとリモートの境界を消失させる統合操作系
-RangerをPython拡張（`commands.py`, `ops_action.py`）によって単なるファイルマネージャから「実行ハブ」へと再定義し、Helix（LSPエディタ）やFZFと密結合。OSC 52エスケープシーケンスを活用してSSH越しのクリップボード転送を透過的に処理することで、ローカルとリモートの操作上の境界を排除し、コンテキストスイッチによる思考の中断を防ぐ。
+### 2. ローカルとリモートの操作性の統合
+RangerにPython拡張（`commands.py`, `ops_action.py`）を組み込み、HelixやFZFと連携させています。OSC 52エスケープシーケンスを活用してSSH経由でのクリップボード転送を処理することで、ローカルとリモートにおける操作手順を共通化しています。
 
-### 3. LLMとの協業コストを極小化する動的コンテキスト生成
-コードベースの状態をLLMが解釈可能な構造化テキストとして動的にシリアライズするコンテキスト生成ツール（`env_txt_maker.py`）や、Nix-shellを利用してウェブ上のデータをスクレイピングする機構（`gsave`）をターミナル上にネイティブ実装。これにより、GUIブラウザへの不要な画面遷移を削ぎ落とし、CLI上で完結するAI駆動開発サイクルを実現。
+### 3. LLM向けコンテキストの生成ツール
+ソースコードやディレクトリ構造をLLM向けのテキストとして出力するツール（`env_txt_maker.py`）や、Nix-shellを利用してウェブ上のデータを取得する機構（`gsave`）をターミナル上に実装しています。これにより、CLI上でのプロンプト作成作業を補助します。
 </details>
 
 ## Getting Started
@@ -39,29 +39,29 @@ cd ~/dotfiles
 sudo nixos-rebuild switch --flake .#<host>
 ```
 
-3. (Optional) For remote deployment targeting a VPS or Edge node:
+3. (Optional) For remote deployment targeting a VPS:
 ```bash
 sudo nixos-rebuild switch --flake .#<target-host> --target-host <user>@<target-host> --use-remote-sudo
 ```
 
 ## Directory Structure
-* `devices/`: Declarative NixOS configurations handling hardware-specific abstractions (T14, headless Hetzner VPS, netboot configurations).
-* `home-manager/modules/`: User environment definitions that bind Ranger, Helix, Lazygit, and Tmux into a cohesive IDE orchestration layer.
-* `zsh/`: Core shell environment embedding FZF workflows, custom path history tracking, and OSC 52 dynamic routing.
-* `apps/lpt/`: AI-augmented toolkit for automated LLM context aggregation and ephemeral data extraction.
+* `devices/`: NixOS configurations for specific hardware profiles (T14, headless Hetzner VPS).
+* `home-manager/modules/`: User environment definitions that configure Ranger, Helix, Lazygit, and Tmux.
+* `zsh/`: Core shell environment configurations, including FZF integration and custom scripts.
+* `apps/lpt/`: Scripts for LLM context aggregation and data extraction.
 
-## Core Architectural Value
+## Core Features
 
-1. **Stateless & Multi-Node Provisioning**
-   Leverages Nix Flakes to achieve absolute determinism across drastically different hardware profiles. The configuration abstracts hardware complexities to deploy a unified logical environment from a single source of truth.
+1. **Multi-Device Configuration**
+   Leverages Nix Flakes to manage settings across different hardware. The configuration allows deploying a consistent environment from a single repository.
 
-2. **TUI Orchestration as an IDE**
-   Extends Ranger with custom Python bindings (`commands.py`, `ops_action.py`) to transform the file manager into a central execution hub tightly coupled with Helix, FZF, and Tmux. Includes transparent OSC 52 clipboard routing over SSH.
+2. **TUI Tool Integration**
+   Extends Ranger with custom Python scripts (`commands.py`, `ops_action.py`) to connect it with Helix, FZF, and Tmux. Includes OSC 52 clipboard support over SSH.
 
-3. **Dynamic LLM Context Pipeline**
-   Integrates custom CLI tools (`env_txt_maker.py`) to automatically serialize entire codebase states into structured contexts for LLM ingestion, and utilizes ephemeral Nix-shell environments (`gsave`) to dynamically process external web data.
+3. **LLM Context Generation Tools**
+   Provides CLI tools (`env_txt_maker.py`) to format codebase content into structured text for LLM prompts, and utilizes Nix-shell environments (`gsave`) to fetch external web data.
 
 ## Tech Stack
-* **Infrastructure as Code:** NixOS, Nix Flakes, Home Manager
-* **Terminal IDE Nexus:** Zsh, Ranger (Python-extended), Helix, Tmux, Lazygit
-* **Automation & Context Pipeline:** Python 3.12 (Playwright, Pandas), Bash
+* **System & Package Management:** NixOS, Nix Flakes, Home Manager
+* **Terminal Environment:** Zsh, Ranger (Python-extended), Helix, Tmux, Lazygit
+* **Automation Scripts:** Python 3.12, Bash
