@@ -9,7 +9,7 @@ A NixOS configuration and terminal workspace setup. This repository provides a r
 本リポジトリは、複数のデバイス間で共通の環境を構築するためのNixOS設定と、LLMを活用した開発向けのCLI環境です。
 
 ### 1. Nix Flakesによる環境の統一
-Nix Flakesの宣言的構成により、GUI開発機（ThinkPad T14）からクラウド上のヘッドレスVPSに至るまで、同一の設定ソースからシステムを構築します。これにより、ハードウェア間の設定の差異を抑え、環境の再現性を確保しています。
+Nix Flakesの宣言的構成により、GUI開発機（T14, DeviceA）から、クラウドVPSやローカルのヘッドレスサーバー（DeviceB）に至るまで、同一の設定ソースからシステムを構築します。これにより、ハードウェア間の設定の差異を抑え、環境の再現性を確保しています。
 
 ### 2. ローカルとリモートの操作性の統合
 RangerにPython拡張（`commands.py`, `ops_action.py`）を組み込み、HelixやFZFと連携させています。OSC 52エスケープシーケンスを活用してSSH経由でのクリップボード転送を処理することで、ローカルとリモートにおける操作手順を共通化しています。
@@ -45,7 +45,9 @@ sudo nixos-rebuild switch --flake .#<target-host> --target-host <user>@<target-h
 ```
 
 ## Directory Structure
-* `devices/`: NixOS configurations for specific hardware profiles (T14, headless Hetzner VPS).
+* `devices/`: NixOS configurations for specific hardware profiles.
+    * `gui/`: Desktop environments (e.g., T14, DeviceA).
+    * `headless/`: Server configurations (e.g., Hetzner VPS, DeviceB/SSD-boot).
 * `home-manager/modules/`: User environment definitions that configure Ranger, Helix, Lazygit, and Tmux.
 * `zsh/`: Core shell environment configurations, including FZF integration and custom scripts.
 * `apps/lpt/`: Scripts for LLM context aggregation and data extraction.
@@ -60,6 +62,9 @@ sudo nixos-rebuild switch --flake .#<target-host> --target-host <user>@<target-h
 
 3. **LLM Context Generation Tools**
    Provides CLI tools (`env_txt_maker.py`) to format codebase content into structured text for LLM prompts, and utilizes Nix-shell environments (`gsave`) to fetch external web data.
+
+4. **Multi-Device Configuration**
+   Leverages Nix Flakes to manage settings across different hardware. Supports both rich GUI environments (ThinkPad series, DeviceA) and optimized headless server configurations (SSD-boot, remote management, DeviceB).
 
 ## Tech Stack
 * **System & Package Management:** NixOS, Nix Flakes, Home Manager
