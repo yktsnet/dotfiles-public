@@ -55,16 +55,13 @@ sudo nixos-rebuild switch --flake .#<target-host> --target-host <user>@<target-h
 ## Core Features
 
 1. **Multi-Device Configuration**
-   Leverages Nix Flakes to manage settings across different hardware. The configuration allows deploying a consistent environment from a single repository.
+   Leverages Nix Flakes to manage settings across different hardware. Supports both rich GUI environments (ThinkPad series, DeviceA) and optimized headless server configurations (SSD-boot, remote management, DeviceB).
 
 2. **TUI Tool Integration**
    Extends Ranger with custom Python scripts (`commands.py`, `ops_action.py`) to connect it with Helix, FZF, and Tmux. Includes OSC 52 clipboard support over SSH.
 
 3. **LLM Context Generation Tools**
    Provides CLI tools (`env_txt_maker.py`) to format codebase content into structured text for LLM prompts, and utilizes Nix-shell environments (`gsave`) to fetch external web data.
-
-4. **Multi-Device Configuration**
-   Leverages Nix Flakes to manage settings across different hardware. Supports both rich GUI environments (ThinkPad series, DeviceA) and optimized headless server configurations (SSD-boot, remote management, DeviceB).
 
 ## Tech Stack
 * **System & Package Management:** NixOS, Nix Flakes, Home Manager

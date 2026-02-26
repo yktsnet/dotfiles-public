@@ -55,7 +55,7 @@ class fzf_locate(Command):
                     subprocess.run(
                         [
                             "python3",
-                            os.path.expanduser("~/dotfiles/zsh/path_history.py")
+                            os.path.expanduser("~/dotfiles/apps/zsh/path_history.py"),
                             "save",
                             target,
                         ]
