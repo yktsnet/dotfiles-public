@@ -1,0 +1,19 @@
+# Nix
+result
+result-*
+.direnv/
+
+# AIエージェント (Claude / Jules)
+.claude/
+!.claude/skills/
+
+# Python
+__pycache__/
+*.pyc
+
+# エディタ一時ファイル
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
