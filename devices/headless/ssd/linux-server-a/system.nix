@@ -44,18 +44,7 @@ in
     enable = false;
   };
 
-  # Abstracted internal services (e.g., trading engines, data pipelines)
-  yktsnet.apps.trading_engine = {
-    enable = true;
-    orchestrator = true;
-    tradeGuard = true;
-  };
 
-  yktsnet.apps.data_pipeline = {
-    enable = true;
-    fetchHistory = true;
-    snapshotPl = true;
-  };
 
   systemd.targets.sleep.enable = false;
   systemd.targets.suspend.enable = false;

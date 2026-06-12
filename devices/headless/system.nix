@@ -2,7 +2,6 @@
 
 {
   imports = [
-    inputs.sops-nix.nixosModules.sops
   ];
 
   programs.zsh.enable = true;
@@ -78,17 +77,14 @@
     keyMap = "us";
   };
 
-  sops = {
-    validateSopsFiles = false;
-    age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-  };
+
 
   home-manager = {
     extraSpecialArgs = { inherit inputs; osConfig = config; };
     useGlobalPkgs = true;
     useUserPackages = true;
     backupFileExtension = "backup";
-    sharedModules = [ inputs.sops-nix.homeManagerModules.sops ];
+    sharedModules = [ ];
   };
 
   system.stateVersion = "24.11";

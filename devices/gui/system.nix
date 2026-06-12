@@ -1,7 +1,7 @@
 { pkgs, lib, inputs, config, ... }:
 
 let
-  appsRoot = ../../../apps;
+  appsRoot = ../../apps;
   appDirs = builtins.attrNames (
     lib.filterAttrs (name: type: type == "directory") (builtins.readDir appsRoot)
   );
@@ -10,11 +10,6 @@ let
 in
 {
   imports = [
-    ../system.nix
-    ./hardware.nix
-    ./audio.nix
-    ./virt.nix
-    ./symlinks.nix
   ] ++ autoApps;
 
   networking.hostName = "linux-laptop";
@@ -46,35 +41,7 @@ in
     "libvirtd"
   ];
 
-  # OS-level Helix-like navigation
-  services.xremap = {
-    enable = true;
-    withHypr = true;
-    userName = "yktsnet";
-    config = {
-      modmap = [
-        { name = "CapsToRightAlt"; remap = { "CapsLock" = "RightAlt"; }; }
-      ];
-      keymap = [
-        {
-          name = "Helix-Global-Navigation";
-          remap = {
-            "RightAlt-h" = "Left";
-            "RightAlt-j" = "Down";
-            "RightAlt-k" = "Up";
-            "RightAlt-l" = "Right";
-            "RightAlt-g" = "Home";
-            "RightAlt-semicolon" = "End";
-            "RightAlt-n" = "PageDown";
-            "RightAlt-p" = "PageUp";
-            "RightAlt-d" = "Delete";
-            "RightAlt-x" = "BackSpace";
-            "RightAlt-D" = { launch = [ "Shift-End" "BackSpace" ]; };
-          };
-        }
-      ];
-    };
-  };
+
 
   yktsnet.apps.lpt = {
     enable = true;
