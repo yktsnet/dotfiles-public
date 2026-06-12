@@ -2,7 +2,7 @@
 
 let
   envCtx = import "${inputs.self}/apps/env-context.nix" { inherit pkgs; };
-  homeDir = "/home/user";
+  homeDir = "/home/yktsnet";
 in
 {
   environment.systemPackages = [
@@ -49,7 +49,7 @@ in
     PYTHONPATH = lib.mkForce (lib.concatStringsSep ":" (envCtx.makePythonPath homeDir));
   };
 
-  home-manager.users.user = import ./home.nix;
+  home-manager.users.yktsnet = import ./home.nix;
 
   system.stateVersion = "24.11";
 }

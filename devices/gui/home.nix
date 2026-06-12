@@ -17,18 +17,11 @@
     ../../home-manager/modules/sioyek.nix
   ];
 
-  home.username = "yktsnet";
-  home.homeDirectory = "/home/yktsnet";
+  home.username = lib.mkForce "yktsnet";
+  home.homeDirectory = lib.mkForce "/home/yktsnet";
   home.stateVersion = "23.11";
 
-  home.activation.checkSopsKey = lib.hm.dag.entryBefore [ "writeBoundary" ] ''
-    if [ ! -f "${config.home.homeDirectory}/.config/sops/age/keys.txt" ]; then
-      echo -e "\033[1;31m[CRITICAL ERROR] SOPS age key missing!\033[0m"
-      echo -e "\033[1;31mLocation: ~/.config/sops/age/keys.txt\033[0m"
-      echo -e "\033[1;31mActivation aborted to prevent inconsistent state.\033[0m"
-      exit 1
-    fi
-  '';
+
 
   programs.zsh = {
     enable = lib.mkForce true;
@@ -55,16 +48,14 @@
     gcc
     gnumake
   ];
-  home.file.".ssh/id_ed25519".source = config.lib.file.mkOutOfStoreSymlink osConfig.sops.secrets."common/id_ed25519.txt".path;
+
 
   home.file = {
     "dotfiles-hub/current-host-system".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/devices/gui/${osConfig.networking.hostName}/system.nix";
     "dotfiles-hub/current-host-home".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/devices/gui/${osConfig.networking.hostName}/home.nix";
   };
 
-  sops = {
-    age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
-  };
+
 
   xdg.configFile."nvim" = {
     source = ../../home-manager/config/nvim;

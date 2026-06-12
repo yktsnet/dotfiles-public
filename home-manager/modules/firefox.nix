@@ -4,14 +4,6 @@
   programs.firefox = {
     enable = true;
     profiles.yktsnet = {
-      extensions.packages = with pkgs.nur.repos.rycee.firefox-addons; [
-        ublock-origin
-        darkreader
-        bitwarden
-        keepassxc-browser
-        return-youtube-dislikes
-        keepa
-      ];
 
       search = {
         default = "ddg";

@@ -4,11 +4,8 @@
   imports = [
     ./../lazygit.nix
     ./gtk.nix
-    ../kitty.nix
-    ../fcitx.nix
     ../vscode.nix
     ../fonts.nix
-    ../screenshot.nix
     ./hypr/default.nix
     ../waybar.nix
   ];

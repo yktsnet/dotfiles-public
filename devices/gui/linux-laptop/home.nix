@@ -3,11 +3,8 @@
 {
   imports = [
     ../home.nix
-    ../../../home-manager/modules/spotifyd.nix
     ../../../home-manager/modules/desktop/swww-random.nix
-    ../../../home-manager/modules/virtualisation/windows11.nix
     ./monitor.nix
-    ./spotifyd.nix
   ];
 
   programs.foot = {

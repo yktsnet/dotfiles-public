@@ -12,15 +12,7 @@ in
   imports = [
   ] ++ autoApps;
 
-  networking.hostName = "linux-laptop";
-  services.udisks2.enable = true;
-  environment.systemPackages = with pkgs; [ udisks2 ];
 
-  services.tailscale.enable = true;
-  services.tailscale.extraUpFlags = lib.mkAfter [
-    "--advertise-tags=tag:laptop"
-    "--ssh"
-  ];
 
   environment.shellAliases = {
     toggle-audio = ''
@@ -30,16 +22,23 @@ in
     '';
   };
 
-  users.users.yktsnet.extraGroups = [
-    "wheel"
-    "networkmanager"
-    "video"
-    "audio"
-    "docker"
-    "uinput"
-    "input"
-    "libvirtd"
-  ];
+  users.users.yktsnet = {
+    isNormalUser = true;
+    description = "yktsnet";
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+      "video"
+      "audio"
+      "docker"
+      "uinput"
+      "input"
+      "libvirtd"
+    ];
+    uid = 1000;
+    hashedPassword = "*";
+    linger = true;
+  };
 
 
 

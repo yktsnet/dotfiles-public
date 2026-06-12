@@ -5,7 +5,9 @@
         "flake-schemas": "flake-schemas",
         "home-manager": "home-manager",
         "jovian": "jovian",
-        "nixpkgs": "nixpkgs",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
         "rust-overlay": "rust-overlay"
       },
       "locked": {
@@ -165,22 +167,6 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1764950072,
-        "narHash": "sha256-BmPWzogsG2GsXZtlT+MTcAWeDK5hkbGRZTeZNW42fwA=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "f61125a668a320878494449750330ca58b78c557",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_2": {
-      "locked": {
         "lastModified": 1777578337,
         "narHash": "sha256-Ad49moKWeXtKBJNy2ebiTQUEgdLyvGmTeykAQ9xM+Z4=",
         "owner": "nixos",
@@ -201,7 +187,7 @@
         "disko": "disko",
         "home-manager": "home-manager_2",
         "nix-darwin": "nix-darwin",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs"
       }
     },
     "rust-overlay": {
