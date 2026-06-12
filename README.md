@@ -1,5 +1,7 @@
 # Nix-Powered Workspace for AI-Agent Collaborative Development
 
+[![CI](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml/badge.svg)](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml)
+
 macOS と Linux 間で開発環境の差異を排除し、AIコーディングエージェント（Claude Code / Jules）と人間がロール（役割）を分離して協調開発を行うための、Issue駆動型（Issue-Driven）宣言的開発ワークスペース。
 
 ---
