@@ -13,19 +13,24 @@ in
     ../system.nix
     ./hardware.nix
     ./audio.nix
+    ./gaming.nix
     ./virt.nix
     ./symlinks.nix
   ] ++ autoApps;
 
   networking.hostName = "linux-laptop";
   services.udisks2.enable = true;
-  environment.systemPackages = with pkgs; [ udisks2 ];
-
+  environment.systemPackages = with pkgs; [
+    udisks2
+  ];
   services.tailscale.enable = true;
   services.tailscale.extraUpFlags = lib.mkAfter [
     "--advertise-tags=tag:laptop"
     "--ssh"
   ];
+  networking.firewall.checkReversePath = "loose";
+
+  boot.kernelParams = [ "thinkpad_acpi.fan_control=1" ];
 
   environment.shellAliases = {
     toggle-audio = ''
@@ -46,7 +51,6 @@ in
     "libvirtd"
   ];
 
-  # OS-level Helix-like navigation
   services.xremap = {
     enable = true;
     withHypr = true;
@@ -80,7 +84,11 @@ in
     enable = true;
     envTxtMaker = true;
     resultHarvest = true;
+    dailyBackup = true;
   };
+
+  yktsnet.apps.bt.enable = false;
+  yktsnet.apps.ntf.enable = false;
 
   systemd.targets.sleep.enable = false;
   systemd.targets.suspend.enable = false;
@@ -94,10 +102,28 @@ in
     LidSwitchIgnoreInhibited = "no";
   };
 
+  services.thinkfan = {
+    enable = true;
+    levels = [
+      [ 0 0 55 ]
+      [ 1 53 60 ]
+      [ 3 58 70 ]
+      [ 7 65 85 ]
+      [ "level auto" 80 100 ]
+    ];
+  };
+
   security.sudo.wheelNeedsPassword = false;
   hardware.uinput.enable = true;
 
   environment.variables = { HOST_COLOR = "#7aa2f7"; };
+
+  networking.firewall = {
+    allowedTCPPorts = [ 5000 ];
+    extraCommands = ''
+      iptables -A INPUT -s 100.64.0.0/10 -p tcp --dport 5000 -j ACCEPT
+    '';
+  };
 
   powerManagement.cpuFreqGovernor = "powersave";
 

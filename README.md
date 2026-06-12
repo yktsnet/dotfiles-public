@@ -1,69 +1,105 @@
-# NixOS Workspace & Terminal Environment
+# Nix-Powered Workspace for AI-Agent Collaborative Development
 
-A NixOS configuration and terminal workspace setup. This repository provides a reproducible computing environment across multiple devices, integrated with a customized terminal-based workflow tailored for LLM-assisted development.
+macOS と Linux 間で開発環境の差異を排除し、AIコーディングエージェント（Claude Code / Jules）と人間がロール（役割）を分離して協調開発を行うための、Issue駆動型（Issue-Driven）宣言的開発ワークスペース。
 
-<details>
-<summary>🇯🇵 日本語による説明を表示する</summary>
+---
 
-## アーキテクチャの設計
-本リポジトリは、複数のデバイス間で共通の環境を構築するためのNixOS設定と、LLMを活用した開発向けのCLI環境です。
+## Philosophy & Core Architecture
 
-### 1. Nix Flakesによる環境の統一
-Nix Flakesの宣言的構成により、GUI開発機（T14, DeviceA）から、クラウドVPSやローカルのヘッドレスサーバー（DeviceB）に至るまで、同一の設定ソースからシステムを構築します。これにより、ハードウェア間の設定の差異を抑え、環境の再現性を確保しています。
+AIエージェントの自律的な編集能力を最大限に活かしつつ、人間の設計意図から逸脱したコード生成（エージェントの暴走）を防ぐため、「設計・実装・検証」を分離したIssue駆動型開発フローを採用。
 
-### 2. ローカルとリモートの操作性の統合
-RangerにPython拡張（`commands.py`, `ops_action.py`）を組み込み、HelixやFZFと連携させています。OSC 52エスケープシーケンスを活用してSSH経由でのクリップボード転送を処理することで、ローカルとリモートにおける操作手順を共通化しています。
-
-### 3. LLM向けコンテキストの生成ツール
-ソースコードやディレクトリ構造をLLM向けのテキストとして出力するツール（`env_txt_maker.py`）や、Nix-shellを利用してウェブ上のデータを取得する機構（`gsave`）をターミナル上に実装しています。これにより、CLI上でのプロンプト作成作業を補助します。
-</details>
-
-## Getting Started
-
-This repository is designed to be cloned directly to `~/dotfiles` to ensure path consistency across internal scripts and configurations.
-
-### Prerequisites
-* NixOS installed
-* Nix Flakes enabled
-
-### Installation
-
-1. Clone the repository to the required path:
-```bash
-git clone [https://github.com/yktsnet/dotfiles-public.git](https://github.com/yktsnet/dotfiles-public.git) ~/dotfiles
-cd ~/dotfiles
+```
+[ WebChat (設計) ] ──> [ Markdown Issue (要件定義) ] ──> [ AI Agent (実装) ] ──> [ User (検証・マージ) ]
 ```
 
-2. Deploy the configuration for your specific host (e.g., t14 or het):
-```bash
-sudo nixos-rebuild switch --flake .#<host>
+### 1. ロールの分離 (Role Separation)
+人間、対話型AI、自律型AIエージェントの各強みに応じて担当範囲を厳格に定義。
+
+* **WebChat (設計・対話型AI)**:
+  ユーザーと対話しながら仕様策定および設計ファイルの作成を行う。検証手順は記述しない。
+* **AI Agent (実装・自律型AI)**:
+  作成されたIssueファイルをインプットとしてコード編集、静的エラー確認、PR作成までを自律実行。本番環境での破壊的なコマンド実行は禁止。
+* **User (検証・人間)**:
+  エージェントが作成したPRの検証手順に従い、動作確認とメインブランチへのマージを担当。
+
+### 2. 環境差を排除しエージェントを支える Nix の役割
+自律型エージェントにコード作成やテスト実行を任せるためには、動作させるローカルマシンの状態依存（環境差）を排除することが不可欠。
+本リポジトリでは Nix Flakes および Home Manager をベースのインフラとして採用。MacBook（macOS）と Linux デスクトップにわたり、エージェントが利用するツールチェーン（Neovim, Yazi, Git, LSP等）や実行バイナリ、環境変数をコードとして完全に同一化。これにより、環境の差異によるエージェントの「コマンド未検出」「実行時エラー」を防止し、異なるOS間でのシームレスなAI協調開発の基盤を担保。
+
+---
+
+## Agent Profiles & Branch Management
+
+起動するAIエージェントの実行環境の特性に応じて、ブランチ管理と指示ファイルを最適化。詳しいワークフローの挙動は [docs/issue_driven_workflow.md](docs/issue_driven_workflow.md) を参照。
+
+| エージェント | 実行環境 | ブランチ管理 | 永続指示ファイル |
+|---|---|---|---|
+| **Claude Code (Code)** | ローカルマシン環境 | ローカルブランチを自動生成・操作 | `CLAUDE.md` |
+| **Jules** | クラウド上のサンドボックス | ローカルブランチは生成せずリモート完結 | `AGENTS.md` |
+
+---
+
+## Project Structure
+
+`issue-init`（または `jules-init`）の実行により、リポジトリルートに共通のディレクトリ構造および選択したエージェントに対応する指示ファイルを生成。
+
+```text
+{app_root}/
+├── CLAUDE.md        # Claude Code用のシステム指示ファイル
+├── AGENTS.md        # Jules用のシステム指示ファイル
+├── context/         # 共通のコーディングルールや構成ドキュメント
+│   ├── conventions.md
+│   └── structure.md
+└── issues/          # 開発タスク（Issue）ファイル群
+    ├── 00_template.md  # 2桁の連番ID、branch-slug、対象ファイル等を定義するテンプレート
+    └── {NN}_{slug}.md  # 設計されたタスクファイル
 ```
 
-3. (Optional) For remote deployment targeting a VPS:
-```bash
-sudo nixos-rebuild switch --flake .#<target-host> --target-host <user>@<target-host> --use-remote-sudo
-```
+---
 
-## Directory Structure
-* `devices/`: NixOS configurations for specific hardware profiles.
-    * `gui/`: Desktop environments (e.g., T14, DeviceA).
-    * `headless/`: Server configurations (e.g., Hetzner VPS, DeviceB/SSD-boot).
-* `home-manager/modules/`: User environment definitions that configure Ranger, Helix, Lazygit, and Tmux.
-* `zsh/`: Core shell environment configurations, including FZF integration and custom scripts.
-* `apps/lpt/`: Scripts for LLM context aggregation and data extraction.
+## Core Workflows (Zsh Functions)
 
-## Core Features
+Zshに統合された以下のシェルマクロ群により、チケット管理からエージェント起動、マージ後の後片付けまでをキーボード駆動でシームレスに処理。
 
-1. **Multi-Device Configuration**
-   Leverages Nix Flakes to manage settings across different hardware. Supports both rich GUI environments (ThinkPad series, DeviceA) and optimized headless server configurations (SSD-boot, remote management, DeviceB).
+* **`issue-init` / `jules-init`** (環境初期化):
+  開発リポジトリをAI協調開発用に初期化。共通コンテキストディレクトリの生成、および対象エージェント用の指示ファイル（`CLAUDE.md` / `AGENTS.md`）を自動配備。
+* **`issue` / `jules`** (チケット起動):
+  `status: open` 状態のIssueファイルを `fzf` でプレビューしながら選択。
+  * **Codeの場合**: 自動で専用ローカルブランチ `claude/{id}-{slug}` を作成・チェックアウトし、Claude CLI を起動。
+  * **Julesの場合**: ローカルブランチは作らず、直接クラウド上のセッションへタスクを投入。
+* **`issue-abort` / `jules-abort`** (開発中断):
+  現在進行中のエージェントタスクを中断し、編集途中の状態をクリアしてメインブランチへ安全に復帰。
+* **`issue-finish` / `jules-finish`** (PRマージとクローズ):
+  作成されたPRを `gh` で検索・選択し、自動的にメインブランチへマージ。ローカルおよびリモートの作業ブランチをクリーンアップし、対象のローカルIssueファイルを `status: close` に書き換え、メインブランチへ自動的にプッシュ。
 
-2. **TUI Tool Integration**
-   Extends Ranger with custom Python scripts (`commands.py`, `ops_action.py`) to connect it with Helix, FZF, and Tmux. Includes OSC 52 clipboard support over SSH.
+---
 
-3. **LLM Context Generation Tools**
-   Provides CLI tools (`env_txt_maker.py`) to format codebase content into structured text for LLM prompts, and utilizes Nix-shell environments (`gsave`) to fetch external web data.
+## TUI Toolchain & Development Environment
+
+エージェントと人間が同一環境で作業を行うための、Nixで一元化されたTUI（Text User Interface）環境。
+
+### 1. Neovim (IDE & Editor)
+`lazy.nvim` プラグインマネージャをベースに構築された高度にモジュール化された設定。
+* **LSP & Autocompletion**: 自動補完（cmp-nvim-lsp）および主要LSPがインストールされ、静的型チェックが動作。
+* **Formatting**: `conform.nvim` により、保存時に自動整形が走りコードの品質を担保。
+* **Theme**: `Poimandres` テーマを採用し、視認性と美しさを両立。
+* **File Management**: `yazi.nvim` 統合により、エディタ内からファイラーへのシームレスな移行を実現。
+
+### 2. Yazi (Terminal File Manager)
+Ranger から移行し、Rust製ファイラー `Yazi` を採用。
+* **Declartive Config**: キーバインド、テーマ（Poimandres）、およびプラグインをHome Manager側で宣言的に管理。
+* **Fast Navigation**: パス移動とファイル選択が超高速化。ディレクトリ終了時のカレントディレクトリ同期（Zshラッパー関数 `y`）を搭載。
+
+### 3. Tmux (Terminal Multiplexer)
+セッションとペインの効率的な管理。
+* **Clipboard Sync (OSC 52)**: SSHやコンテナ等のリモート・ローカル環境の差分を解消し、クリップボード同期を透過的に実現。
+* **Vi-Style Copy Mode**: コピーモード内での vi-style キーバインド（v, y）および pbcopy / wl-copy とのシームレスな同期。
+* **Aesthetics**: Poimandres カラーパレットに基づき、ウィンドウタブやペインボーダーのスタイルを構築。Alt + 矢印キーでの高速ペイン切り替えに対応。
+
+---
 
 ## Tech Stack
-* **System & Package Management:** NixOS, Nix Flakes, Home Manager
-* **Terminal Environment:** Zsh, Ranger (Python-extended), Helix, Tmux, Lazygit
-* **Automation Scripts:** Python 3.12, Bash
+* **System & Environment:** NixOS, nix-darwin, Nix Flakes, Home Manager
+* **AI Orchestration & API:** Claude Code CLI, GitHub CLI (`gh`)
+* **Terminal & Editor:** Zsh, Yazi (TUI File Manager), Neovim, Tmux
+* **Languages & Automation:** Python 3.12, Zsh Script

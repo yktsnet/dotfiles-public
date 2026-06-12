@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 def harvest():
-    remote_host = "het"
+    remote_host = "linux-server-a"
     home_dir = os.path.expanduser("~")
 
     sync_dirs = [

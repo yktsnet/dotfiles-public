@@ -1,0 +1,24 @@
+[[mgr.prepend_keymap]]
+on   = [ "c", "r" ]
+run  = 'shell "realpath --relative-to=\"$PWD\" \"$0\" | tr -d \"\\n\" | pbcopy"'
+desc = "Copy relative path"
+
+[[mgr.prepend_keymap]]
+on   = [ "c", "y" ]
+run  = 'shell "echo -n \"$0\" | pbcopy"'
+desc = "Copy absolute path"
+
+[[mgr.prepend_keymap]]
+on   = [ "F", "f" ]
+run  = "plugin fg -- fzf"
+desc = "find file by filename"
+
+[[mgr.prepend_keymap]]
+on   = [ "F", "g" ]
+run  = "plugin fg"
+desc = "find file by content (fuzzy match)"
+
+[[mgr.prepend_keymap]]
+on   = [ "F", "G" ]
+run  = "plugin fg -- rg"
+desc = "find file by content (ripgrep match)"

@@ -3,8 +3,8 @@
 let
   host = osConfig.networking.hostName;
   hostColor =
-    if host == "t14" then "#c792ea"
-    else if host == "het" then "#5de4c7"
+    if host == "linux-laptop" then "#c792ea"
+    else if host == "linux-server-a" then "#5de4c7"
     else if host == "pi2" then "#addb67"
     else "DYNAMIC";
 in

@@ -5,6 +5,10 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-darwin = {
+      url = "github:LnL7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -16,6 +20,17 @@
     nixosConfigurations = import ./devices/flake-edit.nix {
       inherit inputs;
       lib = nixpkgs.lib;
+    };
+
+    darwinConfigurations = {
+      macbook = inputs.nix-darwin.lib.darwinSystem {
+        system = "aarch64-darwin";
+        specialArgs = { inherit inputs; };
+        modules = [
+          inputs.home-manager.darwinModules.home-manager
+          ./devices/gui/macbook/system.nix
+        ];
+      };
     };
   };
 }

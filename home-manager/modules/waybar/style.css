@@ -1,0 +1,86 @@
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "FiraCode Nerd Font";
+    font-weight: 500;
+    font-size: 11px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: transparent;
+}
+
+#workspaces, #custom-mpris, #pulseaudio, #custom-wall, #temperature, #clock, #cpu, #memory, #battery, #custom-power-mode {
+    margin: 0 4px;
+    padding: 0 12px;
+    background: transparent;
+    color: #a6accd;
+    text-shadow: 
+        0 0 5px rgba(27, 30, 40, 1),
+        0 0 10px rgba(27, 30, 40, 0.8);
+}
+
+#temperature, #cpu, #memory, #battery {
+    margin-left: 10px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+#workspaces button {
+    padding: 0 8px;
+    color: #a6accd;
+    margin: 0 2px;
+    transition: all 0.2s ease;
+    text-shadow: 
+        0 0 5px rgba(27, 30, 40, 1),
+        0 0 10px rgba(27, 30, 40, 0.8);
+}
+
+#workspaces button.active {
+    color: #89ddff;
+}
+
+#custom-mpris {
+    color: #89ddff;
+    min-width: 250px;
+}
+
+#custom-wall {
+    color: #a6accd;
+}
+
+#clock.utc, #clock.jst { 
+    color: #a6accd;
+}
+
+#temperature.critical {
+    color: #a6accd;
+}
+
+#battery {
+    margin: 0 4px;
+    padding: 0 12px;
+    background: transparent;
+    color: #a6accd;
+    text-shadow: 
+        0 0 5px rgba(27, 30, 40, 1),
+        0 0 10px rgba(27, 30, 40, 0.8);
+}
+
+#custom-power-mode {
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    font-size: 0;
+}
+
+/* シンプルな隣接セレクタに変更 */
+#custom-power-mode.full-mode + #battery {
+    color: #d0679d;
+}
+
+#battery.critical {
+    color: #d0679d;
+    animation: blink 0.5s linear infinite alternate;
+}

@@ -3,8 +3,9 @@
 {
   imports = [
     inputs.sops-nix.nixosModules.sops
-    ../../zsh/init.nix
   ];
+
+  programs.zsh.enable = true;
 
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];

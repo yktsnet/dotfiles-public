@@ -1,50 +1,50 @@
 { inputs, lib, ... }:
 
 {
-  t14 = lib.nixosSystem {
+  linux-laptop = lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = { inherit inputs; };
     modules = [
-      ./gui/t14/system.nix
+      ./gui/linux-laptop/system.nix
       inputs.chaotic.nixosModules.default
       inputs.home-manager.nixosModules.home-manager
     ];
   };
 
-  netboot_4gb = inputs.nixpkgs.lib.nixosSystem {
+  linux-netboot = inputs.nixpkgs.lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = { inherit inputs; };
     modules = [
-      ./headless/diskless/netboot_4gb/system.nix
+      ./headless/diskless/linux-netboot/system.nix
       inputs.home-manager.nixosModules.home-manager
     ];
   };
 
-  het = lib.nixosSystem {
+  linux-server-a = lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = { inherit inputs; };
     modules = [
       inputs.disko.nixosModules.disko
-      ./headless/ssd/het/system.nix
+      ./headless/ssd/linux-server-a/system.nix
       inputs.home-manager.nixosModules.home-manager
     ];
   };
 
-  deviceA = lib.nixosSystem {
+  linux-desktop = lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = { inherit inputs; };
     modules = [
-      ./gui/deviceA/system.nix
+      ./gui/linux-desktop/system.nix
       inputs.home-manager.nixosModules.home-manager
     ];
   };
 
-  DeviceB = lib.nixosSystem {
+  linux-server-b = lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = { inherit inputs; };
     modules = [
       inputs.disko.nixosModules.disko
-      ./headless/ssd/DeviceB/system.nix
+      ./headless/ssd/linux-server-b/system.nix
       inputs.home-manager.nixosModules.home-manager
     ];
   };

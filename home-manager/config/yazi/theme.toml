@@ -1,0 +1,91 @@
+[manager]
+cwd = { fg = "#89ddff" }
+border_style = { fg = "#303340" }
+border_symbol = "│"
+
+[indicator]
+current = { bg = "#3d4c5f", bold = true }
+parent = { bg = "#3d4c5f" }
+
+
+[status]
+separator_open = ""
+separator_close = ""
+
+[mode]
+# Normal mode
+normal_main = { fg = "#171921", bg = "#5de4c7", bold = true }
+normal_alt  = { fg = "#5de4c7", bg = "#303340" }
+
+# Select mode
+select_main = { fg = "#171921", bg = "#add7ff", bold = true }
+select_alt  = { fg = "#add7ff", bg = "#303340" }
+
+# Unset mode
+unset_main  = { fg = "#171921", bg = "#d0679d", bold = true }
+unset_alt   = { fg = "#d0679d", bg = "#303340" }
+
+
+[icon]
+# 1. フォルダ個別設定 (Poimandresパレットの使い分け)
+prepend_dirs = [
+  { name = "Desktop", text = "", fg = "#5de4c7" },       # ミントグリーン
+  { name = "Downloads", text = "", fg = "#add7ff" },     # ソフトブルー
+  { name = "Documents", text = "󰈙", fg = "#a6accd" },     # スレートグレー
+  { name = "Pictures", text = "󰉏", fg = "#d0679d" },      # 暖色ピンク
+  { name = "Videos", text = "󰨜", fg = "#fcc5e9" },        # ライトピンク
+  { name = "Music", text = "󰝚", fg = "#fffac2" },         # ソフトイエロー
+  { name = ".config", text = "", fg = "#89ddff" },       # シアン
+  { name = ".git", text = "", fg = "#d0679d" },          # 暖色ピンク
+  { name = "src", text = "", fg = "#5de4c7" },           # ミントグリーン
+]
+
+# 2. 拡張子個別設定
+prepend_exts = [
+  { name = "md", text = "", fg = "#5de4c7" },            # ミントグリーン (Markdown)
+  { name = "txt", text = "󰈙", fg = "#a6accd" },           # スレートグレー
+  { name = "json", text = "", fg = "#fffac2" },          # ソフトイエロー
+  { name = "toml", text = "", fg = "#89ddff" },          # シアン
+  { name = "yaml", text = "", fg = "#89ddff" },          # シアン
+  { name = "yml", text = "", fg = "#89ddff" },           # シアン
+  { name = "lua", text = "", fg = "#add7ff" },           # ソフトブルー
+  { name = "rs", text = "", fg = "#d0679d" },            # 暖色ピンク (Rust)
+  { name = "go", text = "", fg = "#89ddff" },            # シアン (Go)
+  { name = "js", text = "", fg = "#fffac2" },            # ソフトイエロー (JavaScript)
+  { name = "ts", text = "", fg = "#add7ff" },            # ソフトブルー (TypeScript)
+  { name = "tsx", text = "", fg = "#add7ff" },           # ソフトブルー (React TS)
+  { name = "jsx", text = "", fg = "#fffac2" },           # ソフトイエロー (React JS)
+  { name = "css", text = "", fg = "#add7ff" },           # ソフトブルー
+  { name = "sh", text = "", fg = "#5de4c7" },            # ミントグリーン
+  { name = "zsh", text = "", fg = "#5de4c7" },           # ミントグリーン
+  { name = "nix", text = "", fg = "#89ddff" },           # シアン (Nix)
+]
+
+# 3. 特定のファイル名個別設定
+prepend_files = [
+  { name = "Dockerfile", text = "󰡨", fg = "#89ddff" },   # シアン
+  { name = "docker-compose.yml", text = "󰡨", fg = "#89ddff" },
+  { name = "docker-compose.yaml", text = "󰡨", fg = "#89ddff" },
+  { name = "Makefile", text = "", fg = "#fffac2" },      # ソフトイエロー
+  { name = "LICENSE", text = "󰘥", fg = "#a6accd" },       # スレートグレー
+]
+
+# 4. 全体フォールバック（一般的なフォルダ等）
+prepend_conds = [
+  { if = "dir", text = "", fg = "#add7ff" }
+]
+
+[filetype]
+rules = [
+  # Images
+  { mime = "image/*", fg = "#fffac2" },                                      # ソフトイエロー
+  # Media
+  { mime = "{audio,video}/*", fg = "#d0679d" },                              # 暖色ピンク
+  # Archives
+  { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = "#d0679d" }, # 暖色ピンク
+  # Documents
+  { mime = "application/{pdf,doc,docx,xls,xlsx,ppt,pptx,epub,odt,ods,odp}", fg = "#add7ff" }, # ソフトブルー
+  # Executable files (デフォルトの眩しいグリーンを抑制し、通常テキスト色にする)
+  { url = "*", is = "exec", fg = "#a6accd" },                                           # スレートグレー
+]
+

@@ -6,12 +6,12 @@
     ../../home-manager/modules/tmux.nix
     ../ssh.nix
     ../../home-manager/modules/keepassxc.nix
-    ../../home-manager/modules/ranger/home.nix
+    ../../home-manager/modules/alacritty.nix
     ../../home-manager/modules/zsh/ui.nix
     ../../home-manager/modules/glow.nix
     ../../home-manager/modules/fonts.nix
     ../../home-manager/modules/vscode.nix
-    ../../home-manager/modules/kitty.nix
+    ../../home-manager/modules/waybar.nix
     ../../home-manager/modules/fcitx.nix
     ../../home-manager/modules/git.nix
     ../../home-manager/modules/desktop/gui-bundle.nix
@@ -19,7 +19,6 @@
     ../../home-manager/modules/ntfy.nix
     ../../home-manager/modules/sioyek.nix
     ../../home-manager/modules/mpv.nix
-    ../../home-manager/modules/helix.nix
   ];
 
   home.username = "yktsnet";
@@ -55,6 +54,10 @@
     ncdu
     desktop-file-utils
     wl-clipboard
+    neovim
+    yazi
+    gcc
+    gnumake
   ];
   home.file.".ssh/id_ed25519".source = config.lib.file.mkOutOfStoreSymlink osConfig.sops.secrets."common/id_ed25519.txt".path;
 
@@ -65,5 +68,14 @@
 
   sops = {
     age.keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
+  };
+
+  xdg.configFile."nvim" = {
+    source = ../../home-manager/config/nvim;
+    recursive = true;
+  };
+  xdg.configFile."yazi" = {
+    source = ../../home-manager/config/yazi;
+    recursive = true;
   };
 }

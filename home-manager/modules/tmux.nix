@@ -7,24 +7,79 @@
     mouse = true;
     escapeTime = 0;
     terminal = "tmux-256color";
+    keyMode = "vi";
 
     extraConfig = ''
-      set -g pane-base-index 1
-      set -g status off
-      set -g pane-border-style fg=default
-      set -g pane-active-border-style fg=default
-
-      set -s set-clipboard on
-      set -g allow-passthrough on
+      # ------------------------------------------
+      # Terminal Settings (True Color & Undercurls)
+      # ------------------------------------------
       set -ga update-environment TERM
       set -ga update-environment TERM_PROGRAM
       set -as terminal-overrides ',xterm-256color:RGB'
-      set -g focus-events on
+      set -as terminal-overrides ',*:Smulx=\E[4::%p1%dm'
+      set -as terminal-overrides ',*:Setulc=\E[58::2::%p1%{65536}%/%d::%p1%{256}%/%{255}%&%d::%p1%{255}%&%d%;m'
 
-      bind -n M-Left select-pane -L
-      bind -n M-Right select-pane -R
-      bind -n M-Up select-pane -U
-      bind -n M-Down select-pane -D
+      # ------------------------------------------
+      # Basic & Neovim Optimization Settings
+      # ------------------------------------------
+      set -g pane-base-index 1
+      set -g focus-events on
+      set -g allow-passthrough on
+      set -g renumber-windows on
+
+      # ------------------------------------------
+      # Prefix-less Shortcuts (Alt + Key Only)
+      # ------------------------------------------
+      # ペイン操作 (矢印キーでの移動も残します)
+      bind-key -n M-Left select-pane -L
+      bind-key -n M-Right select-pane -R
+      bind-key -n M-Up select-pane -U
+      bind-key -n M-Down select-pane -D
+
+      bind-key -n M-/ split-window -h -c "#{pane_current_path}"
+      bind-key -n M-- split-window -v -c "#{pane_current_path}"
+      bind-key -n M-x kill-pane
+      bind-key -n M-j select-pane -t :.+
+      bind-key -n M-k select-pane -t :.-
+
+      # ウィンドウ操作
+      bind-key -n M-t new-window -c "#{pane_current_path}"
+      bind-key -n M-J next-window
+      bind-key -n M-K previous-window
+
+      # その他
+      bind-key -n M-v copy-mode
+      bind-key -n M-\; command-prompt
+
+      set -as command-alias sp="split-window -v -c '#{pane_current_path}'"
+      set -as command-alias vs="split-window -h -c '#{pane_current_path}'"
+      set -as command-alias q="kill-pane"
+
+      # ------------------------------------------
+      # Clipboard & Copy Mode (vi-style)
+      # ------------------------------------------
+      set -s set-clipboard on
+      bind-key -T copy-mode-vi v send-keys -X begin-selection
+      bind-key -T copy-mode-vi C-v send-keys -X rectangle-toggle
+      bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "pbcopy"
+      bind-key -T copy-mode-vi MouseDragEnd1Pane send-keys -X copy-pipe-and-cancel "pbcopy"
+
+      # ------------------------------------------
+      # UI & Status Bar (Poimandres Color Theme)
+      # ------------------------------------------
+      set -g status-style "bg=#1b1e28,fg=#a6accd"
+      set -g status-left ""
+      set -g status-right ""
+
+      # ウィンドウタブ
+      setw -g window-status-style "fg=#506477,bg=default"
+      setw -g window-status-format " #I:#W "
+      setw -g window-status-current-style "fg=#addbff,bold,bg=#303340"
+      setw -g window-status-current-format " #I:#W "
+
+      # ペインボーダー
+      set -g pane-border-style "fg=#303340"
+      set -g pane-active-border-style "fg=#addbff"
     '';
   };
 }

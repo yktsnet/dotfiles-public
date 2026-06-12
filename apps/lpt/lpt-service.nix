@@ -18,8 +18,6 @@ in
   options.yktsnet.apps.lpt = {
     enable = lib.mkEnableOption "LPT Service Base";
     envTxtMaker = lib.mkEnableOption "Env Text Maker Timer";
-    systemdOverview = lib.mkEnableOption "Systemd Overview Timer";
-    zshChecker = lib.mkEnableOption "Zsh Test.nix Checker";
     resultHarvest = lib.mkEnableOption "Result Harvest Timer";
     dailyBackup = lib.mkEnableOption "Daily Backup Timer (14 days retention)";
   };
@@ -28,14 +26,7 @@ in
     home-manager.users.yktsnet.home.packages = [ pkgs.restic ];
 
     systemd.user.services = {
-      lpt-zsh-checker = lib.mkIf (cfg.enable && cfg.zshChecker) {
-        description = "LPT Zsh test.nix Checker Service";
-        serviceConfig = {
-          Type = "oneshot";
-          Environment = commonEnv;
-          ExecStart = "${pythonBin} ${appsDir}/core/zsh_checker.py";
-        };
-      };
+
 
       lpt-daily-backup = lib.mkIf (cfg.enable && cfg.dailyBackup) {
         description = "LPT Daily Backup Service (Internal SSD Buffer)";
@@ -61,7 +52,7 @@ in
       };
 
       lpt-result-harvest = lib.mkIf (cfg.enable && cfg.resultHarvest) {
-        description = "LPT Result Harvest Service (Pull from het)";
+        description = "LPT Result Harvest Service (Pull from linux-server-a)";
         path = [ pkgs.rsync pkgs.openssh ];
         serviceConfig = {
           Type = "oneshot";
@@ -70,27 +61,11 @@ in
         };
       };
 
-      lpt-systemd-overview = lib.mkIf (cfg.enable && cfg.systemdOverview) {
-        description = "LPT Systemd Overview Service";
-        serviceConfig = {
-          Type = "oneshot";
-          Environment = commonEnv;
-          ExecStart = "${pythonBin} ${appsDir}/core/systemd_overview.py";
-        };
-      };
+
     };
 
     systemd.user.timers = {
-      lpt-zsh-checker = lib.mkIf (cfg.enable && cfg.zshChecker) {
-        description = "Check Zsh syntax in test.nix every 20 seconds";
-        timerConfig = {
-          OnBootSec = "10sec";
-          OnCalendar = "*:*:0/20";
-          AccuracySec = "1sec";
-          Persistent = true;
-        };
-        wantedBy = [ "timers.target" ];
-      };
+
 
       lpt-env-txt-maker = lib.mkIf (cfg.enable && cfg.envTxtMaker) {
         description = "Run Env Txt Maker every 20 seconds";
@@ -123,15 +98,7 @@ in
         wantedBy = [ "timers.target" ];
       };
 
-      lpt-systemd-overview = lib.mkIf (cfg.enable && cfg.systemdOverview) {
-        description = "Timer for Systemd Overview";
-        timerConfig = {
-          OnBootSec = "1min";
-          OnUnitInactiveSec = "5min";
-          Persistent = true;
-        };
-        wantedBy = [ "timers.target" ];
-      };
+
     };
   };
 }

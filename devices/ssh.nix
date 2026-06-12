@@ -27,7 +27,7 @@
           ControlMaster = "no";
         };
       };
-      "het" = {
+      "linux-server-a" = {
         hostname = "<VPS_IP_ADDRESS>";
         user = "yktsnet";
         identityFile = "~/.ssh/id_ed25519";
