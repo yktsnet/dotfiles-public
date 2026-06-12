@@ -25,7 +25,7 @@ jobs:
       - name: Check Nix Flake
         env:
           NIXPKGS_ALLOW_UNFREE: 1
-        run: nix flake check
+        run: nix flake check --impure
 
   zsh-check:
     name: Zsh Script Syntax Check
