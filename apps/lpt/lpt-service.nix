@@ -28,7 +28,7 @@ in
     systemd.user.services = {
 
 
-      lpt-daily-backup = lib.mkIf (cfg.enable && cfg.dailyBackup) {
+      lpt-daily-backup = lib.mkIf cfg.dailyBackup {
         description = "LPT Daily Backup Service (Internal SSD Buffer)";
         path = [ pkgs.restic ];
         serviceConfig = {
@@ -42,7 +42,7 @@ in
         };
       };
 
-      lpt-env-txt-maker = lib.mkIf (cfg.enable && cfg.envTxtMaker) {
+      lpt-env-txt-maker = lib.mkIf cfg.envTxtMaker {
         description = "LPT Env Txt Maker Service";
         serviceConfig = {
           Type = "oneshot";
@@ -51,7 +51,7 @@ in
         };
       };
 
-      lpt-result-harvest = lib.mkIf (cfg.enable && cfg.resultHarvest) {
+      lpt-result-harvest = lib.mkIf cfg.resultHarvest {
         description = "LPT Result Harvest Service (Pull from linux-server-a)";
         path = [ pkgs.rsync pkgs.openssh ];
         serviceConfig = {
@@ -67,18 +67,18 @@ in
     systemd.user.timers = {
 
 
-      lpt-env-txt-maker = lib.mkIf (cfg.enable && cfg.envTxtMaker) {
-        description = "Run Env Txt Maker every 20 seconds";
+      lpt-env-txt-maker = lib.mkIf cfg.envTxtMaker {
+        description = "Run Env Txt Maker every 10 minutes";
         timerConfig = {
           OnBootSec = "10sec";
-          OnCalendar = "*:*:0/20";
+          OnCalendar = "*:0/10";
           AccuracySec = "1sec";
           Persistent = true;
         };
         wantedBy = [ "default.target" ];
       };
 
-      lpt-result-harvest = lib.mkIf (cfg.enable && cfg.resultHarvest) {
+      lpt-result-harvest = lib.mkIf cfg.resultHarvest {
         description = "Timer for Result Harvest every 1 minute";
         timerConfig = {
           OnBootSec = "1min";
@@ -88,7 +88,7 @@ in
         wantedBy = [ "timers.target" ];
       };
 
-      lpt-daily-backup = lib.mkIf (cfg.enable && cfg.dailyBackup) {
+      lpt-daily-backup = lib.mkIf cfg.dailyBackup {
         description = "Timer for 2x Daily Backup (02:00, 14:00 UTC)";
         timerConfig = {
           OnCalendar = "*-*-* 02,14:00:00";
