@@ -20,6 +20,7 @@ return {
           layout_config = {
             prompt_position = "top",
           },
+          winblend = 25,
         },
       })
       local ok, _ = pcall(telescope.load_extension, "fzf")
@@ -74,8 +75,7 @@ return {
         builtin.live_grep({ search_dirs = multi_root })
       end, { desc = "Live grep (multi-root)" })
 
-      vim.keymap.set("n", "<leader>gs", builtin.git_status, { desc = "Git status" })
-      vim.keymap.set("n", "<leader>b", builtin.buffers, { desc = "Buffers" })
     end,
   },
 }
+

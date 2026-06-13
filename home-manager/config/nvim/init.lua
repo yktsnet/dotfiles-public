@@ -28,11 +28,18 @@ require("lazy").setup({
   { import = "plugins.telescope" },
   { import = "plugins.yazi" },
   { import = "plugins.treesitter" },
+  { import = "plugins.markdown" },
+  { import = "plugins.oil" },
+  { import = "plugins.toggleterm" },
+  { import = "plugins.which-key" },
+  { import = "plugins.comment" },
+  { import = "plugins.aerial" },
   { import = "plugins.lsp" },
   { import = "plugins.format" },
   { import = "plugins.lualine" },
   { import = "plugins.lazygit" },
   { import = "plugins.gitsigns" },
+  { import = "plugins.auto-session" },
 }, {
   lockfile = lockfile,
 })

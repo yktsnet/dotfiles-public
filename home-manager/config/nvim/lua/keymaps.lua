@@ -1,12 +1,7 @@
 local map = vim.keymap.set
--- ウィンドウ間移動
-map("n", "<C-h>", "<C-w>h")
-map("n", "<C-j>", "<C-w>j")
-map("n", "<C-k>", "<C-w>k")
-map("n", "<C-l>", "<C-w>l")
 -- パスコピー（Rangerの p / P に対応）
 map("n", "<leader>p", function()
-  vim.fn.setreg("+", vim.fn.expand("%"))
+  vim.fn.setreg("+", vim.fn.expand("%:."))
 end, { desc = "Copy relative path" })
 map("n", "<leader>P", function()
   vim.fn.setreg("+", vim.fn.expand("%:p"))
