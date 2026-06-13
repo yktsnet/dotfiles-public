@@ -8,3 +8,6 @@ Status:children_remove(6, Status.RIGHT)
 
 -- Load and setup git-branch plugin
 require("git-branch"):setup()
+
+-- Load and setup fg plugin to open directly in nvim without prompt menu
+require("fg"):setup({ default_action = "nvim" })

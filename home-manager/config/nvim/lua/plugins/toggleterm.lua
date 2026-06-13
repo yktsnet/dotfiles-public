@@ -11,6 +11,9 @@ return {
         end
         return vim.fn.getcwd()
       end,
+      float_opts = {
+        winblend = 25, -- 75%の不透明度 (25%の透明度)
+      },
     },
     config = function(_, opts)
       require("toggleterm").setup(opts)
