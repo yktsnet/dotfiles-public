@@ -43,6 +43,28 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   end,
 })
 
+-- 最後に開いていたファイルを自動的に開く（引数なしで起動した場合のみ）
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    if vim.fn.argc() == 0 then
+      for _, file in ipairs(vim.v.oldfiles) do
+        if vim.fn.filereadable(file) == 1 then
+          local lower_file = file:lower()
+          -- 除外したい一時ファイルや特殊ファイルをフィルタリング
+          if not lower_file:match("commit_editmsg") and
+             not lower_file:match("git%-rebase%-todo") and
+             not lower_file:match("/tmp/") and
+             not lower_file:match("/private/tmp/") and
+             not lower_file:match("%.git/") then
+            vim.cmd("edit " .. vim.fn.fnameescape(file))
+            break
+          end
+        end
+      end
+    end
+  end,
+})
+
 -- 再起動時に最後にカーソルがあった位置に戻る
 vim.api.nvim_create_autocmd("BufReadPost", {
   callback = function()

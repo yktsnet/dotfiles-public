@@ -6,7 +6,7 @@ return {
     opts = {
       ensure_installed = {
         "lua", "python", "javascript", "typescript",
-        "go", "php", "nix", "markdown", "toml", "yaml", "bash", "zsh",
+        "go", "php", "nix", "markdown", "markdown_inline", "toml", "yaml", "bash", "zsh",
       },
       highlight = { enable = true },
     },

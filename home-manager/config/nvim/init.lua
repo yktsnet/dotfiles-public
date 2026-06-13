@@ -39,7 +39,6 @@ require("lazy").setup({
   { import = "plugins.lualine" },
   { import = "plugins.lazygit" },
   { import = "plugins.gitsigns" },
-  { import = "plugins.auto-session" },
 }, {
   lockfile = lockfile,
 })
