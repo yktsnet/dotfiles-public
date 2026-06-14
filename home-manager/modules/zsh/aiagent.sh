@@ -1,10 +1,4 @@
-_aiagent_apps_dir() {
-  if [[ "$1" == "public" ]]; then
-    echo "$HOME/github-public"
-  else
-    echo "$HOME/dotfiles/apps"
-  fi
-}
+
 
 _aiagent_branch_prefix() {
   echo "$1"
@@ -313,6 +307,9 @@ _aiagent_run() {
   echo
   (( _ans2 == 0 )) || return 0
 
+  # 作成してチェックアウト
+  git checkout -b "$branch_name" || return 1
+
   claude --model sonnet --system-prompt \
     "You are the Builder. Implement based on the Issue file. Create a PR when done. Do NOT design new Issues or modify issue files." \
     "/pr-workflow $issue_file"
@@ -341,31 +338,4 @@ issue-finish() {
   _aiagent_finish "$@"
 }
 
-issue-answer() {
-  emulate -L zsh
-  local pre_issues_dir="$HOME/dotfiles/apps/cleaner/issues/pre-issues"
 
-  local selected
-  selected=$(grep -rl '^status: pending' "$pre_issues_dir"/*.md(N) 2>/dev/null \
-    | fzf --prompt="Select pre-issue to answer: " --preview='cat {}') || return 0
-
-  [[ -z "$selected" ]] && return 0
-
-  sed -i '' "s/^status: pending$/status: answered/" "$selected"
-
-  pushd "$HOME/dotfiles" > /dev/null || return 1
-  git add "$selected"
-  git commit -m "chore(cleaner): answer $(basename "$selected")"
-  popd > /dev/null
-
-  echo "Answered: $(basename "$selected")"
-}
-
-issue-pull() {
-  rsync -avz sv6:~/dotfiles/apps/cleaner/issues/pre-issues/ \
-    "$HOME/dotfiles/apps/cleaner/issues/pre-issues/"
-  local pending=$(grep -rl '^status: pending' \
-    "$HOME/dotfiles/apps/cleaner/issues/pre-issues/"*.md(N) 2>/dev/null \
-    | grep -v '00_template.md')
-  [[ -n "$pending" ]] && echo "New pre-issues:" && echo "$pending" | xargs -n1 basename
-}

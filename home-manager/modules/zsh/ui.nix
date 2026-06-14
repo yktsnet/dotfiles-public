@@ -2,11 +2,7 @@
 
 let
   host = osConfig.networking.hostName;
-  hostColor =
-    if host == "linux-laptop" then "#c792ea"
-    else if host == "linux-server-a" then "#5de4c7"
-    else if host == "pi2" then "#addb67"
-    else "DYNAMIC";
+  hostColor = "DYNAMIC";
 in
 {
   programs.zsh = {

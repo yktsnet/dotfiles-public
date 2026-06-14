@@ -28,7 +28,7 @@ list() {
 
   # 汎用的な除外ディレクトリ定義
   local -a dir_ignores=(
-    ".git" "node_modules" "__pycache__" "result" ".direnv" "txt-maker"
+    ".git" "node_modules" "__pycache__" "result" ".direnv"
     "bin" "obj" ".idea" ".vscode" ".venv" "venv" "dist" "build" "out" ".next"
   )
 
@@ -61,9 +61,7 @@ list() {
   echo "$target"
 
   # -maxdepth に指定階層数を適用
-  find "$target" -maxdepth "$max_depth" "${find_args[@]}" \
-    \( -type d -name "strategies" -print -prune \) -o \
-    -print | sort | while IFS= read -r l; do
+  find "$target" -maxdepth "$max_depth" "${find_args[@]}" -print | sort | while IFS= read -r l; do
       [[ "$l" == "$target" ]] && continue
 
       r_path=$(echo "$l" | sed "s|^$target/||; s|^\./||")
@@ -71,10 +69,7 @@ list() {
       b_name=$(basename "$l")
       indent=$(printf '%*s' $((d_count * 2)) "")
 
-      if [[ "$b_name" == "strategies" && -d "$l" ]]; then
-        count=$(find "$l" -maxdepth 1 -type f | wc -l)
-        printf "%s└── %s/ (%d items)\n" "$indent" "$b_name" "$count"
-      elif [[ -d "$l" && $((d_count + 1)) -eq "$max_depth" ]]; then
+      if [[ -d "$l" && $((d_count + 1)) -eq "$max_depth" ]]; then
         # 指定の最大階層に達したディレクトリのみ、配下の総アイテム数をカウント（除外条件を適用）
         count=$(find "$l" -mindepth 1 "${find_args[@]}" -print 2>/dev/null | wc -l)
         if (( count > 0 )); then
@@ -89,26 +84,31 @@ list() {
 }
 
 fzf_locate() {
+  local search_paths=(${*:-.})
   local target
-  target=$(fd --type f --hidden --exclude .git . ~/Documents ~/dotfiles ~/Downloads ~/github-public ~/projects | fzf --exact --height 70% --reverse --preview 'bat --color=always --style=numbers --line-range=:500 {}')
-  [[ -n "$target" ]] && hx "$target"
+  target=$(fd --type f --hidden --exclude .git . "${search_paths[@]}" | fzf --exact --height 70% --reverse --preview 'bat --color=always --style=numbers --line-range=:500 {}')
+  [[ -n "$target" ]] && "${EDITOR:-${VISUAL:-nvim}}" "$target"
 }
 
 fzf_grep() {
+  local search_paths=(${*:-.})
   local out file line
-  out=$(rg --column --line-number --no-heading --color=always --smart-case . ~/Documents ~/dotfiles ~/Downloads ~/github-public ~/projects | fzf --exact --ansi --delimiter : --nth 4.. --height 70% --reverse --preview 'bat --color=always --style=numbers --highlight-line {2} --line-range={2}:+50 {1}')
+  out=$(rg --column --line-number --no-heading --color=always --smart-case . "${search_paths[@]}" | fzf --exact --ansi --delimiter : --nth 4.. --height 70% --reverse --preview 'bat --color=always --style=numbers --highlight-line {2} --line-range={2}:+50 {1}')
   if [[ -n "$out" ]]; then
     file=$(echo "$out" | cut -d: -f1)
     line=$(echo "$out" | cut -d: -f2)
-    hx "$file" +"$line"
+    "${EDITOR:-${VISUAL:-nvim}}" "$file" +"$line"
   fi
 }
 
 fzf_git_diff() {
-  local dotfiles_path="$HOME/dotfiles"
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  [[ -z "$repo_root" ]] && { echo "Not a git repository" >&2; return 1; }
+
   local target
-  target=$((git -C "$dotfiles_path" ls-files --others --modified --exclude-standard && git -C "$dotfiles_path" diff --name-only @{u}...HEAD) | sort -u | fzf --exact --height 70% --reverse --preview "bat --color=always --style=numbers $dotfiles_path/{}")
-  [[ -n "$target" ]] && hx "$dotfiles_path/$target"
+  target=$((git -C "$repo_root" ls-files --others --modified --exclude-standard && git -C "$repo_root" diff --name-only @{u}...HEAD 2>/dev/null) | sort -u | fzf --exact --height 70% --reverse --preview "bat --color=always --style=numbers $repo_root/{}")
+  [[ -n "$target" ]] && "${EDITOR:-${VISUAL:-nvim}}" "$repo_root/$target"
 }
 
 _silent_goto() {
@@ -135,25 +135,19 @@ ssh() {
     return
   fi
 
-  local nix_file="$HOME/dotfiles/devices/ssh.nix"
-  if [[ ! -f "$nix_file" ]]; then
-    echo "Error: $nix_file not found" >&2
+  local ssh_config="$HOME/.ssh/config"
+  if [[ ! -f "$ssh_config" ]]; then
+    echo "Error: $ssh_config not found" >&2
     return 1
   fi
 
-  # 行頭スペースの後にダブルクォーテーションで囲まれたキーがあり、その後に "=" が続く行だけを抽出
   local target
-  target=$(grep -E '^[[:space:]]+"[^"]+"[[:space:]]*=' "$nix_file" | \
-           sed -E 's/^[[:space:]]+"([^"]+)".*/\1/' | \
-           grep -vE '^(\*|github\.com)$' | \
+  target=$(grep -iE '^Host[[:space:]]+' "$ssh_config" | \
+           awk '{print $2}' | \
+           grep -vE '[*?]' | \
            fzf --height 40% --reverse --prompt="SSH Connect: ")
 
   if [[ -n "$target" ]]; then
     command ssh "$target"
   fi
-}
-wsl() {
-  ssh -O exit wsl-ubuntu 2>/dev/null
-  lsof -ti:5173 -ti:8090 | xargs kill -9 2>/dev/null
-  ssh wsl-ubuntu
 }
