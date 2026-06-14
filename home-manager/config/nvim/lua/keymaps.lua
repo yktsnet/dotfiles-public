@@ -42,8 +42,6 @@ keymap("n", "+", "<C-a>")
 -- 単語を後方から選択して削除（ヤンクレジスタを汚さない）
 keymap("n", "dw", 'vb"_d')
 
--- 全選択
-keymap("n", "<C-a>", "gg<S-v>G")
 
 -- 改行追加時にインデントゴミを残さない
 keymap("n", "<Leader>o", "o<Esc>^Da", opts)
