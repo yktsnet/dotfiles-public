@@ -26,6 +26,7 @@ end
 require("lazy").setup({
   { import = "plugins.colorscheme" },
   { import = "plugins.telescope" },
+  { import = "plugins.tmux" },
   { import = "plugins.yazi" },
   { import = "plugins.treesitter" },
   { import = "plugins.markdown" },

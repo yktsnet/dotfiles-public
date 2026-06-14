@@ -48,17 +48,19 @@ return {
               file_status = true,
               path = 1, -- ファイルの相対パスを表示して場所をわかりやすくする
             },
-          },
-          lualine_x = {
             {
-              "diagnostics", -- エラー/警告数を表示（LSPの健康状態がわかる）
+              "diagnostics", -- エラー/警告数（LSP）を左側に配置
               sources = { "nvim_diagnostic" },
               symbols = { error = " ", warn = " ", info = " ", hint = " " },
             },
-            "filetype", -- ファイル形式（拡張子アイコン）
+            {
+              "aerial", -- 現在カーソルがある関数名・クラス名を表示
+              sep = " > ",
+            },
           },
-          lualine_y = {}, -- utf8 や linuxアイコン(unix) などの不要な情報を排除
-          lualine_z = { "location" }, -- 現在の行数:列数のみ表示
+          lualine_x = {}, -- 右側は完全に非表示にしてミニマルにする
+          lualine_y = {},
+          lualine_z = {},
         },
       })
     end,

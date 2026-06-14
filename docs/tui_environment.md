@@ -42,6 +42,7 @@
   - `Space` を押してしばらく待つと、入力可能なキー操作の一覧が画面下部にポップアップ表示されます。
 
 #### 🐙 Git & ターミナル (Git & Terminal)
+* **シームレスな境界移動 ([vim-tmux-navigator](https://github.com/christoomey/vim-tmux-navigator))**: Neovimのウィンドウ分割とTmuxのペインをシームレスに行き来。
 * **LazyGit 連携 ([lazygit.nvim](https://github.com/kdheepak/lazygit.nvim))**:
   * `<leader>lg` で Git UI である LazyGit をフローティング窓で起動。Nvim の中でコミットからプッシュまで完結します。
 * **差分表示 ([gitsigns.nvim](https://github.com/lewis6991/gitsigns.nvim))**: 変更箇所の差分を行番号の左隣にカラーマーカーでリアルタイム表示。
@@ -91,6 +92,14 @@
 | `<Esc><Esc>` | Terminal | ターミナルモードを抜けて**ノーマルモード**に入る |
 | `<leader>lg` (`Space lg`) | Normal | LazyGit をフローティング窓で起動/閉じる |
 
+#### ウィンドウ・ペイン操作 (Window & Pane Navigation)
+| キーマップ | モード | 役割 |
+|---|---|---|
+| `Alt + 矢印キー` | Normal | Neovimの分割ウィンドウ、または隣のTmuxペインへシームレス移動 |
+| `Alt + /` | Normal | Neovimのウィンドウ、またはTmuxのペインを縦に分割（左右分割） |
+| `Alt + -` | Normal | Neovimのウィンドウ、またはTmuxのペインを横に分割（上下分割） |
+| `Alt + x` | Normal | Neovimのウィンドウ、またはTmuxのペインを閉じる |
+
 #### 編集・その他 (Editing & Others)
 | キーマップ | モード | 役割 |
 |---|---|---|
@@ -118,8 +127,9 @@
 リモートサーバーやローカル開発機をシームレスに繋ぐマルチプレクサ設定。
 
 * **Prefix-less ペイン・ウィンドウ操作**:
-  * `Alt` + `矢印キー (または j/k)` のみで瞬時にペイン間をフォーカス移動
-  * `Alt` + `/` / `Alt` + `-` で現在のペインカレントパスを引き継いで縦横にウィンドウを分割
+  * `Alt` + `矢印キー` のみで瞬時にペイン間（Neovimの分割ウィンドウ含む）をフォーカス移動
+  * `Alt` + `/` / `Alt` + `-` で縦横に画面分割（Neovim内ではVimの分割ウィンドウ、Tmux側ではTmuxのペイン分割）
+  * `Alt` + `x` で現在のアクティブウィンドウ/ペインを閉じる（Neovim内ではVim分割を閉じ、Tmux側ではペインをクローズ）
   * `Alt` + `t` でカレントパスを維持したまま新しいウィンドウを作成
   * `Alt` + `J` / `Alt` + `K` でウィンドウ間を瞬時に切り替え
 * **OSC 52 透過型クリップボード同期**:

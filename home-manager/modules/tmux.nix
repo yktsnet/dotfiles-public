@@ -30,15 +30,17 @@
       # ------------------------------------------
       # Prefix-less Shortcuts (Alt + Key Only)
       # ------------------------------------------
-      # ペイン操作 (矢印キーでの移動も残します)
-      bind-key -n M-Left select-pane -L
-      bind-key -n M-Right select-pane -R
-      bind-key -n M-Up select-pane -U
-      bind-key -n M-Down select-pane -D
-
-      bind-key -n M-/ split-window -h -c "#{pane_current_path}"
-      bind-key -n M-- split-window -v -c "#{pane_current_path}"
-      bind-key -n M-x kill-pane
+      # vim-tmux-navigator integration
+      is_vim="ps -o state= -o comm= -t '#{pane_tty}' \
+          | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|l?n?vim?x?)(diff)?$'"
+      bind-key -n M-Left if-shell "$is_vim" "send-keys M-Left" "select-pane -L"
+      bind-key -n M-Down if-shell "$is_vim" "send-keys M-Down" "select-pane -D"
+      bind-key -n M-Up if-shell "$is_vim" "send-keys M-Up" "select-pane -U"
+      bind-key -n M-Right if-shell "$is_vim" "send-keys M-Right" "select-pane -R"
+ 
+      bind-key -n M-/ if-shell "$is_vim" "send-keys M-/" "split-window -h -c '#{pane_current_path}'"
+      bind-key -n M-- if-shell "$is_vim" "send-keys M--" "split-window -v -c '#{pane_current_path}'"
+      bind-key -n M-x if-shell "$is_vim" "send-keys M-x" "kill-pane"
       bind-key -n M-j select-pane -t :.+
       bind-key -n M-k select-pane -t :.-
 
