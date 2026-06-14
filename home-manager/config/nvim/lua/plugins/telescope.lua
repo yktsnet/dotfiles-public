@@ -51,6 +51,10 @@ return {
         return root
       end
 
+      -- ============================================================
+      -- プロジェクトルート検索（ykts 独自）
+      -- ============================================================
+
       vim.keymap.set("n", "<leader>f", function()
         local root = get_project_root()
         builtin.find_files({
@@ -75,7 +79,50 @@ return {
         builtin.live_grep({ search_dirs = multi_root })
       end, { desc = "Live grep (multi-root)" })
 
+      -- ============================================================
+      -- craftzdog 流クイックアクセス（; プレフィックス）
+      -- ============================================================
+
+      -- ;f : カレントディレクトリのファイル検索（hidden 含む）
+      vim.keymap.set("n", ";f", function()
+        builtin.find_files({ no_ignore = false, hidden = true })
+      end, { desc = "Find files (cwd, hidden)" })
+
+      -- ;r : カレントディレクトリ全文検索（hidden 含む）
+      vim.keymap.set("n", ";r", function()
+        builtin.live_grep({ additional_args = { "--hidden" } })
+      end, { desc = "Live grep (cwd, hidden)" })
+
+      -- \\ : 開いているバッファ一覧
+      vim.keymap.set("n", "\\\\", function()
+        builtin.buffers()
+      end, { desc = "Buffers" })
+
+      -- ;; : 前回の Telescope ピッカーを再開
+      vim.keymap.set("n", ";;", function()
+        builtin.resume()
+      end, { desc = "Resume telescope" })
+
+      -- ;e : Diagnostics 一覧（ivy テーマ）
+      vim.keymap.set("n", ";e", function()
+        builtin.diagnostics()
+      end, { desc = "Diagnostics" })
+
+      -- ;s : Treesitter シンボル（関数・変数など）
+      vim.keymap.set("n", ";s", function()
+        builtin.treesitter()
+      end, { desc = "Treesitter symbols" })
+
+      -- ;c : LSP incoming calls（関数の呼び出し元一覧）
+      vim.keymap.set("n", ";c", function()
+        builtin.lsp_incoming_calls()
+      end, { desc = "LSP incoming calls" })
+
+      -- ;t : help タグ検索
+      vim.keymap.set("n", ";t", function()
+        builtin.help_tags()
+      end, { desc = "Help tags" })
+
     end,
   },
 }
-

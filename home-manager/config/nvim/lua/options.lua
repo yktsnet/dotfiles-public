@@ -8,8 +8,29 @@ vim.opt.termguicolors = true
 vim.opt.undofile = true
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
-vim.opt.wrap = true
-vim.opt.scrolloff = 8
+vim.opt.wrap = true -- Wrap lines
+vim.opt.scrolloff = 10
+
+-- Undercurl support
+vim.cmd([[let &t_Cs = "\e[4:3m"]])
+vim.cmd([[let &t_Ce = "\e[4:0m"]])
+
+-- インクリメンタル置換プレビューを別スプリットで表示
+vim.opt.inccommand = "split"
+
+-- ウィンドウ分割時にカーソル行を固定
+vim.opt.splitkeep = "cursor"
+
+-- /tmp のバックアップ無効
+vim.opt.backupskip = { "/tmp/*", "/private/tmp/*" }
+
+-- ブロックコメント中の * 自動挿入
+vim.opt.formatoptions:append({ "r" })
+
+-- nvim 0.8+ ではコマンド未入力時にコマンドラインを非表示
+if vim.fn.has("nvim-0.8") == 1 then
+  vim.opt.cmdheight = 0
+end
 
 -- Save last visited directory to a file on exit for shell auto-cd
 local last_valid_dir = vim.fn.getcwd()

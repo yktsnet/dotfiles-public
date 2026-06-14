@@ -16,11 +16,13 @@ return {
       local capabilities = require("cmp_nvim_lsp").default_capabilities()
       local on_attach = function(_, bufnr)
         local opts = { buffer = bufnr }
-        vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
+        vim.keymap.set("n", "gd", function()
+          require("telescope.builtin").lsp_definitions({ reuse_win = false })
+        end, opts)
         vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
-        vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
+        -- <leader>rn は inc-rename.nvim が担当（plugins/editor.lua）
         vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-        vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts)
+        -- <leader>di : 診断フローティング（keymaps.lua で設定済み）
       end
       require("mason-lspconfig").setup({
         ensure_installed = {},

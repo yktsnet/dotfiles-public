@@ -40,6 +40,10 @@ require("lazy").setup({
   { import = "plugins.lualine" },
   { import = "plugins.lazygit" },
   { import = "plugins.gitsigns" },
+  { import = "plugins.editor" },   -- nvim-highlight-colors, close-buffers, inc-rename
+  { import = "plugins.ui" },       -- noice, incline, zen-mode
+  { import = "plugins.coding" },   -- dial.nvim
 }, {
   lockfile = lockfile,
 })
+
