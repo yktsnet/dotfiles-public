@@ -11,6 +11,9 @@ result-*
 __pycache__/
 *.pyc
 
+# 非公開ドキュメント
+docs-agents/sv6-hosting.md
+
 # エディタ一時ファイル
 .vscode/
 .idea/
