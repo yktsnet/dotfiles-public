@@ -1,9 +1,8 @@
 # README Guide
 
-公開リポの README 作成ガイド。新規リポの README を書くとき、構成と書き方をここから決める。
-デプロイの詳細は `cicd-guide.md`、検証手段は `harness-guide.md` にあるため、README では重複させない。
+公開リポの README 作成ガイド。実装完了後に README を書くにあたっての、構成と書き方のルール。
 
-設計意図は2点。**まず動かせるようにし、次に何をしているか説明する**。**判断の根拠を公開する**（なぜその技術・構成を選んだかを README 上で可視化する）。
+開発中に JUDGE.md へ記録した技術選定の判断根拠を README に統合し、「何を使っているか」だけでなく「なぜその選択をしたか」まで可視化する。
 
 ---
 
@@ -12,7 +11,6 @@
 - 見出し H1〜H3 は英語
 - 本文・H4 以降・表の中身は日本語
 
-英語見出しで構造を国際的に読ませ、本文は日本語で精度を保つ。
 
 ---
 
@@ -29,7 +27,7 @@
 | **Tech Stack** | 表形式。技術名だけでなく選定理由を添える（後述の JUDGE.md 統合） | ○ |
 | **Design Decisions** | JUDGE.md から統合した選定根拠。Why を書く | ○ |
 | **Scope** | Focus（何に特化）と Out-of-Scope（何をやらないか）を明示 | ○ |
-| **Deploy** | デプロイ方式の概要のみ。「`cicd-guide.md` の compose 型に従う」程度で十分。Secrets 一覧・sudoers・systemd 等の手順は README に書かない | 公開アプリのみ |
+| **Deploy** | デプロイ方式・Secrets 一覧・初回セットアップ手順 | 公開アプリのみ |
 | **Development** | ローカル開発手順・テスト実行・型チェック等のコマンド一覧 | ○ |
 | **Directory Structure** | ツリー形式。主要ファイルにコメント | 任意 |
 
@@ -99,19 +97,3 @@ docker compose up -d --build
 
 画像を使う場合は `src/` や `docs/` に置き、相対パスで参照する。外部ホスティング（imgur 等）に依存しない。
 
----
-
-## 5. Deploy セクションの書き方
-
-README にはデプロイ方式の概要と、デモ URL があればそれだけを書く。
-
-```markdown
-## Deploy
-
-**Demo:** https://{subdomain}.{domain}
-
-main ブランチへの push で GitHub Actions が自動デプロイ（`cicd-guide.md` compose 型）。
-Cloudflare Tunnel 経由で公開。
-```
-
-Secrets 一覧・初回セットアップ手順・サーバー側設定は `cicd-guide.md` と運用ドキュメントの責務。README に重複させない。
