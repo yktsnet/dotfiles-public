@@ -2,6 +2,12 @@
 
 Issue 駆動ワークフロー（[docs-agents/issue-driven-workflow.md](../docs-agents/issue-driven-workflow.md)）を支えるシェル関数群と、その配線。
 
+## 設計意図
+
+ノードごとに役割が異なり（Mac=開発 / Linux サーバ=運用）、その役割は概ね OS に紐づく。
+そのため共通操作は `functions/` に集約し、役割固有の差分だけを OS 別エントリ
+（`darwin.nix` / `nixos.nix`）で分岐させている。
+
 ## 構成
 
 | パス | 内容 |
