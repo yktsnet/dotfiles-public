@@ -87,6 +87,10 @@ draft  →（設計完了）→  open  →（issue-finish）→  close
 
 元のIssueを再open、または同一Agentセッションへの追記プロンプト送信は禁止。記録保持のため常にIssueファイルを起点とする。
 
+### 情報セキュリティ
+
+- 公開リポジトリでは、本番環境のIP、固有ポート、実ホスト名（例：`production-server`）などの具体的な接続情報はIssueファイルに直接記述せず、`~/dotfiles/secrets-agents/` のファイルを参照するよう記述する。
+
 ---
 
 ## シェル関数

@@ -68,6 +68,9 @@ PR の `## 検証手順` には Agent 側で完結しない確認（デプロイ
 
 push 系は deny が優先されるため `Bash(git *)` allow と両立する。
 
+> [!NOTE]
+> 外部のプライベート情報を読み込ませる場合は、`.claude/settings.json` の `permissions` に `read_file: ["/Users/ykts/dotfiles/secrets-agents/"]` を設定します。
+
 ### allow（類型別）
 
 | 類型 | 追加 allow |
@@ -110,7 +113,7 @@ Agent が読む指示を役割で分ける。
 ```
 
 **書くもの**: コマンド、構造の要点、検証手段。
-**書かないもの**: 禁止・強制（→ settings.json の deny）、attribution（→ settings.json）、長大な仕様（→ context/ または `.claude/rules/`）。
+**書かないもの**: 禁止・強制（→ settings.json の deny）、attribution（→ settings.json）、長大な仕様、公開を避けるべきインフラ設定・秘密情報（→ `~/dotfiles/secrets-agents/` のファイルを参照する指示のみを書く）。
 
 ### context/
 
