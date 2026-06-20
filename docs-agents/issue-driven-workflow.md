@@ -105,11 +105,13 @@ draft  →（設計完了）→  open  →（issue-finish）→  close
 
 ### `issue` or `jules`
 
-対象Issueを選択し、Agentを起動。
+対象Issueを選択し、ローカルとリモートを同期したうえでAgentを起動。Issueはローカルファイル（`issues/`）と GitHub Issue の両方で管理する。
 
 1. `status: open` のIssueを `fzf` で選択（プレビュー表示）。
-2. 未コミット変更がある場合、`git stash` を確認。
-3. Agentごとの分岐：
+2. 未コミット変更がある場合、`git stash` を確認。Issueファイルの更新は `main` へコミット。
+3. リモートと同期（`git pull --rebase`、必要なら `push`）。
+4. `github_issue:` が空なら GitHub Issue を自動作成し、付与された番号をIssueファイルへ書き戻してコミット・Push（紐付け済みならスキップ）。
+5. Agentごとの分岐：
    - **Code**: ローカルブランチ `{agent}/{id}-{slug}` を作成・チェックアウト。`claude` コマンドでタスク投入。
    - **Jules**: ローカルブランチは作らず、`jules new` でIssue内容を直接クラウドセッションへ投入。
 
@@ -131,4 +133,5 @@ PRマージ、ブランチ後片付け、Issueクローズを一括実行。
 4. Agentごとの分岐：
    - **Code**: マージ済みのローカル・リモートブランチ（`claude/*`）を一括削除。
    - **Jules**: ローカルブランチが存在しないため、ブランチ削除処理をスキップ。
-5. 対象のローカルIssueファイルを `status: close` に更新し、`main` へコミット・Push。
+5. 対象Issueに紐付く GitHub Issue を `gh issue close` でクローズ。
+6. ローカルIssueファイルを `status: close` に更新し、`main` へコミット・Push。
