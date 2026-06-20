@@ -56,9 +56,9 @@ vim.api.nvim_create_autocmd("VimLeave", {
   end,
 })
 
--- Force zsh filetype for scripts under zsh/neo/ to enable Aerial and Treesitter
+-- Force zsh filetype for scripts under zsh/functions/ to enable Aerial and Treesitter
 vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
-  pattern = "*/zsh/neo/*.sh",
+  pattern = "*/zsh/functions/*.sh",
   callback = function()
     vim.bo.filetype = "zsh"
   end,

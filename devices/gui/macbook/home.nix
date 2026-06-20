@@ -4,7 +4,7 @@
     ../../../home-manager/modules/btop.nix
     ../../../home-manager/modules/tmux.nix
     ../../ssh.nix
-    ../../../home-manager/modules/zsh/ui.nix
+    ../../../zsh/darwin.nix
     ../../../home-manager/modules/glow.nix
     ../../../home-manager/modules/vscode.nix
     ../../../home-manager/modules/alacritty.nix
@@ -19,7 +19,6 @@
     enable = lib.mkForce true;
     dotDir = "${config.xdg.configHome}/zsh";
     initContent = lib.mkBefore ''
-      fpath+=("${pkgs.pure-prompt}/share/zsh/site-functions")
       export PATH="$HOME/.local/bin:/etc/profiles/per-user/ykts/bin:/run/current-system/sw/bin:$PATH"
     '';
   };
