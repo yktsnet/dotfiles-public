@@ -95,6 +95,9 @@ draft  →（設計完了）→  open  →（issue-finish）→  close
 
 ## シェル関数
 
+実装は [`zsh/functions/`](../zsh/functions/) に集約し、Mac は `zsh/darwin.nix`、x86 / NixOS は
+`zsh/nixos.nix` から読み込む（構成は [`zsh/README.md`](../zsh/README.md)）。
+
 ### `issue-init` or `jules-init`
 
 カレントディレクトリ（単一リポジトリ）の開発環境を初期化。

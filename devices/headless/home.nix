@@ -4,7 +4,7 @@
   imports = [
     ../../home-manager/modules/git.nix
     ../../home-manager/modules/btop.nix
-    ../../home-manager/modules/zsh/ui.nix
+    ../../zsh/nixos.nix
     ../../home-manager/modules/fonts.nix
     ../../home-manager/modules/tmux.nix
     ../ssh.nix

@@ -6,7 +6,7 @@
     ../../home-manager/modules/tmux.nix
     ../ssh.nix
     ../../home-manager/modules/alacritty.nix
-    ../../home-manager/modules/zsh/ui.nix
+    ../../zsh/nixos.nix
     ../../home-manager/modules/glow.nix
     ../../home-manager/modules/fonts.nix
     ../../home-manager/modules/vscode.nix
