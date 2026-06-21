@@ -4,8 +4,9 @@ result-*
 .direnv/
 
 # AIエージェント (Claude / Jules)
-.claude/
-!.claude/skills/
+# 公開リポのため harness（settings.json / skills / CLAUDE.md / context / issues）は追跡する。
+# 個人ローカル上書きのみ無視。
+.claude/settings.local.json
 
 # Python
 __pycache__/

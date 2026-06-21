@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(gh pr *)",
+      "Bash(nix flake check *)",
+      "Bash(nix flake check)",
+      "Bash(nix fmt *)",
+      "Bash(nix eval *)",
+      "Bash(zsh -n *)"
+    ],
+    "deny": [
+      "Bash(git push origin main*)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(nixos-rebuild *)",
+      "Bash(darwin-rebuild *)",
+      "Bash(home-manager switch *)",
+      "Bash(nh *)",
+      "Bash(nix flake update *)",
+      "Edit(flake.lock)",
+      "Edit(secrets-agents/**)",
+      "Read(secrets-agents/**)",
+      "Bash(ssh *)",
+      "Bash(rsync *)"
+    ]
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  }
+}
