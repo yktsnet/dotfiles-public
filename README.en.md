@@ -78,6 +78,8 @@ The following shell macros integrated into Zsh enable seamless keyboard-driven p
   Interrupts the current agent task, clears in-progress edits, and safely returns to the main branch.
 * **`issue-finish` / `jules-finish`** (PR merge and close):
   Searches and selects the created PR via `gh`, automatically merges it into the main branch. Cleans up local and remote work branches, rewrites the target local Issue file to `status: close`, and automatically pushes to the main branch.
+* **`skill`** (Claude Code Skill launcher):
+  Lists manual-execution skills (those with `manual: true` in SKILL.md frontmatter) under `.claude/skills/` via `fzf` with preview, and launches the selected skill with `claude /{skill-name}`.
 
 ---
 

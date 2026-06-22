@@ -2,6 +2,7 @@
 name: pr-workflow
 description: Issue駆動開発における実装・検証・PR作成の標準フロー
 disable-model-invocation: true
+manual: true
 ---
 以下の手順で割り当てられたIssueを実行する。
 前提: Agentはコード編集とPR作成までを担当。実適用（rebuild / switch）・動作確認・マージはuserが行う。

@@ -34,6 +34,7 @@
       ${builtins.readFile ./functions/utils.sh}
       ${builtins.readFile ./functions/git.sh}
       ${builtins.readFile ./functions/aiagent.sh}
+      ${builtins.readFile ./functions/claude.sh}
       ${builtins.readFile ./functions/jules.sh}
     '';
   };
