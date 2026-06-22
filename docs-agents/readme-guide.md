@@ -1,3 +1,5 @@
+[🇯🇵 日本語](readme-guide.md) | [🇬🇧 English](readme-guide.en.md)
+
 # README Guide
 
 公開リポの README 作成ガイド。実装完了後に README を書くにあたっての、構成と書き方のルール。

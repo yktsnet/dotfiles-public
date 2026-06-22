@@ -1,3 +1,5 @@
+[🇯🇵 日本語](issue-driven-workflow.md) | [🇬🇧 English](issue-driven-workflow.en.md)
+
 # Issue-Driven Development Workflow
 
 AI Agent（Claude Code / Jules）を活用したIssue起点の開発フロー。  

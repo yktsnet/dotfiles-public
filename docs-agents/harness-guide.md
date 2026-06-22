@@ -1,3 +1,5 @@
+[🇯🇵 日本語](harness-guide.md) | [🇬🇧 English](harness-guide.en.md)
+
 # Harness Guide
 
 リポごとの `.claude/` 構成・指示ファイル・検証手段の設計ガイド。

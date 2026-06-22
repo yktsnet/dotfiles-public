@@ -1,3 +1,5 @@
+[🇯🇵 日本語](cicd-guide.md) | [🇬🇧 English](cicd-guide.en.md)
+
 # CI/CD Guide
 
 リポの CI/CD 設計ガイド。新規リポを作るとき、検証とデプロイの経路をここから決める。
