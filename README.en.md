@@ -4,14 +4,14 @@
 
 [![CI](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml/badge.svg)](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml)
 
-An Issue-Driven declarative development workspace for collaborative development with AI coding agents (Claude Code / Jules) and humans through clearly separated roles.  
-Built on Nix Flakes and Home Manager, it eliminates environment differences between macOS and Linux, providing a foundation where agents always operate on an identical toolchain.
+Environment differences get in the way of an agent's autonomous execution. And because agents act without a human checking each step, they can let destructive operations or secret leaks slip straight through.  
+The former is resolved by declaratively unifying the macOS / Linux toolchain with Nix Flakes. The latter is contained through Issue-driven role separation and the isolation of secrets and restriction of operations.
 
 ---
 
 ## Philosophy & Core Architecture
 
-To maximize the autonomous editing capabilities of AI agents while preventing code generation that deviates from human design intent (agent runaway), this project adopts an Issue-driven development flow that separates "design, implementation, and verification."
+To leverage the autonomous editing capabilities of AI agents while keeping their execution from reaching the main branch or production without human review, this project adopts an Issue-driven development flow that separates "design, implementation, and verification."
 
 ### 1. Role Separation
 
@@ -20,14 +20,14 @@ Clearly defines responsibilities according to the strengths of humans, conversat
 * **WebChat (Design / Conversational AI)**:
   Engages in dialogue with the user to formulate specifications and create design files. Does not write verification procedures.
 * **AI Agent (Implementation / Autonomous AI)**:
-  Autonomously executes code editing, static error checking, and PR creation using Issue files as input. Destructive commands in production environments are prohibited.
+  Autonomously executes code editing, static error checking, and PR creation using Issue files as input. Destructive commands such as `rebuild` and access to secrets are structurally blocked by the deny list in `.claude/settings.json`.
 * **User (Verification / Human)**:
   Follows the verification procedures in PRs created by agents to perform operational checks and merge into the main branch.
 
 ### 2. Nix's Role in Eliminating Environment Differences to Support Agents
 
 For autonomous agents to write code and run tests, it is essential to eliminate local machine state dependencies (environment differences).  
-This repository adopts Nix Flakes and Home Manager as base infrastructure. Across MacBook (macOS) and Linux desktop, the toolchain used by agents (Neovim, Yazi, Git, LSP, etc.), executables, and environment variables are fully unified as code. This prevents agents from encountering "command not found" and "runtime errors" due to environment differences, ensuring a seamless AI collaborative development foundation across different operating systems.
+This repository adopts Nix Flakes and Home Manager as base infrastructure. Across MacBook (macOS) and Linux desktop, the toolchain used by agents (Neovim, Yazi, Git, LSP, etc.), executables, and environment variables are unified as code. This prevents agents from encountering "command not found" and "runtime errors" due to environment differences. This consistency is continuously verified by CI (`nix flake check`).
 
 ### 3. Secrets & Config Isolation
 
