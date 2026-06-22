@@ -46,24 +46,6 @@ Branch management and instruction files are optimized according to the character
 
 ---
 
-## Project Structure
-
-Running `issue-init` (or `jules-init`) generates the following common directory structure and the instruction file for the selected agent in the **target development repository** (not this repository's own structure).
-
-```text
-{target-repository}/
-├── CLAUDE.md        # System instruction file for Claude Code
-├── AGENTS.md        # System instruction file for Jules
-├── context/         # Common coding rules and configuration documents
-│   ├── conventions.md
-│   └── structure.md
-└── issues/          # Development task (Issue) files
-    ├── 00_template.md  # Template defining 2-digit sequential ID, branch-slug, target files, etc.
-    └── {NN}_{slug}.md  # Designed task files
-```
-
----
-
 ## Core Workflows (Zsh Functions)
 
 The following shell macros integrated into Zsh enable seamless keyboard-driven processing from ticket management to agent launch and post-merge cleanup.
@@ -79,7 +61,7 @@ The following shell macros integrated into Zsh enable seamless keyboard-driven p
 * **`issue-finish` / `jules-finish`** (PR merge and close):
   Searches and selects the created PR via `gh`, automatically merges it into the main branch. Cleans up local and remote work branches, rewrites the target local Issue file to `status: close`, and automatically pushes to the main branch.
 * **`skill`** (Claude Code Skill launcher):
-  Lists manual-execution skills (those with `manual: true` in SKILL.md frontmatter) under `.claude/skills/` via `fzf` with preview, and launches the selected skill with `claude /{skill-name}`.
+  Lists manual-execution skills (those with `manual: true` in SKILL.md frontmatter) under the dotfiles `.claude/skills/` via `fzf` with preview, and launches the selected skill with `claude /{skill-name}`.
 
 ---
 
