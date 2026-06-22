@@ -1,3 +1,5 @@
+[🇯🇵 日本語](README.md) | [🇬🇧 English](README.en.md)
+
 # Nix-Powered Workspace for AI-Agent Collaborative Development
 
 [![CI](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml/badge.svg)](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml)
