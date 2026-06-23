@@ -1,3 +1,5 @@
+[🇯🇵 日本語](repo-guide.md) | [🇬🇧 English](repo-guide.en.md)
+
 # Repo Guide
 
 リポジトリの組成・衛生ガイド。新規リポを作るとき、および push / 公開前に点検するときに適用する。

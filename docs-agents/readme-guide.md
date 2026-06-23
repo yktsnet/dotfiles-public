@@ -1,3 +1,5 @@
+[🇯🇵 日本語](readme-guide.md) | [🇬🇧 English](readme-guide.en.md)
+
 # README Guide
 
 公開リポの README 作成ガイド。新規リポの README を書くとき、**種別を判定し → コアメッセージとターゲットを決め → それに即したアウトライン（H2）を組む**。この順で考える。
