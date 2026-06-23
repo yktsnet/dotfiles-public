@@ -227,4 +227,60 @@ gp() {
   fi
 }
 
+# difit launcher: pick a review target via a simple menu, no arguments.
+# 差分を difit（ブラウザベースのビューア）で開き、AI と相談しながらレビューを進めるための入口。
+d() {
+  emulate -L zsh
+  _ensure_npm_path
+
+  local repo_root
+  repo_root=$(git rev-parse --show-toplevel 2>/dev/null || true)
+  [[ -z "$repo_root" ]] && { print "d: not a git repository" >&2; return 1; }
+
+  # default branch: origin/HEAD -> main -> master
+  local base
+  base=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null)
+  base="${base#origin/}"
+  [[ -z "$base" ]] && { git show-ref --verify -q refs/heads/main && base=main || base=master; }
+
+  print "difit — what to review?"
+  print "  1) working   uncommitted changes"
+  print "  2) branch    whole branch vs ${base} (PR-equivalent)"
+  print "  3) commit    pick a single commit"
+  print "  4) range     compare two commits"
+  local choice
+  read "choice?select> "
+
+  # kill leftover difit processes to free ports
+  pkill -f 'node.*difit' 2>/dev/null
+
+  case "$choice" in
+    1)
+      if git diff --quiet HEAD 2>/dev/null && [[ -z "$(git ls-files --others --exclude-standard)" ]]; then
+        print "d: no uncommitted changes" >&2; return 1
+      fi
+      difit working --include-untracked &>/dev/null &!
+      ;;
+    2) difit "$base" --merge-base &>/dev/null &! ;;
+    3)
+      local sha
+      sha=$(git log --oneline -n 50 --color=always \
+        | fzf --ansi --prompt="commit> " --height=60% --reverse) || return 1
+      [[ -z "$sha" ]] && return 1
+      difit "${sha%% *}" &>/dev/null &!
+      ;;
+    4)
+      local from to
+      from=$(git log --oneline -n 50 --color=always \
+        | fzf --ansi --prompt="from> " --height=60% --reverse) || return 1
+      [[ -z "$from" ]] && return 1
+      to=$(git log --oneline -n 50 --color=always \
+        | fzf --ansi --prompt="to> " --height=60% --reverse) || return 1
+      [[ -z "$to" ]] && return 1
+      difit "${from%% *}" "${to%% *}" &>/dev/null &!
+      ;;
+    *) print "d: cancelled" >&2; return 1 ;;
+  esac
+}
+
 

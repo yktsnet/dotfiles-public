@@ -52,8 +52,7 @@
 
 #### 🐙 Git & ターミナル (Git & Terminal)
 * **シームレスな境界移動 ([vim-tmux-navigator](https://github.com/christoomey/vim-tmux-navigator))**: Neovimのウィンドウ分割とTmuxのペインをシームレスに行き来。
-* **LazyGit 連携 ([lazygit.nvim](https://github.com/kdheepak/lazygit.nvim))**:
-  * `<leader>lg` で Git UI である LazyGit をフローティング窓で起動。Nvim の中でコミットからプッシュまで完結します。
+* **差分レビュー ([difit](https://github.com/yoshiko-pg/difit))**: シェルで `d` を打つとメニューが出て、ワーキングツリー / ブランチ全体（PR 相当）/ 単一コミット / コミット間から対象を選び、ブラウザベースのビューアで差分を開きます（定義は `zsh/functions/git.sh` の `d()`）。
 * **差分表示 ([gitsigns.nvim](https://github.com/lewis6991/gitsigns.nvim))**: 変更箇所の差分を行番号の左隣にカラーマーカーでリアルタイム表示。
 * **ターミナル管理 ([toggleterm.nvim](https://github.com/akinsho/toggleterm.nvim))**:
   * `\` キーでフローティングターミナルをトグル起動。選択範囲のコード（Visualモードで `<leader>ts`）やカーソル行（`<leader>tl`）をターミナルに直接送信して実行できます。
@@ -140,7 +139,6 @@
 | `<leader>ts` | Visual | 選択した範囲のコードをターミナルに送信して実行 |
 | `<leader>tl` | Normal | カーソルがある行のコードをターミナルに送信して実行 |
 | `<Esc><Esc>` | Terminal | ターミナルモードを抜けて**ノーマルモード**に入る |
-| `<leader>lg` (`Space lg`) | Normal | LazyGit をフローティング窓で起動/閉じる |
 
 #### 編集・その他 (Editing & Others)
 | キーマップ | モード | 役割 |

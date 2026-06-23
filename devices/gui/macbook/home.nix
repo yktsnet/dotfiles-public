@@ -9,6 +9,7 @@
     ../../../home-manager/modules/vscode.nix
     ../../../home-manager/modules/alacritty.nix
     ../../../home-manager/modules/git.nix
+    ../../../home-manager/modules/difit.nix
   ];
 
   home.username = "ykts";
@@ -43,7 +44,6 @@
     neovim
     yazi
     fd
-    lazygit
     unzip
     ncdu
     docker
