@@ -9,7 +9,6 @@ in
     ../system.nix
     ./hardware.nix
     ./disko.nix
-    ../../../../apps/lpt/lpt-service.nix
     # Other internal services are imported here
   ];
 
@@ -39,12 +38,6 @@ in
   };
 
   environment.systemPackages = with pkgs; [ mosh tmux ];
-
-  yktsnet.apps.lpt = {
-    enable = false;
-  };
-
-
 
   systemd.targets.sleep.enable = false;
   systemd.targets.suspend.enable = false;

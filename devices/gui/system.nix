@@ -42,12 +42,6 @@ in
 
 
 
-  yktsnet.apps.lpt = {
-    enable = true;
-    envTxtMaker = true;
-    resultHarvest = true;
-  };
-
   systemd.targets.sleep.enable = false;
   systemd.targets.suspend.enable = false;
   systemd.targets.hibernate.enable = false;

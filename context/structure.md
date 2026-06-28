@@ -17,7 +17,7 @@ dotfiles-public/
 │   └── modules/       # 再利用モジュール
 ├── zsh/
 │   └── functions/     # Issue 駆動ワークフローのシェルマクロ（issue / issue-init 等）
-├── apps/              # アプリ別設定（lpt 等）
+├── apps/              # アプリ共通の env 定義（env-context.nix）
 ├── docs/              # 環境ドキュメント（tui_environment.md 等）
 ├── docs-agents/       # AI Agent 向けガイド（cicd / harness / issue-driven / readme / repo-guide）
 ├── secrets-agents/    # 機密辞書（実値・公開しない / 読み書き禁止）
