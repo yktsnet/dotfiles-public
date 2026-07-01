@@ -18,7 +18,7 @@ manual: true
    - Zsh を変更した場合: `zsh -n <file>` で構文チェック。
    - `nixos-rebuild` / `darwin-rebuild` / `home-manager switch` 等の実適用、`flake.lock` の編集、`secrets-agents/` の読み書き、`ssh` / `rsync` は禁止。
 5. PRボディと控えファイルの作成。
-   - `.git/pr_body.md` に以下の内容を書き出す。
+   - `issues/.pr_body_draft.md` に以下の内容を書き出す。
    - 同内容を `issues/done/{id}_{branch-slug}_pr.md` にもコピーして作成する。
    - 情報セキュリティ: PR本文・コミットメッセージ・控えファイルに固有の接続情報（ドメイン実値・公開ポート・Tunnel UUID・本番絶対パス・Tailscale IP / SSHユーザ名・WiFi SSID 等）を直書きしない。`secrets-agents/` の辞書で定義された `<PLACEHOLDER>` を用いる。デバイス名（`sv6` 等）・localhost・開発ポート・リポジトリ相対パスは可。
 
@@ -39,5 +39,5 @@ manual: true
 8. リモートへのプッシュ。
    - 現在のブランチをリモートにプッシュする（例: `git push origin HEAD`）。
 9. PRの作成。
-   - `gh pr create --base main --title "{type}: {タイトル}" --body-file .git/pr_body.md` を実行。
+   - `gh pr create --base main --title "{type}: {タイトル}" --body-file issues/.pr_body_draft.md` を実行。
 10. 作成されたPRのURLを出力してタスクを終了。
