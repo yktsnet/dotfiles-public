@@ -28,88 +28,6 @@ _aiagent_select_issue() {
           --preview='cat {2}'
 }
 
-_aiagent_init() {
-  emulate -L zsh
-
-  local base="$PWD"
-  local app
-  app=$(basename "$base")
-
-  # 必要なディレクトリの作成（pr-workflow スキルはグローバル ~/.claude/skills を使う）
-  mkdir -p \
-    "$base/.claude" \
-    "$base/context" \
-    "$base/issues"
-
-  # 必要なファイルの空作成
-  local files=(
-    "$base/.claude/settings.json"
-    "$base/context/conventions.md"
-    "$base/context/structure.md"
-    "$base/CLAUDE.md"
-  )
-
-  local f
-  for f in $files; do
-    [[ -f "$f" ]] || touch "$f"
-  done
-
-  # settings.json の初期化
-  if [[ ! -s "$base/.claude/settings.json" ]]; then
-    cat > "$base/.claude/settings.json" <<'EOF'
-{
-  "permissions": {
-    "deny": []
-  }
-}
-EOF
-  fi
-
-  # テンプレートファイルの生成
-  local tmpl="$base/issues/00_template.md"
-  if [[ ! -f "$tmpl" ]]; then
-    cat > "$tmpl" <<'EOF'
-## {タイトル}
-id: {00}
-branch-slug: {slug}
-github_issue:
-status: draft
-type: {cleanup|fix|feat}
-対象: {ファイルパス}
-内容: {何をするか}
-確認: {ClaudeCodeが提出前に静的チェックすべきこと}
----
-## Issue作成ルール
-### フィールド
-- `id` : 2桁の連番。派生Issueは `08a`, `08b` 形式（元Issueをcloseして新規作成）
-- `対象` : 変更・新規作成するファイルをすべて列挙する。新規は (新規) を付記
-- `内容` : 目的と概要のみ。実装仕様は下のセクションに書く
-- `確認` : ClaudeCodeが提出前に行う静的確認。例: lib変更時は影響callerをすべて列挙・修正済みであること。存在しないなら省略より `目視確認` と明示する
-### ライフサイクル
-- `status: draft` → 設計中
-- `status: open`  → issue() で選択可能
-- `status: close` → 完了済み（issue-finish で更新）
-検証で問題が出た場合はそのIssueをcloseし、`{id}a` として新しいIssueを作成する。
-元のIssueを再openしたりClaudeCodeのセッションに直接プロンプトを送ったりしない。
-### 粒度
-- ClaudeCodeが1セッションで完走できる量にする
-- 対象ファイルの目安は7本以下
-- 確認手段が2種類以上になる場合は分割を検討する
-  - 例: リモートサーバで実行確認 と ブラウザ目視確認 → 別Issue
-### 分割の判断基準
-- バックエンドとフロントエンドは原則別PR
-- 「バックエンドの結果を見てからフロントを作る」順序依存がある場合は必ず分割
-- 同一レイヤーで独立してテスト・確認できるなら1つにまとめてよい
-### 詳細セクション
-- `内容` に収まらない仕様は `---` 以降に自由に展開する
-- ファイルごとに見出しを立てる
-- 実装順序が重要な場合は末尾に明記する
-EOF
-  fi
-
-  echo "Initialized: $app"
-}
-
 _aiagent_abort() {
   emulate -L zsh
 
@@ -355,11 +273,6 @@ _aiagent_run() {
 issue() {
   emulate -L zsh
   _aiagent_run "$@"
-}
-
-issue-init() {
-  emulate -L zsh
-  _aiagent_init "$@"
 }
 
 issue-abort() {

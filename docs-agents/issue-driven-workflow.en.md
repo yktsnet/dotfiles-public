@@ -45,7 +45,7 @@ Branch management differs by the Agent's execution environment.
 
 ## Project Layout
 
-`issue-init` generates the persistent instruction file for the selected Agent and the shared management directories in the current repository.
+Each repository holds a persistent instruction file for the selected Agent and the shared management directories.
 
 ```
 {app_root}/
@@ -109,14 +109,6 @@ Never reopen the original Issue or send follow-up prompts into the same Agent se
 ---
 
 ## Shell Functions
-
-### `issue-init` or `jules-init`
-
-Initializes the current directory (a single repository) for this workflow.
-
-1. Select the Agent (Code / Jules) on the ZSH side.
-2. Generate the shared context (`context/`) and local issue management (`issues/`).
-3. Generate `CLAUDE.md` or `AGENTS.md` depending on the Agent.
 
 ### `issue` or `jules`
 

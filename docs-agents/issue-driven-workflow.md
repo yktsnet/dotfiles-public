@@ -45,7 +45,7 @@ Agentの実行環境の特性に応じ、ブランチ管理が異なる。
 
 ## プロジェクト構成
 
-`issue-init` 実行時、選択したAgentに応じた永続指示ファイルと共通の管理ディレクトリをカレントリポジトリに生成。
+各リポジトリは、選択したAgentに応じた永続指示ファイルと共通の管理ディレクトリを持つ。
 
 ```
 {app_root}/
@@ -109,14 +109,6 @@ draft  →（設計完了）→  open  →（issue-finish）→  close
 ---
 
 ## シェル関数
-
-### `issue-init` or `jules-init`
-
-カレントディレクトリ（単一リポジトリ）の開発環境を初期化。
-
-1. ZSH側でAgent（Code / Jules）を選択。
-2. 共通コンテキスト（`context/`）およびローカルIssue管理（`issues/`）を生成。
-3. 選択したAgentに応じ、`CLAUDE.md` または `AGENTS.md` を生成。
 
 ### `issue` or `jules`
 

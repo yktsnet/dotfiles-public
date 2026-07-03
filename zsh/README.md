@@ -25,8 +25,8 @@ Issue 駆動ワークフロー（[docs-agents/issue-driven-workflow.md](../docs-
 
 | ファイル | 主な関数 |
 |---|---|
-| `functions/aiagent.sh` | `issue` `issue-init` `issue-abort` `issue-finish`（Claude Code 用 Issue 駆動） |
-| `functions/jules.sh` | `jules` `jules-init` `jules-abort` `jules-finish`（Jules 用 Issue 駆動） |
+| `functions/aiagent.sh` | `issue` `issue-abort` `issue-finish`（Claude Code 用 Issue 駆動） |
+| `functions/jules.sh` | `jules` `jules-abort` `jules-finish`（Jules 用 Issue 駆動） |
 | `functions/git.sh` | `gs` `gc` `gca` `gp` `gpl` ほか git ショートカット |
 | `functions/utils.sh` | `y`（Yazi 連携）`list` `dot` `disk` `ssh`（fzf 補完）ほか |
 

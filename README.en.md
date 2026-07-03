@@ -50,8 +50,6 @@ Branch management and instruction files are optimized according to the character
 
 The following shell macros integrated into Zsh enable seamless keyboard-driven processing from ticket management to agent launch and post-merge cleanup.
 
-* **`issue-init` / `jules-init`** (Environment initialization):
-  Initializes a development repository for AI collaborative development. Auto-deploys the common context directory and instruction files (`CLAUDE.md` / `AGENTS.md`) for the target agent.
 * **`issue` / `jules`** (Ticket launch):
   Selects `status: open` Issue files with fzf preview.
   * **For Code**: Auto-creates worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}` and launches the Claude CLI inside it. The main checkout stays clean, and multiple Issues can run in parallel.

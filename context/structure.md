@@ -1,7 +1,7 @@
 # dotfiles-public ディレクトリ構造
 
 どこに何があるか。コードの書き方（規約）は `conventions.md` を参照。
-本ファイルは「このリポジトリ自体」の構造を示す（`issue-init` が対象リポへ生成する構造とは別物）。
+本ファイルは「このリポジトリ自体」の構造を示す。
 
 ## トップレベル
 
@@ -16,7 +16,7 @@ dotfiles-public/
 │   ├── config/        # 各種 dotfiles 設定
 │   └── modules/       # 再利用モジュール
 ├── zsh/
-│   └── functions/     # Issue 駆動ワークフローのシェルマクロ（issue / issue-init 等）
+│   └── functions/     # Issue 駆動ワークフローのシェルマクロ（issue / issue-finish 等）
 ├── apps/              # アプリ共通の env 定義（env-context.nix）
 ├── docs/              # 環境ドキュメント（tui_environment.md 等）
 ├── docs-agents/       # AI Agent 向けガイド（cicd / harness / issue-driven / readme / repo-guide）
@@ -30,7 +30,7 @@ dotfiles-public/
 - **Flake 層**: `flake.nix` が全デバイス構成と home-manager を束ねるエントリ。
 - **デバイス層**: `devices/`。GUI / headless で分け、共通モジュールを import。
 - **ユーザ環境層**: `home-manager/`。TUI ツールチェーン（Neovim・Yazi・Tmux 等）と dotfiles を宣言的に管理。
-- **ワークフロー層**: `zsh/functions/`。`issue` / `issue-init` / `issue-finish` 等のマクロ。
+- **ワークフロー層**: `zsh/functions/`。`issue` / `issue-abort` / `issue-finish` 等のマクロ。
 - **ガイド層**: `docs-agents/`。新規リポの組成・ハーネス・CI/CD・README・Issue プロセスの基準。
 - **機密層**: `secrets-agents/`。実値辞書。公開せず、Agent からは読み書きしない。
 
