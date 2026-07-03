@@ -130,14 +130,15 @@ Agent が読む指示を役割で分ける。
 
 ### Skills
 
-`.claude/skills/{name}/SKILL.md`。フロントマターに `name` と `description`。
+ワークフロー用スキルはリポごとに持たず、グローバル `~/.claude/skills/`（dotfiles の `.claude/skills/` を home-manager がコピー）を使う。
 
 | Skill | 役割 |
 |---|---|
-| `pr-workflow` | ブランチ作成 → 実装 → 検証手段の実行 → PR 作成 |
+| `pr-workflow` | 実行者用。実装 → 検証手段の実行 → PR 作成（ブランチと worktree は `issue()` が作成） |
+| `new-issue` | 相談者用。要件整理 → 機密マスク → `issues/` に Issue 書き出し |
 
-`pr-workflow` の検証 step に、上記セクション1の検証手段を組み込む。
-`issue-driven-workflow.md` のシェル関数 `issue()` から `claude` コマンドで起動される。
+どちらも汎用フローのみを定義し、リポ固有の検証手段・検証手順（上記セクション1）は各リポの CLAUDE.md に書く。スキルはそれを参照する。
+`pr-workflow` は `issue-driven-workflow.md` のシェル関数 `issue()` から `claude` コマンドで起動される。
 
 ---
 
@@ -146,9 +147,8 @@ Agent が読む指示を役割で分ける。
 ```
 [ ] 類型を判定（設定 / ロジック / Web / ツール、Public / Private）
 [ ] 層1: .claude/settings.json（共通 deny ＋ 類型別 deny ＋ attribution）
-[ ] 層2: CLAUDE.md（@import ＋ コマンド ＋ 構造 ＋ 検証手段、200行以下）
+[ ] 層2: CLAUDE.md（@import ＋ コマンド ＋ 構造 ＋ 検証手段・検証手順の雛形、200行以下）
 [ ] 層2: context/（conventions.md ＋ structure.md）
-[ ] 層2: .claude/skills/pr-workflow/SKILL.md
 [ ] 層3: Public / 自動デプロイなら CI（cicd-guide.md）
 [ ] 禁止事項は CLAUDE.md でなく settings.json の deny に書く
 ```

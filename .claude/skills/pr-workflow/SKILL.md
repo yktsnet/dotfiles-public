@@ -1,43 +1,33 @@
 ---
 name: pr-workflow
-description: Issue駆動開発における実装・検証・PR作成の標準フロー
+description: Issueファイルに基づく実装からPR作成までの標準フロー
 disable-model-invocation: true
-manual: true
 ---
-以下の手順で割り当てられたIssueを実行する。
-前提: Agentはコード編集とPR作成までを担当。実適用（rebuild / switch）・動作確認・マージはuserが行う。
+以下の手順でissueを実行する。$ARGUMENTSにissueファイルのパスを渡す。
+**前提: AIはコードを書いてPRを出すまでが担当。実行・確認・マージはuserが行う。**
 
-0. `context/conventions.md` と `context/structure.md` を読み、技術スタックと規約・構造を把握する。
-1. `issues/` ディレクトリ内の対象Issueファイル（status: open）を読み込む。
-2. 実行環境（Claude Code または Jules）に応じたコンテキストを確認する。
-   - Claude Codeの場合: ローカルブランチ `claude/{id}-{branch-slug}` 上にいることを認識。
-   - Julesの場合: クラウドサンドボックス環境であり、ブランチ新規作成操作は不要であることを認識（現在のブランチでそのまま作業する）。
-3. 対象ファイルに対して実装・修正を行う。
-4. Issueの「確認」項目に従い静的チェックを実施する。
-   - Nix を変更した場合: `nix flake check`（評価エラーの検出）。
-   - Zsh を変更した場合: `zsh -n <file>` で構文チェック。
-   - `nixos-rebuild` / `darwin-rebuild` / `home-manager switch` 等の実適用、`flake.lock` の編集、`secrets-agents/` の読み書き、`ssh` / `rsync` は禁止。
-5. PRボディと控えファイルの作成。
-   - `issues/.pr_body_draft.md` に以下の内容を書き出す。
-   - 同内容を `issues/done/{id}_{branch-slug}_pr.md` にもコピーして作成する。
-   - 情報セキュリティ: PR本文・コミットメッセージ・控えファイルに固有の接続情報（ドメイン実値・公開ポート・Tunnel UUID・本番絶対パス・Tailscale IP / SSHユーザ名・WiFi SSID 等）を直書きしない。`secrets-agents/` の辞書で定義された `<PLACEHOLDER>` を用いる。デバイス名（`sv6` 等）・localhost・開発ポート・リポジトリ相対パスは可。
-
+0. リポの `CLAUDE.md` を読む（`context/conventions.md` があればそれも）
+1. issueファイルを読む
+2. `git branch --show-current` で `claude/{id}-{branch-slug}` 上にいることを確認する（ブランチとworktreeは issue() が作成済み）。違うブランチなら報告して止まる
+3. `git status` で未コミットがあれば報告して止まる
+4. 対象ファイルを読んで実装
+5. issueの「確認」項目と、リポ CLAUDE.md の「静的チェック / 検証手段」に従い提出前確認を行う
+   - コードを読んでcaller・import・整合性を確認する
+   - 実行系・デプロイ系コマンド（rebuild / deploy / 本番起動）は実行しない
+6. `git add {変更したファイル}`
+   `git diff --name-only --cached` を実行する。
+   出力がissueの「対象」フィールドと完全一致することを確認する。
+   不一致があれば実装に戻る。
+7. `git commit -m "{type}: {タイトル}"`
+8. PRボディを `issues/.pr_body_draft.md` に書き出してPRを作成する。
+   `issues/.pr_body_draft.md` の内容:
    ## 変更内容
-   {Issueの内容フィールドを展開}
-
+   {issueの内容フィールドを展開}
    ## 静的確認結果
-   {確認項目に対して実行した結果。git diff --name-only の出力を含む}
-
+   {確認項目に対してコードを読んで確認した結果。git diff --name-only HEAD~1 の出力を含める}
    ## 検証手順
-   {実装内容から判断した、userが各デバイスで実適用・確認するための手順}
-
-6. コミット対象の確認。
-   - `git add` ですべての変更ファイル（作成した控えファイル `issues/done/{id}_{branch-slug}_pr.md` を含む）をステージングする。
-   - `git diff --name-only --cached` を実行し、想定通りのファイルがステージングされているか確認する。
-7. コミットの実行。
-   - `git commit -m "{type}: {タイトル}"` を実行。
-8. リモートへのプッシュ。
-   - 現在のブランチをリモートにプッシュする（例: `git push origin HEAD`）。
-9. PRの作成。
-   - `gh pr create --base main --title "{type}: {タイトル}" --body-file issues/.pr_body_draft.md` を実行。
-10. 作成されたPRのURLを出力してタスクを終了。
+   {Agent側で完結しない確認（実行・デプロイ・目視）を、リポ CLAUDE.md の検証手順の雛形に従って記載。なければ省略}
+   `gh pr create --base main --title "{type}: {タイトル}" --body-file issues/.pr_body_draft.md`
+9. PRのURLを出力して終了
+   ✅ PR created: {URL}
+   Next: issue-finish → 検証手順を実施

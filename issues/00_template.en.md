@@ -1,6 +1,5 @@
 ## {Title}
 id: {00}
-skill: pr-workflow
 branch-slug: {slug}
 github_issue:
 status: draft

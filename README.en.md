@@ -41,7 +41,7 @@ Branch management and instruction files are optimized according to the character
 
 | Agent | Execution Environment | Branch Management | Persistent Instruction File |
 |---|---|---|---|
-| **Claude Code** | Local machine environment | Auto-generates and operates local branches | `CLAUDE.md` |
+| **Claude Code** | Local machine environment | Auto-creates a worktree + branch and runs in isolation | `CLAUDE.md` |
 | **Jules** | Cloud sandbox | No local branch creation; operates entirely on remote | `AGENTS.md` |
 
 ---
@@ -54,12 +54,12 @@ The following shell macros integrated into Zsh enable seamless keyboard-driven p
   Initializes a development repository for AI collaborative development. Auto-deploys the common context directory and instruction files (`CLAUDE.md` / `AGENTS.md`) for the target agent.
 * **`issue` / `jules`** (Ticket launch):
   Selects `status: open` Issue files with fzf preview.
-  * **For Code**: Automatically creates and checks out a dedicated local branch `claude/{id}-{slug}`, then launches the Claude CLI.
+  * **For Code**: Auto-creates worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}` and launches the Claude CLI inside it. The main checkout stays clean, and multiple Issues can run in parallel.
   * **For Jules**: Submits tasks directly to a cloud session without creating a local branch.
 * **`issue-abort` / `jules-abort`** (Development interruption):
-  Interrupts the current agent task, clears in-progress edits, and safely returns to the main branch.
+  Picks an in-progress `claude/*` worktree via `fzf` and discards it together with its work branch. The main checkout is untouched.
 * **`issue-finish` / `jules-finish`** (PR merge and close):
-  Searches and selects the created PR via `gh`, automatically merges it into the main branch. Cleans up local and remote work branches, rewrites the target local Issue file to `status: close`, and automatically pushes to the main branch.
+  Searches and selects the created PR via `gh`, automatically merges it into the main branch. Cleans up merged worktrees and local/remote branches, leaves a record-only GitHub Issue (create → close immediately), rewrites the target local Issue file to `status: close`, and automatically pushes to the main branch.
 * **`skill`** (Claude Code Skill launcher):
   Lists manual-execution skills (those with `manual: true` in SKILL.md frontmatter) under the dotfiles `.claude/skills/` via `fzf` with preview, and launches the selected skill with `claude /{skill-name}`.
 

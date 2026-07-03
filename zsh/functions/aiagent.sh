@@ -1,7 +1,8 @@
-
-
-_aiagent_branch_prefix() {
-  echo "$1"
+_aiagent_confirm() {
+  print -n "$1 [y/N]: "
+  local ans
+  read -r ans
+  [[ "$ans" == [yY]* ]]
 }
 
 _aiagent_select_issue() {
@@ -34,17 +35,14 @@ _aiagent_init() {
   local app
   app=$(basename "$base")
 
-  # 必要なディレクトリの作成
+  # 必要なディレクトリの作成（pr-workflow スキルはグローバル ~/.claude/skills を使う）
   mkdir -p \
-    "$base/.claude/skills/pr-workflow" \
+    "$base/.claude" \
     "$base/context" \
-    "$base/issues" \
-    "$base/issues/done"
-  touch "$base/issues/done/.gitkeep"
+    "$base/issues"
 
   # 必要なファイルの空作成
   local files=(
-    "$base/.claude/skills/pr-workflow/SKILL.md"
     "$base/.claude/settings.json"
     "$base/context/conventions.md"
     "$base/context/structure.md"
@@ -73,7 +71,6 @@ EOF
     cat > "$tmpl" <<'EOF'
 ## {タイトル}
 id: {00}
-skill: pr-workflow
 branch-slug: {slug}
 github_issue:
 status: draft
@@ -115,20 +112,36 @@ EOF
 
 _aiagent_abort() {
   emulate -L zsh
-  local branch=$(git branch --show-current)
 
-  if [[ ! "$branch" =~ ^claude/ ]]; then
-    echo "Not on a claude/* branch: $branch"
-    return 1
+  local -a entries=()
+  local key val wt_path="" wt_branch=""
+  git worktree list --porcelain | while read -r key val; do
+    case "$key" in
+      worktree) wt_path="$val" ;;
+      branch)
+        wt_branch="${val#refs/heads/}"
+        [[ "$wt_branch" == claude/* ]] && entries+=("${wt_branch}	${wt_path}")
+        ;;
+    esac
+  done
+
+  if [[ ${#entries[@]} -eq 0 ]]; then
+    echo "No claude/* worktrees."
+    return 0
   fi
 
-  print -n "Abort and delete $branch? [y/N]: "
-  read -q || { echo; return 0 }
-  echo
+  local selected
+  selected=$(printf '%s\n' "${entries[@]}" \
+    | fzf --prompt="Abort worktree: " --delimiter=$'\t' --with-nth=1)
+  [[ -z "$selected" ]] && return 0
 
-  git stash
-  git worktree prune
-  git checkout main
+  local branch dir
+  branch=$(echo "$selected" | cut -f1)
+  dir=$(echo "$selected" | cut -f2)
+
+  _aiagent_confirm "Abort and delete ${branch} (${dir})?" || return 0
+
+  git worktree remove --force "$dir"
   git branch -D "$branch"
   echo "Aborted: $branch"
 }
@@ -136,15 +149,9 @@ _aiagent_abort() {
 _aiagent_finish() {
   emulate -L zsh
 
-  # 引数や固定パスを使わず、カレントディレクトリを基準にする
-  local base="$PWD"
-
-  local selected
-  selected=$(_aiagent_select_issue "$base") || return 0
-
-  local issue_file
-  issue_file=$(echo "$selected" | cut -f2)
-
+  local base
+  base=$(git rev-parse --show-toplevel)
+  local close_file=""
   local head_branch=""
 
   local open_prs
@@ -159,31 +166,22 @@ _aiagent_finish() {
     local pr_num
     read pr_num
 
-    if [[ -z "$pr_num" ]]; then
-      echo "Aborted: merge PR before running issue-finish."
-      return 1
+    if [[ -n "$pr_num" ]]; then
+      head_branch=$(gh pr view "$pr_num" --json headRefName --jq '.headRefName' 2>/dev/null || true)
+      gh pr merge "$pr_num" --merge || return 1
     fi
-
-    head_branch=$(gh pr view "$pr_num" --json headRefName --jq '.headRefName' 2>/dev/null || true)
-    gh pr merge "$pr_num" --merge || return 1
   else
     echo "No open Claude PRs."
   fi
 
-  local stashed=0
-  if ! git diff --quiet || [[ -n "$(git ls-files --others --exclude-standard)" ]]; then
-    git stash push -u -m "pre-finish-pull" && stashed=1
+  if [[ "$(git branch --show-current)" != "main" ]]; then
+    git checkout main || return 1
   fi
-
-  git checkout main || { (( stashed )) && git stash pop; return 1 }
 
   if ! git pull --prune; then
     echo "git pull failed. Fix manually."
-    (( stashed )) && git stash pop
     return 1
   fi
-
-  (( stashed )) && git stash pop
 
   local unmerged
   unmerged=$(git branch --no-merged main | grep "claude/")
@@ -192,17 +190,31 @@ _aiagent_finish() {
     echo "$unmerged"
   fi
 
+  # マージ済み claude/* の worktree を先に外し、ブランチを削除
+  local key val wt_path="" wt_branch=""
+  git worktree list --porcelain | while read -r key val; do
+    case "$key" in
+      worktree) wt_path="$val" ;;
+      branch)
+        wt_branch="${val#refs/heads/}"
+        if [[ "$wt_branch" == claude/* ]] \
+          && git branch --merged main --format='%(refname:short)' | grep -qx "$wt_branch"; then
+          git worktree remove --force "$wt_path"
+        fi
+        ;;
+    esac
+  done
+  git worktree prune
+
   local merged_branch
   git branch --merged main --format='%(refname:short)' | grep "^claude/" | while read -r merged_branch; do
     [[ -n "$merged_branch" ]] && git branch -d "$merged_branch"
     [[ -n "$merged_branch" ]] && git push origin --delete "$merged_branch" 2>/dev/null || true
   done
-  git worktree prune
 
-  local close_file="$issue_file"
   local issues_dir="$base/issues"
 
-  if [[ "$head_branch" =~ ^claude/([0-9]+[a-z]?)- ]]; then
+  if [[ -n "$head_branch" && "$head_branch" =~ ^claude/([0-9]+[a-z]?)- ]]; then
     local pid="${match[1]}"
     local f
     for f in "$issues_dir"/*.md; do
@@ -212,10 +224,39 @@ _aiagent_finish() {
       close_file="$f"
       break
     done
-    echo "Close target: $(basename "$close_file")"
+    if [[ -n "$close_file" ]]; then
+      echo "Close target (auto-detected): $(basename "$close_file")"
+    fi
+  fi
+
+  if [[ -z "$close_file" ]]; then
+    local selected
+    selected=$(_aiagent_select_issue "$base") || return 0
+    close_file=$(echo "$selected" | cut -f2)
   fi
 
   if [[ -n "$close_file" && -f "$close_file" ]]; then
+    # 記録用 GitHub Issue（形だけ残す。作成→即クローズ。失敗してもフローは止めない）
+    local gh_num
+    gh_num=$(grep '^github_issue:' "$close_file" | awk '{print $2}' | tr -d '\r\n[:space:]')
+    if [[ -z "$gh_num" ]]; then
+      local rec_id rec_type rec_title issue_url
+      rec_id=$(grep '^id:' "$close_file" | awk '{print $2}')
+      rec_type=$(grep '^type:' "$close_file" | awk '{print $2}')
+      rec_title=$(head -n 1 "$close_file" | sed 's/^##[[:space:]]*//')
+      issue_url=$(gh issue create --title "${rec_type}: [#${rec_id}] ${rec_title}" --body-file "$close_file" 2>/dev/null)
+      if [[ -n "$issue_url" ]]; then
+        gh_num=$(echo "${issue_url##*/}" | tr -d '\r\n[:space:]')
+        sed -i '' "s/^github_issue:.*$/github_issue: ${gh_num}/" "$close_file"
+        echo "Record: GitHub Issue #${gh_num}"
+      else
+        echo "Warning: Failed to create record GitHub Issue. Continuing."
+      fi
+    fi
+    if [[ -n "$gh_num" ]]; then
+      gh issue close "$gh_num" 2>/dev/null || echo "Warning: Failed to close GitHub Issue #${gh_num}."
+    fi
+
     sed -i '' "s/^status: open$/status: close/" "$close_file"
     git add "$close_file"
 
@@ -227,11 +268,10 @@ _aiagent_finish() {
       return 1
     fi
 
-    echo "Closed: $(basename "$close_file")"
-
-    if ! git push origin main; then
-      echo "git push failed. Fix manually (git pull --rebase && git push)."
-      return 1
+    if git push origin main; then
+      echo "Closed: $(basename "$close_file")"
+    else
+      echo "Warning: git push failed. Push main manually."
     fi
   fi
 
@@ -242,6 +282,12 @@ _aiagent_run() {
   emulate -L zsh
 
   local base="$PWD"
+  local current_branch
+  current_branch=$(git branch --show-current)
+  if [[ "$current_branch" != "main" ]]; then
+    echo "Not on main: $current_branch"
+    return 1
+  fi
 
   local selected
   selected=$(_aiagent_select_issue "$base") || return 0
@@ -269,53 +315,41 @@ _aiagent_run() {
     issues_rel_path="${rel_path}/issues/"
   fi
 
-  local dirty_outside_issues
-  dirty_outside_issues=$(git status --short --porcelain | awk '{print $2}' \
-    | grep -v "^${issues_rel_path}" | grep -v '^$')
-  local dirty_issues
-  dirty_issues=$(git status --short --porcelain | awk '{print $2}' \
-    | grep "^${issues_rel_path}" | grep -v '^$')
-
-  if [[ -n "$dirty_outside_issues" ]]; then
-    echo "Uncommitted changes:"
-    git status --short
-    print -n "Stash before running issue? [y/N]: "
-    read -q
-    local _ans=$?
-    read -rs -k1 2>/dev/null || true
-    echo
-    (( _ans == 0 )) && git stash push \
-        -m "pre-issue: $(basename "$issue_file")" \
-        -- ":(exclude)${issues_rel_path}" \
-      || return 0
-  elif [[ -n "$dirty_issues" ]]; then
-    git add issues/
-    git commit -m "chore(issues): update"
-  fi
-
   branch_name="claude/${id}-${branch_slug}"
+  local wt_dir="${git_root}.wt/${id}-${branch_slug}"
 
   if git show-ref --verify --quiet "refs/heads/${branch_name}"; then
     echo "Branch ${branch_name} already exists. Abort or delete it first."
     return 1
   fi
+  if [[ -e "$wt_dir" ]]; then
+    echo "Worktree ${wt_dir} already exists. Remove it first."
+    return 1
+  fi
 
-  print -n "Run pr-workflow with Claude Code for $(basename "$issue_file")? [y/N]: "
-  read -q
-  local _ans2=$?
-  read -rs -k1 2>/dev/null || true
-  echo
-  (( _ans2 == 0 )) || return 0
+  _aiagent_confirm "Run pr-workflow with Claude Code for $(basename "$issue_file")?" || return 0
 
-  # 作成してチェックアウト
-  git checkout -b "$branch_name" || return 1
+  # issues/ をコミットして push（worktree ブランチに issue を含め、PR diff に issues/ を混ぜない）
+  if [[ -n "$(git status --porcelain -- "$issues_rel_path")" ]]; then
+    git add "$issues_rel_path"
+    git commit -m "chore(issues): open $(basename "$issue_file")"
+    if ! git push origin main; then
+      echo "Warning: git push failed. PR diff will include the issues/ commit. Fix manually."
+    fi
+  fi
 
-  claude --model sonnet --system-prompt \
-    "You are the Builder. Implement based on the Issue file. Create a PR when done. Do NOT design new Issues or modify issue files." \
-    "/pr-workflow $issue_file"
+  # worktree に隔離して実行（main のチェックアウトを汚さない・並列実行可）
+  git worktree add "$wt_dir" -b "$branch_name" || return 1
 
-  local rc=$?
-  return $rc
+  local wt_app_dir="$wt_dir"
+  [[ "$git_root" != "$PWD" ]] && wt_app_dir="${wt_dir}/${rel_path}"
+
+  (
+    cd "$wt_app_dir" || exit 1
+    claude --model sonnet --system-prompt \
+      "You are the Builder. Implement based on the Issue file. Create a PR when done. Do NOT design new Issues or modify issue files." \
+      "/pr-workflow ${wt_app_dir}/issues/$(basename "$issue_file")"
+  )
 }
 
 issue() {
@@ -337,5 +371,3 @@ issue-finish() {
   emulate -L zsh
   _aiagent_finish "$@"
 }
-
-

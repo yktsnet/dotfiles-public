@@ -7,44 +7,52 @@ Separates design, implementation, and verification to prevent Agent runaway whil
 
 ---
 
-## Role Separation
+## Phases
 
-| Role | Tasks |
+Each repository is in one of two phases. The user decides the phase and states it in the repository's CLAUDE.md (the Consultant never decides or changes it). If nothing is stated, Issue-Driven is the default.
+
+- **MVP phase**: early stage where direction and structure are still fluid. The Consultant may implement directly in an open chat.
+- **Issue-Driven phase**: direction is settled. Follow the role separation below.
+
+If the phase is unclear, do not implement; ask the user.
+
+## Role Separation (Issue-Driven phase)
+
+| Role | Work |
 |---|---|
-| **WebChat** | Issue design, spec discussions, document creation |
-| **AI Agent** | Code editing, static checks, git operations, PR creation |
-| **user** | Deployment, service restart, behavior verification, merge |
+| **Consultant** (WebChat / desktop Code open chat) | Issue design, spec discussion, documentation. **Never implements** |
+| **Builder** (CLI Code / Jules launched via issue()) | Code edits, static checks, git operations, PR creation based on the Issue |
+| **user** | Deploy, service restarts, verification, merge |
 
-- WebChat responsibility: Up to writing Issue files. Does not write verification steps.
-- AI Agent responsibility: Implementation based on Issues, PR creation. Running commands in production is prohibited.
-- Verification steps: Written by the AI Agent in the PR's `## Verification Steps`. Executed by the user.
+- The Consultant goes only as far as writing the Issue file (via the `/new-issue` skill). No code; stop once it is written.
+- The same applies when Code plays the Consultant (`main`, open chat). When asked to implement, create an Issue with `status: open` and stop; the user launches implementation via issue().
+- The Builder implements from the Issue and creates a PR. Running production commands is forbidden.
+- Verification steps: the Builder writes them in the PR's `## Verification` section; the user executes them.
 
 ---
 
-## Supported Agents and Characteristics
+## Supported Agents
 
-The Agent (Code / Jules) is selected on the ZSH side. No guards are configured.
-Branch management differs based on each Agent's execution environment.
+Select the Agent (Code / Jules) on the ZSH side; no guard is configured there.
+Branch management differs by the Agent's execution environment.
 
-| Agent | Execution Environment | Branch Management | Persistent Instruction File |
+| Agent | Environment | Branch management | Persistent instruction file |
 |---|---|---|---|
-| **Claude Code (Code)** | Local environment | Creates/operates local branches | `CLAUDE.md` |
-| **Jules** | Cloud sandbox | No local branches (remote-only) | `AGENTS.md` |
+| **Claude Code (Code)** | Local | Creates a worktree + branch and runs in isolation | `CLAUDE.md` |
+| **Jules** | Cloud sandbox | No local branch (remote-only) | `AGENTS.md` |
 
 ---
 
-## Project Structure
+## Project Layout
 
-When `issue-init` runs, it generates the persistent instruction file for the selected Agent and common management directories in the current repository.
+`issue-init` generates the persistent instruction file for the selected Agent and the shared management directories in the current repository.
 
 ```
 {app_root}/
-├── CLAUDE.md        # Persistent instructions for Claude Code
-├── AGENTS.md        # Persistent instructions for Jules
+├── CLAUDE.md        # Instructions for Claude Code (incl. static checks and verification templates)
+├── AGENTS.md        # Instructions for Jules
 ├── .claude/
-│   ├── settings.json        # Permissions & accident prevention (harness-guide.md)
-│   └── skills/
-│       └── pr-workflow/SKILL.md
+│   └── settings.json        # Permissions / accident prevention (harness-guide.md)
 ├── context/         # Shared context
 │   ├── conventions.md
 │   └── structure.md
@@ -52,6 +60,8 @@ When `issue-init` runs, it generates the persistent instruction file for the sel
     ├── 00_template.md
     └── {NN}_{slug}.md
 ```
+
+The `pr-workflow` (Builder) and `new-issue` (Consultant) skills are not copied per repository; they live in the global `~/.claude/skills/` (managed by dotfiles). Repository-specific checks and verification steps go in each repository's CLAUDE.md, which the skills reference.
 
 ---
 
@@ -64,78 +74,79 @@ branch-slug: {slug}
 github_issue:
 status: draft | open | close
 type: cleanup | fix | feat
-target: {list all files to modify/create; mark new files with (new)}
-description: {purpose and overview only}
-verification: {static checks the AI Agent runs before submitting}
+対象: {every file to change or create; mark new files with (新規)}
+内容: {purpose and outline only}
+確認: {static checks the Agent runs before submitting}
 
 ---
 
-{expand specs that don't fit in description}
+{free-form details that do not fit above}
 ```
 
 ### Lifecycle
 
 ```
-draft  →(design complete)→  open  →(issue-finish)→  close
+draft  → (design complete) →  open  → (issue-finish) →  close
 ```
 
-- `draft`: Under design. Excluded from `issue()` selection.
-- `open`: Ready for implementation. Selectable via `issue()`.
-- `close`: Completed.
+- `draft`: under design. Excluded from issue() selection.
+- `open`: ready to implement. Selectable by issue(). The Builder never changes `status:`.
+- `close`: done. Updated by issue-finish.
 
 ### Derived Issues
 
-If verification reveals problems, close the original Issue and create a derived issue as `{id}a`, etc.
+When verification finds a problem, close the original Issue and create a derived one such as `{id}a`.
 
-Reopening the original Issue or appending prompts to the same Agent session is prohibited. Always use Issue files as the starting point for record-keeping.
+Never reopen the original Issue or send follow-up prompts into the same Agent session. Always start from an Issue file to keep the record.
 
 ### Information Security
 
-- In public repositories, do not write specific connection information such as production IPs, specific ports, or real hostnames (e.g., `production-server`) directly in Issue files — instead, reference files in `~/dotfiles/secrets-agents/`.
+- Never write concrete connection details in human-readable text (Issues, PRs, commit messages, comments). Use the `<PLACEHOLDER>` entries defined in the `secrets-agents/` dictionaries instead.
+- Masked: real domains, public ports, Tunnel UUIDs, cloudflared paths, production absolute paths, Tailscale IPs / SSH usernames, WiFi SSIDs, app-specific values (accounts / strategy names). Not masked: device names, localhost, development ports, repository-relative paths, LocalStack resource names.
+- Dictionary files: `network.md` / `paths.md` / `cloud.md` / `apps.md` (conventions in `secrets-agents/README.md`). The `secrets-agents/` directory itself is never published.
+- When a value that does not exist locally (accounts, etc.) is entered into an app, append it to the matching dictionary as you go.
 
 ---
 
 ## Shell Functions
 
-Implementations are consolidated in [`zsh/functions/`](../zsh/functions/). macOS loads them from `zsh/darwin.nix`, x86/NixOS from `zsh/nixos.nix` (see [`zsh/README.md`](../zsh/README.md) for structure).
-
 ### `issue-init` or `jules-init`
 
-Initializes the development environment for the current directory (single repository).
+Initializes the current directory (a single repository) for this workflow.
 
-1. Select Agent (Code / Jules) on the ZSH side.
-2. Generate shared context (`context/`) and local Issue management (`issues/`).
-3. Generate `CLAUDE.md` or `AGENTS.md` depending on the selected Agent.
+1. Select the Agent (Code / Jules) on the ZSH side.
+2. Generate the shared context (`context/`) and local issue management (`issues/`).
+3. Generate `CLAUDE.md` or `AGENTS.md` depending on the Agent.
 
 ### `issue` or `jules`
 
-Select a target Issue, sync local and remote, then launch the Agent. Issues are managed both as local files (`issues/`) and GitHub Issues.
+Selects the target Issue and launches the Agent. Local files under `issues/` are the single source of truth; the GitHub Issue is a record-only mirror that `issue-finish` leaves behind as "create → close immediately" on completion.
 
-1. Select from `status: open` Issues via `fzf` (with preview).
-2. If there are uncommitted changes, prompt for `git stash`. Issue file updates are committed to `main`.
-3. Sync with remote (`git pull --rebase`, push if needed).
-4. If `github_issue:` is empty, auto-create a GitHub Issue and write back the assigned number to the Issue file, then commit & push (skip if already linked).
-5. Agent-specific branching:
-   - **Code**: Create and checkout local branch `{agent}/{id}-{slug}`. Submit task via `claude` command.
-   - **Jules**: No local branch. Submit Issue content directly to a cloud session via `jules new`.
+1. Select an Issue with `status: open` via `fzf` (with preview).
+2. Commit and push `issues/` changes to `main` (so the worktree branch contains the Issue and the PR diff stays free of `issues/` noise).
+3. Per Agent:
+   - **Code**: create worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}` and launch the `claude` command inside it. The main checkout stays clean and multiple Issues can run in parallel. No stashing needed (the worktree is cut from HEAD, so uncommitted changes are not carried over).
+   - **Jules**: no local branch; feed the Issue content directly into a cloud session via `jules new`.
+
+GitHub is not touched here (the record Issue is created by `issue-finish`).
 
 ### `issue-abort` or `jules-abort`
 
-Abort an in-progress task and discard changes.
+Aborts the task in progress and discards changes.
 
-1. Agent-specific branching:
-   - **Code**: Identify the current `{agent}/*` branch. `git stash`, switch to `main`, force-delete the local branch (`git branch -D`).
-   - **Jules**: Skip local branch operations. Handle cloud-side session management manually (`jules remote`, etc.).
+1. Per Agent:
+   - **Code**: pick a `claude/*` worktree via `fzf` and force-delete both the worktree and the branch (`git worktree remove --force` + `git branch -D`).
+   - **Jules**: skip local branch operations; handle the cloud session manually (`jules remote`, etc.).
 
 ### `issue-finish` or `jules-finish`
 
-Merge PR, clean up branches, and close Issue in one operation.
+Merges the PR, cleans up branches, and closes the Issue in one pass.
 
-1. List open PRs, input PR number.
-2. Execute `gh pr merge {number} --merge`.
-3. Execute `git checkout main && git pull --prune`.
-4. Agent-specific branching:
-   - **Code**: Bulk-delete merged local and remote branches (`claude/*`).
-   - **Jules**: Skip branch deletion (no local branches exist).
-5. Close the GitHub Issue linked to the target Issue via `gh issue close`.
-6. Update the local Issue file to `status: close`, commit & push to `main`.
+1. List open PRs and enter a PR number.
+2. Run `gh pr merge {number} --merge`.
+3. Run `git pull --prune` (the main checkout always stays on main).
+4. Per Agent:
+   - **Code**: remove merged `claude/*` worktrees and delete local and remote branches in bulk.
+   - **Jules**: no local branches, so branch deletion is skipped.
+5. Create the record GitHub Issue and close it immediately (if `github_issue:` already has a number, close only). A failed creation never blocks the flow.
+6. Update the local Issue file to `status: close`, commit to `main`, and push.

@@ -130,14 +130,15 @@ Add files as the repo's nature requires. If everything fits in 2 files, no need 
 
 ### Skills
 
-`.claude/skills/{name}/SKILL.md`. Frontmatter with `name` and `description`.
+Workflow skills are not copied per repository; they live in the global `~/.claude/skills/` (home-manager copies them from dotfiles' `.claude/skills/`).
 
 | Skill | Role |
 |---|---|
-| `pr-workflow` | Branch creation → implementation → run verification → PR creation |
+| `pr-workflow` | For the Builder. Implementation → run verification → PR creation (the branch and worktree are created by `issue()`) |
+| `new-issue` | For the Consultant. Organize requirements → mask secrets → write the Issue into `issues/` |
 
-Integrate the verification methods from Section 1 into the `pr-workflow` verification step.
-Launched via the `claude` command from the `issue()` shell function in `issue-driven-workflow.md`.
+Both define only the generic flow; repository-specific checks and verification steps (Section 1 above) go in each repository's CLAUDE.md, which the skills reference.
+`pr-workflow` is launched via the `claude` command from the `issue()` shell function in `issue-driven-workflow.md`.
 
 ---
 
@@ -146,9 +147,8 @@ Launched via the `claude` command from the `issue()` shell function in `issue-dr
 ```
 [ ] Determine category (Config / Logic / Web / Tool, Public / Private)
 [ ] Layer 1: .claude/settings.json (common deny + category deny + attribution)
-[ ] Layer 2: CLAUDE.md (@import + commands + structure + verification, under 200 lines)
+[ ] Layer 2: CLAUDE.md (@import + commands + structure + verification methods and templates, under 200 lines)
 [ ] Layer 2: context/ (conventions.md + structure.md)
-[ ] Layer 2: .claude/skills/pr-workflow/SKILL.md
 [ ] Layer 3: If Public / auto-deployed, add CI (cicd-guide.md)
 [ ] Prohibitions go in settings.json deny, not CLAUDE.md
 ```
