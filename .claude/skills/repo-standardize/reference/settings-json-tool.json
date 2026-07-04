@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git push origin main*)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(ssh *)",
+      "Bash(rsync *)"
+    ],
+    "allow": [
+      "Bash(git *)",
+      "Bash(gh pr *)"
+    ]
+  },
+  "attribution": { "commit": "", "pr": "" }
+}

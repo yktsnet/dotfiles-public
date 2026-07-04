@@ -1,0 +1,13 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# env
+.env
+.env.local
+.env.*.local
+
+# Claude Code
+.claude/settings.local.json
+
+<!-- FILL: stack-specific — スタック固有の除外行を追加する。例: node_modules/ / dist/ / *.db / __pycache__/ / result -->

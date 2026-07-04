@@ -12,7 +12,7 @@ manual: true
 ## 0. 基準を読む（必須・最初に）
 
 - `~/dotfiles/docs-agents/readme-guide.md` — README の構成・言語規則・JUDGE.md 統合
-- 必要に応じ `~/dotfiles/docs-agents/cicd-guide.md`（Deploy 節の書き方）・`repo-guide.md`（Secrets を README に書かない方針）
+- 必要に応じ `~/dotfiles/docs-agents/cicd.md`（Deploy 節の書き方）・`repo.md`（Secrets を README に書かない方針）
 
 基準は本ファイルに転記しない。食い違ったらガイドを優先する。
 
