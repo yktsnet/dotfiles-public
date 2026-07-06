@@ -1,0 +1,13 @@
+{
+  "name": "dotfiles-public",
+  "owner": {
+    "name": "yktsnet"
+  },
+  "plugins": [
+    {
+      "name": "public-skills",
+      "source": "./plugins/public-skills",
+      "description": "汎用性のある Claude Code Skills（README多言語化・GitHub About生成・日本語文章規範）"
+    }
+  ]
+}
