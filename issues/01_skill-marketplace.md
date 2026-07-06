@@ -1,8 +1,8 @@
 ## dotfiles-public を Claude Code plugin marketplace として配布可能にする
 id: 01
 branch-slug: skill-marketplace
-github_issue:
-status: open
+github_issue: 3
+status: close
 type: feat
 対象:
 - .claude-plugin/marketplace.json (新規)
