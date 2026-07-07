@@ -72,26 +72,6 @@ _aiagent_finish() {
   local close_file=""
   local head_branch=""
 
-  local open_prs
-  open_prs=$(gh pr list --state open --json number,title,headRefName \
-    --jq '.[] | select(.headRefName | startswith("claude/")) | "\(.number)\t\(.headRefName)\t\(.title)"' \
-    2>/dev/null)
-
-  if [[ -n "$open_prs" ]]; then
-    echo "Open Claude PRs:"
-    echo "$open_prs"
-    print -n "PR number to merge (Enter to skip): "
-    local pr_num
-    read pr_num
-
-    if [[ -n "$pr_num" ]]; then
-      head_branch=$(gh pr view "$pr_num" --json headRefName --jq '.headRefName' 2>/dev/null || true)
-      gh pr merge "$pr_num" --merge || return 1
-    fi
-  else
-    echo "No open Claude PRs."
-  fi
-
   if [[ "$(git branch --show-current)" != "main" ]]; then
     git checkout main || return 1
   fi
@@ -99,6 +79,39 @@ _aiagent_finish() {
   if ! git pull --prune; then
     echo "git pull failed. Fix manually."
     return 1
+  fi
+
+  # ローカルの未マージ claude/* ブランチを選び、記録用に push → PR作成 → 即マージする
+  # （Builder はリモートに触れないので、レビュー済みのものだけがここで初めて公開される）
+  local pr_num pr_title pr_body pr_url
+  local branch_list
+  branch_list=$(git branch --no-merged main --format='%(refname:short)' | grep '^claude/')
+
+  if [[ -n "$branch_list" ]]; then
+    head_branch=$(echo "$branch_list" \
+      | fzf --prompt="Merge branch (esc to skip): " \
+            --preview='git log --oneline main..{}; echo; git diff --stat main...{}')
+    if [[ -n "$head_branch" ]]; then
+      git log --oneline "main..${head_branch}"
+      _aiagent_confirm "Push, create PR and merge ${head_branch}?" || head_branch=""
+    fi
+    if [[ -n "$head_branch" ]]; then
+      pr_title=$(git log -1 --format='%s' "$head_branch")
+      pr_body=$(git log -1 --format='%b' "$head_branch")
+      # issues/ の open コミットを先に main に載せ、PR diff に混ぜない
+      git push origin main || return 1
+      git push -u origin "$head_branch" || return 1
+      pr_url=$(printf '%s\n' "$pr_body" \
+        | gh pr create --base main --head "$head_branch" --title "$pr_title" --body-file -) || return 1
+      pr_num="${pr_url##*/}"
+      gh pr merge "$pr_num" --merge || return 1
+      if ! git pull --prune; then
+        echo "git pull failed after merge. Fix manually."
+        return 1
+      fi
+    fi
+  else
+    echo "No unmerged claude/* branches."
   fi
 
   local unmerged
@@ -165,7 +178,7 @@ _aiagent_finish() {
       issue_url=$(gh issue create --title "${rec_type}: [#${rec_id}] ${rec_title}" --body-file "$close_file" 2>/dev/null)
       if [[ -n "$issue_url" ]]; then
         gh_num=$(echo "${issue_url##*/}" | tr -d '\r\n[:space:]')
-        sed -i '' "s/^github_issue:.*$/github_issue: ${gh_num}/" "$close_file"
+        sed -i "s/^github_issue:.*$/github_issue: ${gh_num}/" "$close_file"
         echo "Record: GitHub Issue #${gh_num}"
       else
         echo "Warning: Failed to create record GitHub Issue. Continuing."
@@ -175,7 +188,7 @@ _aiagent_finish() {
       gh issue close "$gh_num" 2>/dev/null || echo "Warning: Failed to close GitHub Issue #${gh_num}."
     fi
 
-    sed -i '' "s/^status: open$/status: close/" "$close_file"
+    sed -i "s/^status: open$/status: close/" "$close_file"
     git add "$close_file"
 
     echo "Staged:"
@@ -247,13 +260,10 @@ _aiagent_run() {
 
   _aiagent_confirm "Run pr-workflow with Claude Code for $(basename "$issue_file")?" || return 0
 
-  # issues/ をコミットして push（worktree ブランチに issue を含め、PR diff に issues/ を混ぜない）
+  # issues/ をコミット（worktree ブランチに issue を含める。push は issue-finish が PR 作成前に行う）
   if [[ -n "$(git status --porcelain -- "$issues_rel_path")" ]]; then
     git add "$issues_rel_path"
     git commit -m "chore(issues): open $(basename "$issue_file")"
-    if ! git push origin main; then
-      echo "Warning: git push failed. PR diff will include the issues/ commit. Fix manually."
-    fi
   fi
 
   # worktree に隔離して実行（main のチェックアウトを汚さない・並列実行可）
@@ -265,7 +275,7 @@ _aiagent_run() {
   (
     cd "$wt_app_dir" || exit 1
     claude --model sonnet --system-prompt \
-      "You are the Builder. Implement based on the Issue file. Create a PR when done. Do NOT design new Issues or modify issue files." \
+      "You are the Builder. Implement based on the Issue file and commit locally when done. Do NOT push, create PRs, or touch the remote. Do NOT design new Issues or modify issue files." \
       "/pr-workflow ${wt_app_dir}/issues/$(basename "$issue_file")"
   )
 }

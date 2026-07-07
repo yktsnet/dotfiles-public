@@ -134,7 +134,7 @@ Agent が読む指示を役割で分ける。
 
 | Skill | 役割 |
 |---|---|
-| `pr-workflow` | 実行者用。実装 → 検証手段の実行 → PR 作成（ブランチと worktree は `issue()` が作成） |
+| `pr-workflow` | 実行者用。実装 → 検証手段の実行 → ローカルコミット（ブランチと worktree は `issue()` が作成。push・PR 作成は `issue-finish` が行う） |
 | `new-issue` | 相談者用。要件整理 → 機密マスク → `issues/` に Issue 書き出し |
 
 どちらも汎用フローのみを定義し、リポ固有の検証手段・検証手順（上記セクション1）は各リポの CLAUDE.md に書く。スキルはそれを参照する。

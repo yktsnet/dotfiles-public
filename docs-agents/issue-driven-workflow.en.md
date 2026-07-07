@@ -21,13 +21,14 @@ If the phase is unclear, do not implement; ask the user.
 | Role | Work |
 |---|---|
 | **Consultant** (WebChat / desktop Code open chat) | Issue design, spec discussion, documentation. **Never implements** |
-| **Builder** (CLI Code / Jules launched via issue()) | Code edits, static checks, git operations, PR creation based on the Issue |
+| **Builder** (CLI Code / Jules launched via issue()) | Code edits, static checks, and commits based on the Issue |
 | **user** | Deploy, service restarts, verification, merge |
 
 - The Consultant goes only as far as writing the Issue file (via the `/new-issue` skill). No code; stop once it is written.
 - The same applies when Code plays the Consultant (`main`, open chat). When asked to implement, create an Issue with `status: open` and stop; the user launches implementation via issue().
-- The Builder implements from the Issue and creates a PR. Running production commands is forbidden.
-- Verification steps: the Builder writes them in the PR's `## Verification` section; the user executes them.
+- The Builder (Code) implements from the Issue and stops at a local commit. Pushing, PR creation, and production commands are forbidden; publishing happens in `issue-finish` after the user's review.
+- The Builder (Jules) implements in a cloud sandbox and creates its PR on the cloud side.
+- Verification steps: the Builder writes them in the commit message body under `## 検証手順`; `issue-finish` turns that body into the PR description, and the user executes the steps.
 
 ---
 
@@ -115,12 +116,12 @@ Never reopen the original Issue or send follow-up prompts into the same Agent se
 Selects the target Issue and launches the Agent. Local files under `issues/` are the single source of truth; the GitHub Issue is a record-only mirror that `issue-finish` leaves behind as "create → close immediately" on completion.
 
 1. Select an Issue with `status: open` via `fzf` (with preview).
-2. Commit and push `issues/` changes to `main` (so the worktree branch contains the Issue and the PR diff stays free of `issues/` noise).
+2. Commit `issues/` changes to `main` (so the worktree branch contains the Issue and the PR diff stays free of `issues/` noise). The push is done by `issue-finish` before it creates the PR.
 3. Per Agent:
    - **Code**: create worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}` and launch the `claude` command inside it. The main checkout stays clean and multiple Issues can run in parallel. No stashing needed (the worktree is cut from HEAD, so uncommitted changes are not carried over).
    - **Jules**: no local branch; feed the Issue content directly into a cloud session via `jules new`.
 
-GitHub is not touched here (the record Issue is created by `issue-finish`).
+Code never touches GitHub (pushing, PR creation, and the record Issue are all handled by `issue-finish`).
 
 ### `issue-abort` or `jules-abort`
 
@@ -132,13 +133,13 @@ Aborts the task in progress and discards changes.
 
 ### `issue-finish` or `jules-finish`
 
-Merges the PR, cleans up branches, and closes the Issue in one pass.
+Publishes the reviewed branch (push → PR creation → merge), cleans up branches, and closes the Issue in one pass. Only what the user has reviewed locally ever reaches the remote.
 
-1. List open PRs and enter a PR number.
-2. Run `gh pr merge {number} --merge`.
+1. Pick a `claude/*` branch not yet merged into `main` via `fzf` (previewing the commit log and diff).
+2. Push `main` and the selected branch, create the PR with the commit message body as its description (`gh pr create`), then run `gh pr merge --merge`.
 3. Run `git pull --prune` (the main checkout always stays on main).
-4. Per Agent:
-   - **Code**: remove merged `claude/*` worktrees and delete local and remote branches in bulk.
-   - **Jules**: no local branches, so branch deletion is skipped.
+4. Remove merged `claude/*` worktrees and delete local and remote branches in bulk.
 5. Create the record GitHub Issue and close it immediately (if `github_issue:` already has a number, close only). A failed creation never blocks the flow.
 6. Update the local Issue file to `status: close`, commit to `main`, and push.
+
+Jules creates its PR on the cloud side, so `jules-finish` only pulls `main` after the merge.

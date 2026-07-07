@@ -20,9 +20,9 @@ Clearly defines responsibilities according to the strengths of humans, conversat
 * **WebChat (Design / Conversational AI)**:
   Engages in dialogue with the user to formulate specifications and create design files. Does not write verification procedures.
 * **AI Agent (Implementation / Autonomous AI)**:
-  Autonomously executes code editing, static error checking, and PR creation using Issue files as input. Destructive commands such as `rebuild` and access to secrets are structurally blocked by the deny list in `.claude/settings.json`.
+  Autonomously executes code editing, static error checking, and local commits using Issue files as input; it never touches the remote. Destructive commands such as `rebuild` and access to secrets are structurally blocked by the deny list in `.claude/settings.json`.
 * **User (Verification / Human)**:
-  Follows the verification procedures in PRs created by agents to perform operational checks and merge into the main branch.
+  Reviews and verifies the agent's commits locally, then publishes them (push, PR creation, merge) via `issue-finish`. Only reviewed changes ever reach the remote.
 
 ### 2. Nix's Role in Eliminating Environment Differences to Support Agents
 
@@ -60,8 +60,8 @@ The following shell macros integrated into Zsh enable seamless keyboard-driven p
   * **For Jules**: Submits tasks directly to a cloud session without creating a local branch.
 * **`issue-abort` / `jules-abort`** (Development interruption):
   Picks an in-progress `claude/*` worktree via `fzf` and discards it together with its work branch. The main checkout is untouched.
-* **`issue-finish` / `jules-finish`** (PR merge and close):
-  Searches and selects the created PR via `gh`, automatically merges it into the main branch. Cleans up merged worktrees and local/remote branches, leaves a record-only GitHub Issue (create → close immediately), rewrites the target local Issue file to `status: close`, and automatically pushes to the main branch.
+* **`issue-finish` / `jules-finish`** (Publish reviewed branch and close):
+  Picks a `claude/*` branch not yet merged into `main` via `fzf`, then runs push → PR creation (with the commit message body as the description) → merge into the main branch in one pass. Cleans up merged worktrees and local/remote branches, leaves a record-only GitHub Issue (create → close immediately), rewrites the target local Issue file to `status: close`, and pushes to the main branch.
 * **`skill`** (Claude Code Skill launcher):
   Lists manual-execution skills (those with `manual: true` in SKILL.md frontmatter) under the dotfiles `.claude/skills/` via `fzf` with preview, and launches the selected skill with `claude /{skill-name}`.
 
