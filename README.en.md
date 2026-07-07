@@ -33,6 +33,10 @@ This repository adopts Nix Flakes and Home Manager as base infrastructure. Acros
 
 To prevent specific confidential information (secrets) such as production IPs, port numbers, and actual hostnames from being directly written in code or Issue files in the public repository, design values are isolated in a local `secrets-agents/` directory for agent reference.
 
+### 4. Making Tacit Knowledge Explicit
+
+When operational knowledge depends on a human's tacit knowledge of which file to hand the AI and when, only that person can keep operations running, and the AI cannot reproduce the workflow alone. This repository decides where to place knowledge based on the trigger that reads it: procedures statable as "when doing X" become skills, with the trigger condition declared in the skill's description. This removes the need for manual hand-off and turns tacit knowledge into a norm that gets committed. See [harness-guide.md](docs-agents/harness-guide.md#knowledge-placement-criteria) for details.
+
 ---
 
 ## Agent Profiles & Branch Management

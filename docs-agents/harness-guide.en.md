@@ -140,6 +140,32 @@ Workflow skills are not copied per repository; they live in the global `~/.claud
 Both define only the generic flow; repository-specific checks and verification steps (Section 1 above) go in each repository's CLAUDE.md, which the skills reference.
 `pr-workflow` is launched via the `claude` command from the `issue()` shell function in `issue-driven-workflow.md`.
 
+### Knowledge Placement Criteria
+
+Where to place knowledge is decided by the trigger that reads it.
+
+| Trigger | Placement |
+|---|---|
+| Short rule that applies every time | One line in CLAUDE.md |
+| Procedure/norm statable as "when doing X" | A skill (the description becomes the declaration of its trigger condition) |
+| Shared dictionary/guide referenced by a rule | An independent directory, referenced by absolute path from CLAUDE.md / a skill (e.g., `secrets-agents/`, `docs-agents/`) |
+| Human drafts / unorganized thoughts | Outside the harness. Not auto-read by the AI |
+
+The trigger for migrating a document is the moment you notice "I've handed this document over by hand again." Don't migrate everything at once.
+
+Skill skeleton:
+
+```markdown
+---
+name: sops-secrets
+description: Operational procedure for encrypting, decrypting, and re-encrypting secrets with sops / age. Use when encrypting a secret, when changing `.sops.yaml`, or when registering a new device's key.
+---
+```
+
+The description enumerates trigger conditions as "use when ~," turning tacit knowledge into a declaration.
+
+Skill updates are not auto-extracted. If a drift is noticed during work, stop at a suggestion — don't mass-produce norms that go unreviewed.
+
 ---
 
 ## 5. New Repo Checklist
