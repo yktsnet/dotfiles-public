@@ -1,8 +1,8 @@
 ## harness-guide に知識の配置基準を追加し README Philosophy に4項目目を追記
 id: 02
 branch-slug: knowledge-layering-docs
-github_issue:
-status: open
+github_issue: 13
+status: close
 type: feat
 対象: docs-agents/harness-guide.md, docs-agents/harness-guide.en.md, README.md, README.en.md
 内容: ハーネス設計ガイドに「知識ドキュメントをどこに置くか」の判断基準（読み込みの契機で決める）を新節として追加し、README の Philosophy に4項目目「暗黙知の宣言化」を追記する。英語版2ファイルも同期する。
