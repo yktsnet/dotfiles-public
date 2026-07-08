@@ -81,7 +81,7 @@ _aiagent_finish() {
     return 1
   fi
 
-  # ローカルの未マージ claude/* ブランチを選び、記録用に push → PR作成 → 即マージする
+  # ローカルの未マージ claude/* ブランチを選び、記録用に push → PR作成 → squash マージする
   # （Builder はリモートに触れないので、レビュー済みのものだけがここで初めて公開される）
   local pr_num pr_title pr_body pr_url
   local branch_list
@@ -104,10 +104,10 @@ _aiagent_finish() {
       pr_url=$(printf '%s\n' "$pr_body" \
         | gh pr create --base main --head "$head_branch" --title "$pr_title" --body-file -) || return 1
       pr_num="${pr_url##*/}"
-      if ! gh pr merge "$pr_num" --merge; then
+      if ! gh pr merge "$pr_num" --squash; then
         # 即時マージ失敗（必須ステータスチェック等）→ auto-merge にフォールバックし、CI完了とマージ完了を待つ
         echo "Immediate merge blocked (likely required status checks). Falling back to auto-merge."
-        gh pr merge "$pr_num" --merge --auto || return 1
+        gh pr merge "$pr_num" --squash --auto || return 1
         if ! gh pr checks "$pr_num" --watch --fail-fast; then
           echo "Required checks failed for PR #${pr_num}. Merge aborted."
           return 1
@@ -129,6 +129,13 @@ _aiagent_finish() {
         echo "git pull failed after merge. Fix manually."
         return 1
       fi
+      # squash マージは main の履歴にブランチのコミットが含まれず --merged で検出できないため、ここで明示的に掃除する
+      local squashed_wt
+      squashed_wt=$(git worktree list --porcelain \
+        | awk -v b="refs/heads/${head_branch}" '$1 == "worktree" { p = $2 } $1 == "branch" && $2 == b { print p }')
+      [[ -n "$squashed_wt" ]] && git worktree remove --force "$squashed_wt"
+      git branch -D "$head_branch" || echo "Warning: failed to delete local branch ${head_branch}. Delete manually."
+      git push origin --delete "$head_branch" 2>/dev/null || true
     fi
   else
     echo "No unmerged claude/* branches."
