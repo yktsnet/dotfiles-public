@@ -142,7 +142,30 @@ GitHub Actions で使う Secrets。値はリポに載せない。
 
 ---
 
-## 6. 担当分離との接続
+## 6. 依存更新（Dependabot）
+
+判断は PR 単位でなくルール単位で行う。個別 PR を見て毎回悩まない。
+
+| 状況 | 扱い |
+|---|---|
+| minor/patch ＋ CI グリーン | 自動マージ（無条件） |
+| major | 保留。溜まったら changelog を見て一括判断（マージ / close / 追従 Issue 化） |
+| CI レッド | マージしない。close してよい提案として扱う（`@dependabot ignore this major version` で恒久無視可） |
+| CI が無いリポ | 自動マージ禁止。グループ化して通知としてのみ使う |
+
+構成は3点セット。雛形は `repo-standardize` の `reference/` にある。
+
+1. `.github/dependabot.yml` — 全 ecosystem を weekly ＋ minor/patch グループ化。レジストリ系（npm/pip/composer/gomod）は `cooldown: default-days: 7` を付ける（サプライチェーン対策: 悪性リリースの多くは公開後数日で取り下げられる）
+2. `.github/workflows/dependabot-auto-merge.yml` — major 以外に `gh pr merge --auto` を打つ
+3. リポ設定 — `allow_auto_merge: true` ＋ main への ruleset（required status checks に CI のジョブ名、bypass に Repository admin / always。これで user の直 push は塞がない）
+
+Compatibility score は他人のリポの CI 統計であり判断材料にしない。自リポの CI ＞ semver 種別 ＞＞ score。
+
+注意: auto-merge のマージは `GITHUB_TOKEN` 起点のため、**マージ後の push トリガー workflow（deploy 等）は発火しない**。デモの依存反映は次の人手 push まで遅延するが許容する。即時反映が要るリポだけ PAT に切り替える。
+
+---
+
+## 7. 担当分離との接続
 
 CI 自動デプロイを持つリポでは、`issue-driven-workflow.md` の担当表が変わる。
 
