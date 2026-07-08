@@ -38,4 +38,4 @@ dotfiles-public/
 
 - `{NN}_{slug}.md`: 実装対象 Issue。`status: open` のものを Agent が処理。
 - `00_template.md`: Issue ひな形。
-- `done/`: 旧フローの完了控え。現行フローは `status: close` のまま同ディレクトリにファイルを残し、記録は GitHub の Issue / PR が担う。
+- `done/`: マージした PR の記録。`issue-finish` が PR のタイトル・URL・本文を Issue と同名のファイルで書き出す。Issue ファイル自体は `status: close` のまま同ディレクトリに残る。

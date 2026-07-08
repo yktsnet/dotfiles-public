@@ -116,9 +116,8 @@ Never reopen the original Issue or send follow-up prompts into the same Agent se
 Selects the target Issue and launches the Agent. Local files under `issues/` are the single source of truth; the GitHub Issue is a record-only mirror that `issue-finish` leaves behind as "create → close immediately" on completion.
 
 1. Select an Issue with `status: open` via `fzf` (with preview).
-2. Commit `issues/` changes to `main` (so the worktree branch contains the Issue and the PR diff stays free of `issues/` noise). The push is done by `issue-finish` before it creates the PR.
-3. Per Agent:
-   - **Code**: create worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}` and launch the `claude` command inside it. The main checkout stays clean and multiple Issues can run in parallel. No stashing needed (the worktree is cut from HEAD, so uncommitted changes are not carried over).
+2. Per Agent:
+   - **Code**: create worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}`, commit the selected Issue file on that branch, then launch the `claude` command inside it. The Issue file stays untracked on the main side, so parallel Issues never leak into each other's branches. The main checkout stays clean and multiple Issues can run in parallel. No stashing needed (the worktree is cut from HEAD, so uncommitted changes are not carried over).
    - **Jules**: no local branch; feed the Issue content directly into a cloud session via `jules new`.
 
 Code never touches GitHub (pushing, PR creation, and the record Issue are all handled by `issue-finish`).
@@ -136,9 +135,9 @@ Aborts the task in progress and discards changes.
 Publishes the reviewed branch (push → PR creation → merge), cleans up branches, and closes the Issue in one pass. Only what the user has reviewed locally ever reaches the remote.
 
 1. Pick a `claude/*` branch not yet merged into `main` via `fzf` (previewing the commit log and diff).
-2. Push `main` and the selected branch, create the PR with the commit message body as its description (`gh pr create`), then run `gh pr merge --merge`.
+2. Push the selected branch, create the PR with the commit message body as its description (`gh pr create`), then run `gh pr merge --squash`. The Issue's open commit is merged as part of this PR. On repos with required status checks the immediate merge is rejected, so the flow switches to auto-merge and waits for CI and the merge to complete.
 3. Run `git pull --prune` (the main checkout always stays on main).
-4. Remove merged `claude/*` worktrees and delete local and remote branches in bulk.
+4. Remove the merged branch's worktree and delete its local and remote branches.
 5. Create the record GitHub Issue and close it immediately (if `github_issue:` already has a number, close only). A failed creation never blocks the flow.
 6. Update the local Issue file to `status: close`, commit to `main`, and push.
 
