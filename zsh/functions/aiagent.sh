@@ -69,6 +69,7 @@ _aiagent_finish() {
 
   local base
   base=$(git rev-parse --show-toplevel)
+  local issues_dir="$base/issues"
   local close_file=""
   local head_branch=""
 
@@ -98,8 +99,6 @@ _aiagent_finish() {
     if [[ -n "$head_branch" ]]; then
       pr_title=$(git log -1 --format='%s' "$head_branch")
       pr_body=$(git log -1 --format='%b' "$head_branch")
-      # issues/ の open コミットを先に main に載せ、PR diff に混ぜない
-      git push origin main || return 1
       git push -u origin "$head_branch" || return 1
       pr_url=$(printf '%s\n' "$pr_body" \
         | gh pr create --base main --head "$head_branch" --title "$pr_title" --body-file -) || return 1
@@ -125,6 +124,19 @@ _aiagent_finish() {
           return 1
         fi
       fi
+      # squash マージ後の pull は、main 側に残る untracked の issue ファイルと衝突する
+      # （マージ後は origin 由来の tracked ファイルとして戻ってくるため、pull 前に退避する）
+      local merge_pid=""
+      [[ "$head_branch" =~ ^claude/([0-9]+[a-z]?)- ]] && merge_pid="${match[1]}"
+      if [[ -n "$merge_pid" ]]; then
+        local f
+        for f in "$issues_dir"/*.md(N); do
+          [[ -f "$f" ]] || continue
+          grep -q "^id: ${merge_pid}$" "$f" || continue
+          [[ "$(git status --porcelain -- "$f")" == '??'* ]] && rm -f "$f"
+        done
+      fi
+
       if ! git pull --prune; then
         echo "git pull failed after merge. Fix manually."
         return 1
@@ -169,8 +181,6 @@ _aiagent_finish() {
     [[ -n "$merged_branch" ]] && git branch -d "$merged_branch"
     [[ -n "$merged_branch" ]] && git push origin --delete "$merged_branch" 2>/dev/null || true
   done
-
-  local issues_dir="$base/issues"
 
   if [[ -n "$head_branch" && "$head_branch" =~ ^claude/([0-9]+[a-z]?)- ]]; then
     local pid="${match[1]}"
@@ -266,13 +276,6 @@ _aiagent_run() {
   git_root=$(git rev-parse --show-toplevel)
   rel_path=${PWD#${git_root}/}
 
-  local issues_rel_path
-  if [[ "$git_root" == "$PWD" ]]; then
-    issues_rel_path="issues/"
-  else
-    issues_rel_path="${rel_path}/issues/"
-  fi
-
   branch_name="claude/${id}-${branch_slug}"
   local wt_dir="${git_root}.wt/${id}-${branch_slug}"
 
@@ -287,17 +290,21 @@ _aiagent_run() {
 
   _aiagent_confirm "Run pr-workflow with Claude Code for $(basename "$issue_file")?" || return 0
 
-  # issues/ をコミット（worktree ブランチに issue を含める。push は issue-finish が PR 作成前に行う）
-  if [[ -n "$(git status --porcelain -- "$issues_rel_path")" ]]; then
-    git add "$issues_rel_path"
-    git commit -m "chore(issues): open $(basename "$issue_file")"
-  fi
-
   # worktree に隔離して実行（main のチェックアウトを汚さない・並列実行可）
   git worktree add "$wt_dir" -b "$branch_name" || return 1
 
   local wt_app_dir="$wt_dir"
   [[ "$git_root" != "$PWD" ]] && wt_app_dir="${wt_dir}/${rel_path}"
+
+  # issue ファイル（main 側では untracked のまま）をブランチにコピーしてコミットする。
+  # 各ブランチ上でのみ open コミットを行うことで、main 直積みに伴う並行 Issue の混入や
+  # 後発ブランチへの先発 open コミットの混入を防ぐ
+  local issue_file_rel="${issue_file#${git_root}/}"
+  if [[ -n "$(git status --porcelain -- "$issue_file")" ]]; then
+    cp "$issue_file" "${wt_dir}/${issue_file_rel}"
+    git -C "$wt_dir" add "$issue_file_rel"
+    git -C "$wt_dir" commit -m "chore(issues): open $(basename "$issue_file")"
+  fi
 
   (
     cd "$wt_app_dir" || exit 1
