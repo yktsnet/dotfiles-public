@@ -104,7 +104,27 @@ _aiagent_finish() {
       pr_url=$(printf '%s\n' "$pr_body" \
         | gh pr create --base main --head "$head_branch" --title "$pr_title" --body-file -) || return 1
       pr_num="${pr_url##*/}"
-      gh pr merge "$pr_num" --merge || return 1
+      if ! gh pr merge "$pr_num" --merge; then
+        # 即時マージ失敗（必須ステータスチェック等）→ auto-merge にフォールバックし、CI完了とマージ完了を待つ
+        echo "Immediate merge blocked (likely required status checks). Falling back to auto-merge."
+        gh pr merge "$pr_num" --merge --auto || return 1
+        if ! gh pr checks "$pr_num" --watch --fail-fast; then
+          echo "Required checks failed for PR #${pr_num}. Merge aborted."
+          return 1
+        fi
+        # auto-merge は checks 通過後に GitHub 側で非同期にマージされるため、MERGED になるまでポーリングする（上限3分）
+        local wait_elapsed=0 pr_state=""
+        while (( wait_elapsed < 180 )); do
+          pr_state=$(gh pr view "$pr_num" --json state --jq '.state' 2>/dev/null)
+          [[ "$pr_state" == "MERGED" ]] && break
+          sleep 5
+          (( wait_elapsed += 5 ))
+        done
+        if [[ "$pr_state" != "MERGED" ]]; then
+          echo "Timed out waiting for PR #${pr_num} to merge after checks passed. Check manually."
+          return 1
+        fi
+      fi
       if ! git pull --prune; then
         echo "git pull failed after merge. Fix manually."
         return 1
