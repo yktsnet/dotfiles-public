@@ -142,7 +142,30 @@ Secrets used in GitHub Actions. Values are never stored in the repo.
 
 ---
 
-## 6. Connection to Role Separation
+## 6. Dependency Updates (Dependabot)
+
+Decide by rule, not per PR — don't deliberate over each individual PR.
+
+| Situation | Handling |
+|---|---|
+| minor/patch + CI green | Auto-merge (unconditional) |
+| major | Hold. Once several accumulate, review the changelogs and decide in a batch (merge / close / follow-up Issue) |
+| CI red | Don't merge. Treat as a candidate for closing (`@dependabot ignore this major version` for a permanent ignore) |
+| Repo without CI | Auto-merge prohibited. Use grouping for notification only |
+
+The setup is three pieces. Templates live in `repo-standardize`'s `reference/`.
+
+1. `.github/dependabot.yml` — weekly for every ecosystem, with minor/patch grouped. For registry-based ecosystems (npm/pip/composer/gomod), add `cooldown: default-days: 7` (supply-chain hardening: many malicious releases are pulled within a few days of publishing)
+2. `.github/workflows/dependabot-auto-merge.yml` — runs `gh pr merge --auto` for everything except major
+3. Repo settings — `allow_auto_merge: true` plus a ruleset on main (required status checks list the CI job name; bypass allows Repository admin / always, so the user's direct pushes are not blocked)
+
+Compatibility score is CI statistics from other people's repos — not a decision factor. Your own repo's CI > semver type >> score.
+
+Note: because auto-merge commits originate from `GITHUB_TOKEN`, **push-triggered workflows after the merge (e.g. deploy) do not fire**. This delays dependency updates reaching a demo until the next human push — acceptable. Only switch to a PAT for repos that need immediate reflection.
+
+---
+
+## 7. Connection to Role Separation
 
 For repos with CI auto-deployment, the role table from `issue-driven-workflow.md` changes.
 

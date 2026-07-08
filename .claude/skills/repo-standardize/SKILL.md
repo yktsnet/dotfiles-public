@@ -49,6 +49,8 @@ manual: true
 | `issue-template.md` | `issues/00_template.md` |
 | `gitignore-base.txt` | `.gitignore` |
 | `license-mit.txt` | `LICENSE`（Public のみ必須） |
+| `dependabot-base.yml` | `.github/dependabot.yml` |
+| `dependabot-auto-merge.yml` | `.github/workflows/dependabot-auto-merge.yml`（CI 有リポのみ。運用ルールとリポ設定は `cicd-guide.md` §6） |
 
 `settings-json-{type}.json` は JSON のためコメントが使えない。allow 配列にスタック固有の行を追加する。deny・attribution は変えない。
 
@@ -82,6 +84,7 @@ manual: true
 [ ] issues/00_template.md 有
 [ ] README が存在（最低 H1＋概要・0バイトでない）。本格構成は publish 前に `repo-readme` で整える
 [ ] CI 有（Public/自動デプロイ時）
+[ ] dependabot.yml 有（grouping＋レジストリ系 cooldown）。CI 有なら auto-merge workflow＋allow_auto_merge＋ruleset（cicd-guide.md §6）
 [ ] 地の文・コミット・PR にシークレット直書きなし（ドメイン実値/.ts.net/Tunnel UUID/SSHユーザ等は ~/dotfiles/secrets-agents/ の <PLACEHOLDER>）
 ```
 

@@ -1,0 +1,24 @@
+version: 2
+updates:
+  # <!-- FILL: リポで使う ecosystem ごとにこのエントリを複製する。 -->
+  # <!-- FILL: レジストリ系（npm/pip/composer/gomod）のみ cooldown を残す。docker/github-actions/nix では削る。 -->
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    cooldown:
+      default-days: 7
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
