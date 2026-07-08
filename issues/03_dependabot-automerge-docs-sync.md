@@ -1,8 +1,8 @@
 ## Dependabot 自動マージ体制の公開版反映（repo-standardize 雛形 + cicd-guide 日英）
 id: 03
 branch-slug: dependabot-automerge-docs-sync
-github_issue:
-status: open
+github_issue: 17
+status: close
 type: feat
 対象:
 - .claude/skills/repo-standardize/SKILL.md（雛形表とチェックリストに Dependabot 項目を追加）
