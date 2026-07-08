@@ -2,8 +2,8 @@
 id: 04
 skill: pr-workflow
 branch-slug: aiagent-merge-wait-sync
-github_issue:
-status: open
+github_issue: 19
+status: close
 type: fix
 対象:
 - zsh/functions/aiagent.sh（`_aiagent_finish()` 内 L107 付近の `gh pr merge` ブロック）
