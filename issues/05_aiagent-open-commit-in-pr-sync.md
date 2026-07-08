@@ -2,8 +2,8 @@
 id: 05
 skill: pr-workflow
 branch-slug: aiagent-open-commit-in-pr-sync
-github_issue:
-status: open
+github_issue: 21
+status: close
 type: feat
 対象:
 - zsh/functions/aiagent.sh（`_aiagent_run()` の issues コミット処理 L269-293 付近と `_aiagent_finish()` の main 事前 push・pull 前処理）
