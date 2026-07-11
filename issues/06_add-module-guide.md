@@ -1,8 +1,8 @@
 ## docs-agents に module-guide を追加
 id: 06
 branch-slug: add-module-guide
-github_issue:
-status: open
+github_issue: 23
+status: close
 type: feat
 対象: docs-agents/module-guide.md (新規), docs-agents/module-guide.en.md (新規), README.md, README.en.md
 内容: OSS モジュール型リポ（ポートフォリオ兼実用）の設計規範ガイドを docs-agents に追加し、README 両言語の Agent Development Guides 一覧に反映する
