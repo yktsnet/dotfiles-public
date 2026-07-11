@@ -22,7 +22,7 @@ manual: true
 - `~/dotfiles/docs-agents/workflow.md` — issues/・担当分離・Issue フォーマット
 - `~/dotfiles/docs-agents/cicd.md` — CI/デプロイ（Public のみ層3）
 
-> `readme-guide.md` は本 Skill の管轄外。本格 README は `repo-readme` Skill で作成する。
+> `readme-guide.md` のうち §1・§3 のみ本 Skill で使う（コアメッセージ1文の確定まで）。アウトライン以降の本格構成は `repo-readme` Skill の管轄。
 
 ## 1. 文脈（分類）を確定する
 
@@ -82,7 +82,7 @@ manual: true
 [ ] .claude/settings.json 有（JSON 妥当・deny に push/force、attribution 空）
 [ ] CLAUDE.md / context/{conventions,structure}.md / skills/pr-workflow/SKILL.md 有・非空
 [ ] issues/00_template.md 有
-[ ] README が存在（最低 H1＋概要・0バイトでない）。本格構成は publish 前に `repo-readme` で整える
+[ ] README の H1 直下に readme-guide.md §3 の型（何を解決/実証するか＋どういう手段で）を満たすコアメッセージ1文がある。無ければ種別（Type A/B）を判定して1文を書く。**それ以上のセクションは書かない**（肉付けは publish 前に `repo-readme` が行う）
 [ ] CI 有（Public/自動デプロイ時）
 [ ] dependabot.yml 有（grouping＋レジストリ系 cooldown）。CI 有なら auto-merge workflow＋allow_auto_merge＋ruleset（cicd-guide.md §6）
 [ ] 地の文・コミット・PR にシークレット直書きなし（ドメイン実値/.ts.net/Tunnel UUID/SSHユーザ等は ~/dotfiles/secrets-agents/ の <PLACEHOLDER>）
@@ -97,3 +97,4 @@ manual: true
 
 - 基準は本ファイルでなく `~/dotfiles/docs-agents/` が正。食い違ったらガイドを優先する。
 - スタック差で settings.json の allow/deny・検証コマンド・CI ステップが変わる。harness の類型表が分岐表。
+- README について standardize はコアメッセージ1文の確定までしか行わない。Quick Start・Tech Stack・Architecture 等のセクションを新設しない。
