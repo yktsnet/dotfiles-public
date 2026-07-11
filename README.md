@@ -42,7 +42,6 @@ AIエージェントの自律的な編集能力を活かしつつ、その実行
 | エージェント | 実行環境 | ブランチ管理 | 永続指示ファイル |
 |---|---|---|---|
 | **Claude Code** | ローカルマシン環境 | worktree + ブランチを自動生成し隔離実行 | `CLAUDE.md` |
-| **Jules** | クラウド上のサンドボックス | ローカルブランチは生成せずリモート完結 | `AGENTS.md` |
 
 ---
 
@@ -50,13 +49,12 @@ AIエージェントの自律的な編集能力を活かしつつ、その実行
 
 Zshに統合された以下のシェルマクロ群により、チケット管理からエージェント起動、マージ後の後片付けまでをキーボード駆動でシームレスに処理。
 
-* **`issue` / `jules`** (チケット起動):
+* **`issue`** (チケット起動):
   `status: open` 状態のIssueファイルを `fzf` でプレビューしながら選択。
-  * **Codeの場合**: worktree `{repo}.wt/{id}-{slug}` をブランチ `claude/{id}-{slug}` で自動作成し、その中で Claude CLI を起動。main のチェックアウトは汚れず、複数Issueを並列実行できる。
-  * **Julesの場合**: ローカルブランチは作らず、直接クラウド上のセッションへタスクを投入。
-* **`issue-abort` / `jules-abort`** (開発中断):
+  worktree `{repo}.wt/{id}-{slug}` をブランチ `claude/{id}-{slug}` で自動作成し、その中で Claude CLI を起動。main のチェックアウトは汚れず、複数Issueを並列実行できる。
+* **`issue-abort`** (開発中断):
   進行中の `claude/*` worktree を `fzf` で選択し、worktree と作業ブランチごと破棄。main のチェックアウトには影響しない。
-* **`issue-finish` / `jules-finish`** (レビュー済みブランチの公開とクローズ):
+* **`issue-finish`** (レビュー済みブランチの公開とクローズ):
   `main` 未マージの `claude/*` ブランチを `fzf` で選択し、push → PR作成（本文はコミットメッセージ本文から生成）→ メインブランチへのマージまでを一括実行。マージ済みの worktree・ローカル/リモートブランチをクリーンアップし、記録用の GitHub Issue を「作成→即クローズ」で残したうえで、対象のローカルIssueファイルを `status: close` に書き換え、メインブランチへプッシュ。
 * **`skill`** (Claude Code Skill ランチャー):
   dotfiles の `.claude/skills/` 内の手動実行用スキル（SKILL.md の frontmatter に `manual: true` を持つもの）を `fzf` で一覧・プレビューし、選択したスキルを `claude /{skill-name}` で起動。

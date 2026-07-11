@@ -2,7 +2,7 @@
 
 # Issue-Driven Development Workflow
 
-An issue-driven development flow leveraging AI Agents (Claude Code / Jules).
+An issue-driven development flow leveraging AI Agents (Claude Code).
 Separates design, implementation, and verification to prevent Agent runaway while developing at speed.
 
 ---
@@ -21,26 +21,21 @@ If the phase is unclear, do not implement; ask the user.
 | Role | Work |
 |---|---|
 | **Consultant** (WebChat / desktop Code open chat) | Issue design, spec discussion, documentation. **Never implements** |
-| **Builder** (CLI Code / Jules launched via issue()) | Code edits, static checks, and commits based on the Issue |
+| **Builder** (CLI Code launched via issue()) | Code edits, static checks, and commits based on the Issue |
 | **user** | Deploy, service restarts, verification, merge |
 
 - The Consultant goes only as far as writing the Issue file (via the `/new-issue` skill). No code; stop once it is written.
 - The same applies when Code plays the Consultant (`main`, open chat). When asked to implement, create an Issue with `status: open` and stop; the user launches implementation via issue().
 - The Builder (Code) implements from the Issue and stops at a local commit. Pushing, PR creation, and production commands are forbidden; publishing happens in `issue-finish` after the user's review.
-- The Builder (Jules) implements in a cloud sandbox and creates its PR on the cloud side.
+
 - Verification steps: the Builder writes them in the commit message body under `## 検証手順`; `issue-finish` turns that body into the PR description, and the user executes the steps.
 
 ---
 
-## Supported Agents
+## Supported Agent
 
-Select the Agent (Code / Jules) on the ZSH side; no guard is configured there.
-Branch management differs by the Agent's execution environment.
-
-| Agent | Environment | Branch management | Persistent instruction file |
-|---|---|---|---|
-| **Claude Code (Code)** | Local | Creates a worktree + branch and runs in isolation | `CLAUDE.md` |
-| **Jules** | Cloud sandbox | No local branch (remote-only) | `AGENTS.md` |
+Claude Code is used as the Builder.
+To eliminate environment differences, it creates a worktree and a branch on the local machine and runs in isolation. The persistent instruction file is `CLAUDE.md`.
 
 ---
 
@@ -51,7 +46,6 @@ Each repository holds a persistent instruction file for the selected Agent and t
 ```
 {app_root}/
 ├── CLAUDE.md        # Instructions for Claude Code (incl. static checks and verification templates)
-├── AGENTS.md        # Instructions for Jules
 ├── .claude/
 │   └── settings.json        # Permissions / accident prevention (harness-guide.md)
 ├── context/         # Shared context
@@ -111,26 +105,22 @@ Never reopen the original Issue or send follow-up prompts into the same Agent se
 
 ## Shell Functions
 
-### `issue` or `jules`
+### `issue`
 
 Selects the target Issue and launches the Agent. Local files under `issues/` are the single source of truth; the GitHub Issue is a record-only mirror that `issue-finish` leaves behind as "create → close immediately" on completion.
 
 1. Select an Issue with `status: open` via `fzf` (with preview).
-2. Per Agent:
-   - **Code**: create worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}`, commit the selected Issue file on that branch, then launch the `claude` command inside it. The Issue file stays untracked on the main side, so parallel Issues never leak into each other's branches. The main checkout stays clean and multiple Issues can run in parallel. No stashing needed (the worktree is cut from HEAD, so uncommitted changes are not carried over).
-   - **Jules**: no local branch; feed the Issue content directly into a cloud session via `jules new`.
+2. Create worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}`, commit the selected Issue file on that branch, then launch the `claude` command inside it. The Issue file stays untracked on the main side, so parallel Issues never leak into each other's branches. The main checkout stays clean and multiple Issues can run in parallel. No stashing needed (the worktree is cut from HEAD, so uncommitted changes are not carried over).
 
 Code never touches GitHub (pushing, PR creation, and the record Issue are all handled by `issue-finish`).
 
-### `issue-abort` or `jules-abort`
+### `issue-abort`
 
 Aborts the task in progress and discards changes.
 
-1. Per Agent:
-   - **Code**: pick a `claude/*` worktree via `fzf` and force-delete both the worktree and the branch (`git worktree remove --force` + `git branch -D`).
-   - **Jules**: skip local branch operations; handle the cloud session manually (`jules remote`, etc.).
+1. Pick a `claude/*` worktree via `fzf` and force-delete both the worktree and the branch (`git worktree remove --force` + `git branch -D`).
 
-### `issue-finish` or `jules-finish`
+### `issue-finish`
 
 Publishes the reviewed branch (push → PR creation → merge), cleans up branches, and closes the Issue in one pass. Only what the user has reviewed locally ever reaches the remote.
 
@@ -140,5 +130,3 @@ Publishes the reviewed branch (push → PR creation → merge), cleans up branch
 4. Remove the merged branch's worktree and delete its local and remote branches.
 5. Create the record GitHub Issue and close it immediately (if `github_issue:` already has a number, close only). A failed creation never blocks the flow.
 6. Update the local Issue file to `status: close`, commit to `main`, and push.
-
-Jules creates its PR on the cloud side, so `jules-finish` only pulls `main` after the merge.

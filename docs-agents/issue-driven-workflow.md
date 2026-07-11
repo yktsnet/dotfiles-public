@@ -2,7 +2,7 @@
 
 # Issue-Driven Development Workflow
 
-AI Agent（Claude Code / Jules）を活用したIssue起点の開発フロー。  
+AI Agent（Claude Code）を活用したIssue起点の開発フロー。  
 設計・実装・検証を分離し、Agentの暴走を防ぎつつ高速に開発。
 
 ---
@@ -21,26 +21,21 @@ AI Agent（Claude Code / Jules）を活用したIssue起点の開発フロー。
 | 担当 | 作業 |
 |---|---|
 | **相談者**（WebChat / デスクトップ Code 開放チャット） | Issue設計・仕様議論・ドキュメント作成。**実装しない** |
-| **実行者**（issue() 起動の CLI Code / Jules） | Issueに基づくコード編集・静的確認・コミット |
+| **実行者**（issue() 起動の CLI Code） | Issueに基づくコード編集・静的確認・コミット |
 | **user** | デプロイ・サービス再起動・動作確認・マージ |
 
 - 相談者は Issue ファイルの書き出しまで（`/new-issue` スキルを使う）。コードは書かず、書き終えたら止まる。
 - 相談者を Code が演じる場合（`main`・開放チャット）も同じ。実装を頼まれたら Issue を `status: open` で作成して止まり、実装は user が issue() で起動する。
 - 実行者（Code）は Issue に基づき実装し、ローカルコミットで止まる。push・PR 作成・本番コマンド実行は禁止。リモートへの公開は user のレビュー後に `issue-finish` が行う。
-- 実行者（Jules）はクラウドサンドボックスで実装し、PR もクラウド側で作成する。
+
 - 検証手順：実行者がコミットメッセージ本文の `## 検証手順` に記載（`issue-finish` がその本文をそのまま PR 本文にする）。userが実施。
 
 ---
 
-## 対応 Agent と特性
+## 対応 Agent
 
-ZSH側で呼び出すAgent（Code / Jules）を選択。ガードは設定しない。  
-Agentの実行環境の特性に応じ、ブランチ管理が異なる。
-
-| Agent | 実行環境 | ブランチ管理 | 永続指示ファイル |
-|---|---|---|---|
-| **Claude Code (Code)** | ローカル環境 | worktree + ブランチを作成し隔離実行 | `CLAUDE.md` |
-| **Jules** | クラウドサンドボックス | ローカルブランチ不生成（リモート完結） | `AGENTS.md` |
+実行者には Claude Code を使用します。
+環境差を排除するために、ローカル環境において worktree とブランチを自動生成し隔離実行します。永続指示ファイルは `CLAUDE.md` を使用します。
 
 ---
 
@@ -51,7 +46,6 @@ Agentの実行環境の特性に応じ、ブランチ管理が異なる。
 ```
 {app_root}/
 ├── CLAUDE.md        # Claude Code用永続指示（静的チェック・検証手順の雛形を含む）
-├── AGENTS.md        # Jules用永続指示
 ├── .claude/
 │   └── settings.json        # 権限・事故防止（harness-guide.md）
 ├── context/         # 共通コンテキスト
@@ -111,34 +105,28 @@ draft  →（設計完了）→  open  →（issue-finish）→  close
 
 ## シェル関数
 
-### `issue` or `jules`
+### `issue`
 
 対象Issueを選択し、Agentを起動。Issueの管理はローカルファイル（`issues/`）が唯一の真実。GitHub Issue は記録用ミラーで、`issue-finish` が完了時に「作成→即クローズ」で残す。
 
 1. `status: open` のIssueを `fzf` で選択（プレビュー表示）。
-2. Agentごとの分岐：
-   - **Code**: worktree `{repo}.wt/{id}-{slug}` をブランチ `claude/{id}-{slug}` で作成し、選択した issue ファイルをブランチ上でコミットしてから、その中で `claude` コマンドを起動。issue ファイルは main 側では untracked のまま残るため、並行する Issue が互いのブランチに混入しない。main のチェックアウトは汚れず、複数Issueの並列実行が可能。stash は不要（worktree は HEAD から切られるため、未コミット変更は持ち込まれない）。
-   - **Jules**: ローカルブランチは作らず、`jules new` でIssue内容を直接クラウドセッションへ投入。
+2. worktree `{repo}.wt/{id}-{slug}` をブランチ `claude/{id}-{slug}` で作成し、選択した issue ファイルをブランチ上でコミットしてから、その中で `claude` コマンドを起動。issue ファイルは main 側では untracked のまま残るため、並行する Issue が互いのブランチに混入しない。main のチェックアウトは汚れず、複数Issueの並列実行が可能。stash は不要（worktree は HEAD から切られるため、未コミット変更は持ち込まれない）。
 
 Code は GitHub に一切触れない（push・PR 作成・記録用 Issue はすべて `issue-finish` が担う）。
 
-### `issue-abort` or `jules-abort`
+### `issue-abort`
 
 進行中のタスクを中断し、変更を破棄。
 
-1. Agentごとの分岐：
-   - **Code**: `claude/*` の worktree を `fzf` で選択し、worktree とブランチを強制削除（`git worktree remove --force` + `git branch -D`）。
-   - **Jules**: ローカルブランチ操作をスキップ。クラウド側のセッション管理（`jules remote` 等）で手動対応。
+1. `claude/*` の worktree を `fzf` で選択し、worktree とブランチを強制削除（`git worktree remove --force` + `git branch -D`）。
 
-### `issue-finish` or `jules-finish`
+### `issue-finish`
 
 レビュー済みブランチの公開（push → PR 作成 → マージ）、ブランチ後片付け、Issueクローズを一括実行。リモートに載るのは user がローカルでレビューしたものだけになる。
 
 1. `main` 未マージの `claude/*` ブランチを `fzf` で選択（コミットログと diff をプレビュー）。
 2. 選択ブランチを push し、コミットメッセージ本文を PR 本文として `gh pr create` → `gh pr merge --squash`。issue ファイルの open コミットも PR に含まれてマージされる。必須ステータスチェックのあるリポでは即時マージが拒否されるため、auto-merge に切り替えて CI 完了とマージ完了を待つ。
-3. `git pull --prune` を実行（main のチェックアウトは常に main のまま）。
+3. Run `git pull --prune` (the main checkout always stays on main).
 4. マージした `claude/*` の worktree・ローカル・リモートブランチを削除。
 5. 記録用 GitHub Issue を作成して即クローズ（`github_issue:` に番号が既にあればクローズのみ）。作成失敗はフローを止めない。
 6. ローカルIssueファイルを `status: close` に更新し、`main` へコミット・Push。
-
-Jules は PR をクラウド側で作成するため、`jules-finish` はマージ後の `main` の pull のみを行う。

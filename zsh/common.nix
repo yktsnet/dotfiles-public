@@ -35,7 +35,6 @@
       ${builtins.readFile ./functions/git.sh}
       ${builtins.readFile ./functions/aiagent.sh}
       ${builtins.readFile ./functions/claude.sh}
-      ${builtins.readFile ./functions/jules.sh}
     '';
   };
   # プロンプトは ui.nix の pure prompt を使用する。

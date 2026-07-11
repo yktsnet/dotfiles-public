@@ -46,7 +46,6 @@ Branch management and instruction files are optimized according to the character
 | Agent | Execution Environment | Branch Management | Persistent Instruction File |
 |---|---|---|---|
 | **Claude Code** | Local machine environment | Auto-creates a worktree + branch and runs in isolation | `CLAUDE.md` |
-| **Jules** | Cloud sandbox | No local branch creation; operates entirely on remote | `AGENTS.md` |
 
 ---
 
@@ -54,13 +53,12 @@ Branch management and instruction files are optimized according to the character
 
 The following shell macros integrated into Zsh enable seamless keyboard-driven processing from ticket management to agent launch and post-merge cleanup.
 
-* **`issue` / `jules`** (Ticket launch):
+* **`issue`** (Ticket launch):
   Selects `status: open` Issue files with fzf preview.
-  * **For Code**: Auto-creates worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}` and launches the Claude CLI inside it. The main checkout stays clean, and multiple Issues can run in parallel.
-  * **For Jules**: Submits tasks directly to a cloud session without creating a local branch.
-* **`issue-abort` / `jules-abort`** (Development interruption):
+  Auto-creates worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}` and launches the Claude CLI inside it. The main checkout stays clean, and multiple Issues can run in parallel.
+* **`issue-abort`** (Development interruption):
   Picks an in-progress `claude/*` worktree via `fzf` and discards it together with its work branch. The main checkout is untouched.
-* **`issue-finish` / `jules-finish`** (Publish reviewed branch and close):
+* **`issue-finish`** (Publish reviewed branch and close):
   Picks a `claude/*` branch not yet merged into `main` via `fzf`, then runs push → PR creation (with the commit message body as the description) → merge into the main branch in one pass. Cleans up merged worktrees and local/remote branches, leaves a record-only GitHub Issue (create → close immediately), rewrites the target local Issue file to `status: close`, and pushes to the main branch.
 * **`skill`** (Claude Code Skill launcher):
   Lists manual-execution skills (those with `manual: true` in SKILL.md frontmatter) under the dotfiles `.claude/skills/` via `fzf` with preview, and launches the selected skill with `claude /{skill-name}`.
