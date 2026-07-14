@@ -1,8 +1,8 @@
 ## 保証運用（保証節・保証台帳・テンプレート正本一本化）をワークフロー文書に反映する
 id: 07
 branch-slug: guarantee-workflow-docs-sync
-github_issue:
-status: open
+github_issue: 26
+status: close
 type: feat
 対象:
 - docs-agents/issue-driven-workflow.md
