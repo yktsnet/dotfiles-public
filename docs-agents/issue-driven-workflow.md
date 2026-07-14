@@ -22,10 +22,10 @@ AI Agent（Claude Code）を活用したIssue起点の開発フロー。
 |---|---|
 | **相談者**（WebChat / デスクトップ Code 開放チャット） | Issue設計・仕様議論・ドキュメント作成。**実装しない** |
 | **実行者**（issue() 起動の CLI Code） | Issueに基づくコード編集・静的確認・コミット |
-| **user** | デプロイ・サービス再起動・動作確認・マージ |
+| **user** | デプロイ・サービス再起動・動作確認・マージ・Issue保証節の裁可 |
 
 - 相談者は Issue ファイルの書き出しまで（`/new-issue` スキルを使う）。コードは書かず、書き終えたら止まる。
-- 相談者を Code が演じる場合（`main`・開放チャット）も同じ。実装を頼まれたら Issue を `status: open` で作成して止まり、実装は user が issue() で起動する。
+- 相談者を Code が演じる場合（`main`・開放チャット）も同じ。実装を頼まれたら Issue を `status: draft` で作成して止まり、user が保証節を裁可して `status: open` に変えたのち issue() で起動する。
 - 実行者（Code）は Issue に基づき実装し、ローカルコミットで止まる。push・PR 作成・本番コマンド実行は禁止。リモートへの公開は user のレビュー後に `issue-finish` が行う。
 
 - 検証手順：実行者がコミットメッセージ本文の `## 検証手順` に記載（`issue-finish` がその本文をそのまま PR 本文にする）。userが実施。
@@ -52,9 +52,10 @@ AI Agent（Claude Code）を活用したIssue起点の開発フロー。
 │   ├── conventions.md
 │   └── structure.md
 └── issues/          # ローカルIssue管理
-    ├── 00_template.md
     └── {NN}_{slug}.md
 ```
+
+Issueテンプレートの正本は `~/.claude/skills/repo-standardize/reference/issue-template.md`（dotfiles 管理）。各リポにコピーは配布しない。`new-issue` スキルがこれを直接読む。
 
 `pr-workflow`（実行者用）と `new-issue`（相談者用）のスキルはリポごとに持たず、グローバル `~/.claude/skills/`（dotfiles 管理）を使う。リポ固有の検証手段・検証手順は各リポの CLAUDE.md に書き、スキルがそれを参照する。
 
@@ -75,17 +76,23 @@ type: cleanup | fix | feat
 
 ---
 
+### 保証
+- 新たに宣言する保証: {この変更後に成り立つべき振る舞いを自然言語の箇条書きで}
+- 維持する保証: {この変更で壊してはいけない既存の振る舞いを自然言語の箇条書きで}
+
 {内容に収まらない仕様を自由に展開}
 ```
+
+保証節は自然言語で「振る舞い」を書く（テストコード・テスト名の指定は補足）。テストを伴わない変更は `保証: なし（理由）` と明示する。
 
 ### ライフサイクル
 
 ```
-draft  →（設計完了）→  open  →（issue-finish）→  close
+draft  →（設計完了・user が保証節を裁可）→  open  →（issue-finish）→  close
 ```
 
 - `draft`: 設計中。`issue()` の選択肢から除外。
-- `open`: 実装可能。`issue()` で選択可能。実行者は `status:` を変更しない。
+- `open`: 実装可能。`issue()` で選択可能。実行者は `status:` を変更しない。**open は user が保証節を裁可済みであることを含む**。
 - `close`: 完了済み。`issue-finish` が更新する。
 
 ### 派生 Issue

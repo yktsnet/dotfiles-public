@@ -22,10 +22,10 @@ If the phase is unclear, do not implement; ask the user.
 |---|---|
 | **Consultant** (WebChat / desktop Code open chat) | Issue design, spec discussion, documentation. **Never implements** |
 | **Builder** (CLI Code launched via issue()) | Code edits, static checks, and commits based on the Issue |
-| **user** | Deploy, service restarts, verification, merge |
+| **user** | Deploy, service restarts, verification, merge, approve the Issue's guarantee section |
 
 - The Consultant goes only as far as writing the Issue file (via the `/new-issue` skill). No code; stop once it is written.
-- The same applies when Code plays the Consultant (`main`, open chat). When asked to implement, create an Issue with `status: open` and stop; the user launches implementation via issue().
+- The same applies when Code plays the Consultant (`main`, open chat). When asked to implement, create an Issue with `status: draft` and stop; the user approves the guarantee section to promote it to `status: open`, then launches implementation via issue().
 - The Builder (Code) implements from the Issue and stops at a local commit. Pushing, PR creation, and production commands are forbidden; publishing happens in `issue-finish` after the user's review.
 
 - Verification steps: the Builder writes them in the commit message body under `## 検証手順`; `issue-finish` turns that body into the PR description, and the user executes the steps.
@@ -52,9 +52,10 @@ Each repository holds a persistent instruction file for the selected Agent and t
 │   ├── conventions.md
 │   └── structure.md
 └── issues/          # Local issue management
-    ├── 00_template.md
     └── {NN}_{slug}.md
 ```
+
+The master Issue template lives at `~/.claude/skills/repo-standardize/reference/issue-template.md` (managed by dotfiles); it is not copied into each repository. The `new-issue` skill reads it directly.
 
 The `pr-workflow` (Builder) and `new-issue` (Consultant) skills are not copied per repository; they live in the global `~/.claude/skills/` (managed by dotfiles). Repository-specific checks and verification steps go in each repository's CLAUDE.md, which the skills reference.
 
@@ -75,17 +76,23 @@ type: cleanup | fix | feat
 
 ---
 
+### 保証
+- 新たに宣言する保証: {behaviors that should hold after this change, as natural-language bullets}
+- 維持する保証: {existing behaviors this change must not break, as natural-language bullets}
+
 {free-form details that do not fit above}
 ```
+
+The guarantee section is written in natural language describing behavior (test code or test names are supplementary). For changes with no accompanying tests, state `保証: なし（理由）` explicitly.
 
 ### Lifecycle
 
 ```
-draft  → (design complete) →  open  → (issue-finish) →  close
+draft  → (design complete, user approves the guarantee section) →  open  → (issue-finish) →  close
 ```
 
 - `draft`: under design. Excluded from issue() selection.
-- `open`: ready to implement. Selectable by issue(). The Builder never changes `status:`.
+- `open`: ready to implement. Selectable by issue(). The Builder never changes `status:`. **`open` implies the user has approved the guarantee section.**
 - `close`: done. Updated by issue-finish.
 
 ### Derived Issues
