@@ -37,6 +37,10 @@ To prevent specific confidential information (secrets) such as production IPs, p
 
 When operational knowledge depends on a human's tacit knowledge of which file to hand the AI and when, only that person can keep operations running, and the AI cannot reproduce the workflow alone. This repository decides where to place knowledge based on the trigger that reads it: procedures statable as "when doing X" become skills, with the trigger condition declared in the skill's description. This removes the need for manual hand-off and turns tacit knowledge into a norm that gets committed. See [harness-guide.md](docs-agents/harness-guide.md#knowledge-placement-criteria) for details.
 
+### 5. Tests as Approved Guarantees
+
+When agents write the code, the bottleneck shifts from generation to verification. Tests are treated as a contract that makes agents enforce the human's intent about what must not break: the human approves the declaration of guarantees (what should hold) in each Issue's guarantee section, and the agent writes the test code. A specification states desired behavior but has no enforcement power, and an implementation contains behavior nobody intended. Tests and the guarantee ledger (`docs/guarantees.md`) are the intersection the project commits to keeping, and because they fail when broken, no human has to keep watching. See [test-policy.md](docs-agents/test-policy.en.md) for details.
+
 ---
 
 ## Agent Profiles & Branch Management
@@ -79,7 +83,7 @@ For detailed keybindings and configuration, see [TUI Environment (docs/tui_envir
 
 ## Agent Development Guides
 
-A set of guides for starting AI Agent collaborative development in a new repository. Hand all 6 files to the AI together to build a standard development environment.
+A set of guides for starting AI Agent collaborative development in a new repository. Hand all 7 files to the AI together to build a standard development environment.
 
 | Guide | Role |
 |---|---|
@@ -89,3 +93,4 @@ A set of guides for starting AI Agent collaborative development in a new reposit
 | [readme-guide.md](docs-agents/readme-guide.md) | README writing guide. Structure, language rules, JUDGE.md integration |
 | [repo-guide.md](docs-agents/repo-guide.md) | Repository structure, secrets management, pre-publish checklist |
 | [module-guide.md](docs-agents/module-guide.md) | Design guide for OSS module-style repos. Type decisions, structure, demo methods |
+| [test-policy.md](docs-agents/test-policy.en.md) | Test layer. Guarantee approval, guarantee ledger, risk-based test depth |
