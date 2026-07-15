@@ -43,16 +43,6 @@ When agents write the code, the bottleneck shifts from generation to verificatio
 
 ---
 
-## Agent Profiles & Branch Management
-
-Branch management and instruction files are optimized according to the characteristics of the AI agent's execution environment. See [docs-agents/issue-driven-workflow.md](docs-agents/issue-driven-workflow.md) for detailed workflow behavior.
-
-| Agent | Execution Environment | Branch Management | Persistent Instruction File |
-|---|---|---|---|
-| **Claude Code** | Local machine environment | Auto-creates a worktree + branch and runs in isolation | `CLAUDE.md` |
-
----
-
 ## Core Workflows (Zsh Functions)
 
 The following shell macros integrated into Zsh enable seamless keyboard-driven processing from ticket management to agent launch and post-merge cleanup.

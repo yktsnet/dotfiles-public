@@ -38,16 +38,6 @@ AIエージェントの自律的な編集能力を活かしつつ、その実行
 
 ---
 
-## Agent Profiles & Branch Management
-
-起動するAIエージェントの実行環境の特性に応じて、ブランチ管理と指示ファイルを最適化。詳しいワークフローの挙動は [docs-agents/issue-driven-workflow.md](docs-agents/issue-driven-workflow.md) を参照。
-
-| エージェント | 実行環境 | ブランチ管理 | 永続指示ファイル |
-|---|---|---|---|
-| **Claude Code** | ローカルマシン環境 | worktree + ブランチを自動生成し隔離実行 | `CLAUDE.md` |
-
----
-
 ## Core Workflows (Zsh Functions)
 
 Zshに統合された以下のシェルマクロ群により、チケット管理からエージェント起動、マージ後の後片付けまでをキーボード駆動でシームレスに処理。
