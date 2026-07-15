@@ -1,71 +1,75 @@
 [🇯🇵 日本語](README.md) | [🇬🇧 English](README.en.md)
 
-# Nix-Powered Workspace for AI-Agent Collaborative Development
+# Two-Phase Development Lifecycle for AI-Agent Collaboration
 
 [![CI](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml/badge.svg)](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml)
 
-Environment differences get in the way of an agent's autonomous execution. And because agents act without a human checking each step, they can let destructive operations or secret leaks slip straight through.  
-The former is resolved by declaratively unifying the macOS / Linux toolchain with Nix Flakes. The latter is contained through Issue-driven role separation and the isolation of secrets and restriction of operations.
+In development with AI agents, the bottleneck shifts from generation to verification and intent transfer.
+This repository splits development into two phases, each driven by a different document: during bootstrap, specifications (PLAN.md / JUDGE.md) make agents enforce human intent; during maintenance, the guarantee ledger (guarantees.md) and its tests do.
+The execution environment that supports this lifecycle — Nix, role separation, and the skill set — is published as code along with it.
 
 ---
 
-## Philosophy & Core Architecture
+## Development Lifecycle (Two Driving Documents)
 
-To leverage the autonomous editing capabilities of AI agents while keeping their execution from reaching the main branch or production without human review, this project adopts an Issue-driven development flow that separates "design, implementation, and verification."
+Development documents have lifespans. Rather than trying to keep a single specification alive forever, the driving document changes with the phase. Each repository declares its phase in its CLAUDE.md.
 
-### 1. Role Separation
+| Phase | Driving document | Method | Fate of the document |
+|---|---|---|---|
+| MVP phase (bootstrap) | PLAN.md / JUDGE.md | Spec-Driven Development (SDD) | Absorbed into the README at release, then discarded |
+| Issue-driven phase (maintenance) | Issue guarantee sections + `docs/guarantees.md` | Guarantee-Driven Development (GDD) | A durable contract continuously verified by tests |
 
-Clearly defines responsibilities according to the strengths of humans, conversational AI, and autonomous AI agents.
+### MVP Phase: Spec-Driven Development
+
+While direction and structure are still unsettled, PLAN.md (spec, plan, and work log) and JUDGE.md (decisions made during implementation) drive development. The agent keeps both files updated as implementation proceeds, and at release they are absorbed into the README and retired. The specification is scaffolding for this phase only; it is not expected to persist.
+
+### Issue-Driven Phase: Guarantee-Driven Development
+
+After release, changes too small to deserve a spec accumulate, and the original specification inevitably drifts from the implementation. So the driving document hands over to the guarantee ledger (`docs/guarantees.md`). The ledger records only what is promised and what is not, and every promise is continuously verified by a corresponding test. Unlike a README, it cannot rot silently, because breaking a promise makes a test fail. When behavior feels off, the ledger is the first thing to open.
+
+When agents write the code, the human's job shifts from writing tests to approving promises. The human approves the declaration of guarantees (what should hold) in each Issue's guarantee section, and the agent writes the test code. If TDD is the discipline of writing tests first, GDD is the discipline of approving promises first. Drift between the ledger and the tests is detected by periodic audits with the `guarantee-audit` skill. See [test-policy.md](docs-agents/test-policy.en.md) for details.
+
+---
+
+## Role Separation
+
+The execution machinery for the two workflows above. Responsibilities are strictly defined across humans, conversational AI, and autonomous AI agents, so that no agent edit reaches the main branch or production without review.
 
 * **WebChat (Design / Conversational AI)**:
-  Engages in dialogue with the user to formulate specifications and create design files. Does not write verification procedures.
+  In dialogue with the user, formulates specifications and design files during the MVP phase, and performs investigation and Issue design during the Issue-driven phase. Never implements.
 * **AI Agent (Implementation / Autonomous AI)**:
-  Autonomously executes code editing, static error checking, and local commits using Issue files as input; it never touches the remote. Destructive commands such as `rebuild` and access to secrets are structurally blocked by the deny list in `.claude/settings.json`.
-* **User (Verification / Human)**:
-  Reviews and verifies the agent's commits locally, then publishes them (push, PR creation, merge) via `issue-finish`. Only reviewed changes ever reach the remote.
+  Autonomously executes code editing, test implementation, static error checking, and local commits using Issue files as input; it never touches the remote. Destructive commands such as `rebuild` and access to secrets are structurally blocked by the deny list in `.claude/settings.json`.
+* **User (Approval, Verification / Human)**:
+  Approves the guarantee sections of Issues, reviews and verifies the agent's commits locally, then publishes them (push, PR creation, merge) via `issue-finish`. Only reviewed changes ever reach the remote.
 
-### 2. Nix's Role in Eliminating Environment Differences to Support Agents
+Hand-offs between roles are performed by Zsh macros:
 
-For autonomous agents to write code and run tests, it is essential to eliminate local machine state dependencies (environment differences).  
-This repository adopts Nix Flakes and Home Manager as base infrastructure. Across MacBook (macOS) and Linux desktop, the toolchain used by agents (Neovim, Yazi, Git, LSP, etc.), executables, and environment variables are unified as code. This prevents agents from encountering "command not found" and "runtime errors" due to environment differences. This consistency is continuously verified by CI (`nix flake check`).
+* **`issue`**: Selects a `status: open` Issue via `fzf`, auto-creates worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}`, and launches the Claude CLI inside it. The main checkout stays clean, and multiple Issues can run in parallel.
+* **`issue-abort`**: Picks an in-progress `claude/*` worktree and discards it together with its work branch.
+* **`issue-finish`**: Picks a reviewed branch and runs push → PR creation → merge → worktree/branch cleanup → rewriting the Issue file to `status: close`, all in one pass.
+* **`skill`**: Lists manual-execution skills (those with `manual: true` in the frontmatter) via `fzf` with preview and launches the selection with `claude /{skill-name}`.
 
-### 3. Secrets & Config Isolation
-
-To prevent specific confidential information (secrets) such as production IPs, port numbers, and actual hostnames from being directly written in code or Issue files in the public repository, design values are isolated in a local `secrets-agents/` directory for agent reference.
-
-### 4. Making Tacit Knowledge Explicit
-
-When operational knowledge depends on a human's tacit knowledge of which file to hand the AI and when, only that person can keep operations running, and the AI cannot reproduce the workflow alone. This repository decides where to place knowledge based on the trigger that reads it: procedures statable as "when doing X" become skills, with the trigger condition declared in the skill's description. This removes the need for manual hand-off and turns tacit knowledge into a norm that gets committed. See [harness-guide.md](docs-agents/harness-guide.md#knowledge-placement-criteria) for details.
-
-### 5. Tests as Approved Guarantees
-
-When agents write the code, the bottleneck shifts from generation to verification. Tests are treated as a contract that makes agents enforce the human's intent about what must not break: the human approves the declaration of guarantees (what should hold) in each Issue's guarantee section, and the agent writes the test code. A specification states desired behavior but has no enforcement power, and an implementation contains behavior nobody intended. Tests and the guarantee ledger (`docs/guarantees.md`) are the intersection the project commits to keeping, and because they fail when broken, no human has to keep watching. See [test-policy.md](docs-agents/test-policy.en.md) for details.
+This repository also serves as a Claude Code plugin marketplace. `/plugin marketplace add yktsnet/dotfiles-public` → `/plugin install public-skills` installs the four general-purpose skills (readme-i18n, repo-about, jp-writing, jp-writing-code).
 
 ---
 
-## Core Workflows (Zsh Functions)
+## Foundation (Prerequisites for Autonomous Execution)
 
-The following shell macros integrated into Zsh enable seamless keyboard-driven processing from ticket management to agent launch and post-merge cleanup.
+Autonomous agent execution only works once three things are structurally in place: environment, secrets, and knowledge.
 
-* **`issue`** (Ticket launch):
-  Selects `status: open` Issue files with fzf preview.
-  Auto-creates worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}` and launches the Claude CLI inside it. The main checkout stays clean, and multiple Issues can run in parallel.
-* **`issue-abort`** (Development interruption):
-  Picks an in-progress `claude/*` worktree via `fzf` and discards it together with its work branch. The main checkout is untouched.
-* **`issue-finish`** (Publish reviewed branch and close):
-  Picks a `claude/*` branch not yet merged into `main` via `fzf`, then runs push → PR creation (with the commit message body as the description) → merge into the main branch in one pass. Cleans up merged worktrees and local/remote branches, leaves a record-only GitHub Issue (create → close immediately), rewrites the target local Issue file to `status: close`, and pushes to the main branch.
-* **`skill`** (Claude Code Skill launcher):
-  Lists manual-execution skills (those with `manual: true` in SKILL.md frontmatter) under the dotfiles `.claude/skills/` via `fzf` with preview, and launches the selected skill with `claude /{skill-name}`.
+* **Environment consistency via Nix**: Environment differences cause "command not found" and runtime errors for agents. Nix Flakes and Home Manager unify the macOS / Linux toolchain as code, continuously verified by CI (`nix flake check`).
+* **Secrets isolation**: Production IPs, ports, and real hostnames never appear in code or Issue files on the public repository. Actual values are isolated in the local `secrets-agents/` directory, and prose uses `<PLACEHOLDER>` instead.
+* **Making tacit knowledge explicit as skills**: When "which file to hand the AI and when" depends on human tacit knowledge, the AI cannot reproduce operations alone. Any procedure statable as "when doing X" becomes a skill with its trigger condition declared in the description. The workflows in the previous section (`new-issue`, `guarantee-audit`, etc.) are committed in this form. See [harness-guide.md](docs-agents/harness-guide.md#knowledge-placement-criteria) for details.
 
 ---
 
 ## TUI Toolchain & Development Environment
 
-A Nix-unified TUI (Text User Interface) environment for both agents and humans to work in the same environment.
+A Nix-unified TUI environment for both agents and humans to work in the same environment.
 
-* **Neovim (IDE & Editor)**: A highly modularized integrated development environment based on `lazy.nvim`. Features LSP-based auto-completion and static type checking, automatic code formatting (conform.nvim), seamless Yazi integration, buffer-type file operations (Oil.nvim), floating terminal (ToggleTerm), and automatic session restoration to maximize development efficiency.
-* **Yazi (Terminal File Manager)**: A blazing-fast file manager written in Rust. Equipped with high-speed search via fzf/ripgrep integration and a wrapper function that syncs the shell's current directory on exit.
-* **Tmux (Terminal Multiplexer)**: Settings that bridge remote/local differences: prefix-key-free pane switching/splitting, transparent clipboard sync via OSC 52, True Color support. Seamlessly operable with the same shortcuts as Neovim's split windows (Alt + arrows, Alt + /, Alt + -, Alt + x).
+* **Neovim**: An integrated development environment based on `lazy.nvim`. LSP completion, static type checking, auto-formatting (conform.nvim), Yazi integration, and automatic session restoration.
+* **Yazi**: A file manager written in Rust. fzf/ripgrep integration and a wrapper function that syncs the shell's current directory on exit.
+* **Tmux**: Prefix-key-free pane operations, OSC 52 clipboard sync, True Color support. Operable with the same shortcuts as Neovim's split windows.
 
 For detailed keybindings and configuration, see [TUI Environment (docs/tui_environment.md)](docs/tui_environment.md).
 
