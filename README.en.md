@@ -27,7 +27,7 @@ While direction and structure are still unsettled, PLAN.md (spec, plan, and work
 
 After release, changes too small to deserve a spec accumulate, and the original specification inevitably drifts from the implementation. So the driving document hands over to the guarantee ledger (`docs/guarantees.md`). The ledger records only what is promised and what is not, and every promise is continuously verified by a corresponding test. Unlike a README, it cannot rot silently, because breaking a promise makes a test fail. When behavior feels off, the ledger is the first thing to open.
 
-When agents write the code, the human's job shifts from writing tests to approving promises. The human approves the declaration of guarantees (what should hold) in each Issue's guarantee section, and the agent writes the test code. If TDD is the discipline of writing tests first, GDD is the discipline of approving promises first. Drift between the ledger and the tests is detected by periodic audits with the `guarantee-audit` skill. See [test-policy.md](docs-agents/test-policy.en.md) for details.
+When agents write the code, the human's job shifts from writing tests to approving promises. The human approves the declaration of guarantees (what should hold) in each Issue's guarantee section, and the agent writes the test code. Tests are not the definition of truth; they are executable projections of the approved guarantees. If TDD is the discipline of writing tests first, GDD is the discipline of approving promises first. Drift between the ledger and the tests is detected by periodic audits with the `guarantee-audit` skill. See [test-policy.md](docs-agents/test-policy.en.md) for details.
 
 ---
 

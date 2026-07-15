@@ -4,7 +4,7 @@
 
 Tests guarantee changeability. They exist so the Builder (AI) notices for itself when it has broken something; they do not assume a human keeps watching.
 
-Guarantees (what must not break) are approved by a human in the Issue's guarantee section; the Builder writes the tests that implement them. This division of labor is called **Guarantee-Driven Development (GDD)**. If TDD is the discipline of writing tests first, GDD is the discipline of approving promises first: the human's job shifts from writing tests to approving promises. Repositories in the Issue-driven phase are maintained this way (each repository declares its phase in its CLAUDE.md).
+Guarantees (what must not break) are approved by a human in the Issue's guarantee section; the Builder writes the tests that implement them. This division of labor is called **Guarantee-Driven Development (GDD)**. Tests are not the definition of truth; they are executable projections of the approved guarantees. If TDD is the discipline of writing tests first, GDD is the discipline of approving promises first: the human's job shifts from writing tests to approving promises. Repositories in the Issue-driven phase are maintained this way (each repository declares its phase in its CLAUDE.md).
 
 Depth is risk-based: thorough for public APIs and contract surfaces, light for internal implementation, and left to the user's manual verification for UI and appearance.
 
