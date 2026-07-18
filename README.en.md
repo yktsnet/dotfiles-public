@@ -5,8 +5,8 @@
 [![CI](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml/badge.svg)](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml)
 
 In development with AI agents, the bottleneck shifts from generation to verification and intent transfer.
-This repository splits development into two phases, each driven by a different document: during bootstrap, specifications (PLAN.md / JUDGE.md) make agents enforce human intent; during maintenance, the guarantee ledger (guarantees.md) and its tests do.
-The execution environment that supports this lifecycle — Nix, role separation, and the skill set — is published as code along with it.
+This repository splits development into two phases, each driven by a different document: specifications (PLAN.md / JUDGE.md) during bootstrap, the guarantee ledger (guarantees.md) and its tests during maintenance.
+The execution environment that supports this lifecycle (Nix, role separation, and the skill set) is published as code along with it.
 
 ---
 
@@ -14,20 +14,15 @@ The execution environment that supports this lifecycle — Nix, role separation,
 
 Development documents have lifespans. Rather than trying to keep a single specification alive forever, the driving document changes with the phase. Each repository declares its phase in its CLAUDE.md.
 
-| Phase | Driving document | Method | Fate of the document |
-|---|---|---|---|
-| MVP phase (bootstrap) | PLAN.md / JUDGE.md | Spec-Driven Development (SDD) | Absorbed into the README at release, then discarded |
-| Issue-driven phase (maintenance) | Issue guarantee sections + `docs/guarantees.md` | Guarantee-Driven Development (GDD) | A durable contract continuously verified by tests |
-
-### MVP Phase: Spec-Driven Development
+### MVP Phase: Spec-Driven Development (SDD)
 
 While direction and structure are still unsettled, PLAN.md (spec, plan, and work log) and JUDGE.md (decisions made during implementation) drive development. The agent keeps both files updated as implementation proceeds, and at release they are absorbed into the README and retired. The specification is scaffolding for this phase only; it is not expected to persist.
 
-### Issue-Driven Phase: Guarantee-Driven Development
+### Issue-Driven Phase: Guarantee-Driven Development (GDD)
 
-After release, changes too small to deserve a spec accumulate, and the original specification inevitably drifts from the implementation. So the driving document hands over to the guarantee ledger (`docs/guarantees.md`). The ledger records only what is promised and what is not, and every promise is continuously verified by a corresponding test. Unlike a README, it cannot rot silently, because breaking a promise makes a test fail. When behavior feels off, the ledger is the first thing to open.
+After release, changes too small to deserve a spec accumulate, and the original specification inevitably drifts from the implementation. So the driving document hands over to the guarantee ledger (`docs/guarantees.md`). The ledger records only what is promised and what is not, and every promise is continuously verified by a corresponding test. Unlike a README, it cannot rot silently, because breaking a promise makes a test fail.
 
-When agents write the code, the human's job shifts from writing tests to approving promises. The human approves the declaration of guarantees (what should hold) in each Issue's guarantee section, and the agent writes the test code. Tests are not the definition of truth; they are executable projections of the approved guarantees. If TDD is the discipline of writing tests first, GDD is the discipline of approving promises first. Drift between the ledger and the tests is detected by periodic audits with the `guarantee-audit` skill. See [test-policy.md](docs-agents/test-policy.en.md) for details.
+The human approves the declaration of guarantees (what should hold) in each Issue's guarantee section, and the agent writes the test code. The human's job shifts from writing tests to approving promises. See [test-policy.md](docs-agents/test-policy.en.md) for details.
 
 ---
 
@@ -44,10 +39,11 @@ The execution machinery for the two workflows above. Responsibilities are strict
 
 Hand-offs between roles are performed by Zsh macros:
 
-* **`issue`**: Selects a `status: open` Issue via `fzf`, auto-creates worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}`, and launches the Claude CLI inside it. The main checkout stays clean, and multiple Issues can run in parallel.
-* **`issue-abort`**: Picks an in-progress `claude/*` worktree and discards it together with its work branch.
-* **`issue-finish`**: Picks a reviewed branch and runs push → PR creation → merge → worktree/branch cleanup → rewriting the Issue file to `status: close`, all in one pass.
-* **`skill`**: Lists manual-execution skills (those with `manual: true` in the frontmatter) via `fzf` with preview and launches the selection with `claude /{skill-name}`.
+* **`issue`**: Selects the target Issue, creates an isolated worktree, and launches the agent inside it. The main checkout stays clean, and multiple Issues can run in parallel.
+* **`issue-abort`**: Discards an in-progress worktree together with its work branch.
+* **`issue-finish`**: Runs push → PR creation → merge → cleanup for a reviewed branch in one pass.
+
+See [issue-driven-workflow.md](docs-agents/issue-driven-workflow.en.md) for details.
 
 This repository also serves as a Claude Code plugin marketplace. `/plugin marketplace add yktsnet/dotfiles-public` → `/plugin install public-skills` installs the four general-purpose skills (readme-i18n, repo-about, jp-writing, jp-writing-code).
 

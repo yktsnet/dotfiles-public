@@ -72,8 +72,7 @@ PR の `## 検証手順` には Agent 側で完結しない確認（デプロイ
 
 push 系は deny が優先されるため `Bash(git *)` allow と両立する。
 
-> [!NOTE]
-> 外部のプライベート情報を読み込ませる場合は、`.claude/settings.json` の `permissions` に `read_file: ["~/dotfiles/secrets-agents/"]` を設定します。
+リポ外のディレクトリ（機密辞書等）を読ませる場合は、`permissions` の `additionalDirectories` に対象パスを追加する。
 
 ### allow（類型別）
 

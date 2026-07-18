@@ -167,11 +167,4 @@ Note: because auto-merge commits originate from `GITHUB_TOKEN`, **push-triggered
 
 ## 7. Connection to Role Separation
 
-For repos with CI auto-deployment, the role table from `issue-driven-workflow.md` changes.
-
-| Role | Deployment Task |
-|---|---|
-| CI | After merge to main, test passes → auto-deploy |
-| user | PR review and merge only |
-
-For internal tools and other manually-run repos, the role remains "user: execute startup command".
+For repos with CI auto-deployment, deployment in the role separation of `issue-driven-workflow.md` moves from the user to CI, and the user's work becomes PR review and merge only. Internal tools and other manually-run repos are still launched by the user.

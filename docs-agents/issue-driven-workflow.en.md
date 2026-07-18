@@ -16,7 +16,7 @@ Each repository is in one of two phases. The user decides the phase and states i
 
 If the phase is unclear, do not implement; ask the user.
 
-The condition for moving from the MVP phase to the Issue-Driven phase is that the guarantee ledger has been promoted to official operation (the `guarantee-audit` promotion is complete and `(Draft)` has been removed from `docs/guarantees.md`). The phase change (recorded in the repository's CLAUDE.md) and the laying of the ledger are bundled as a single event.
+The move from the MVP phase to the Issue-Driven phase happens as a single event together with promoting the guarantee ledger (`docs/guarantees.md`) to official operation (the `guarantee-audit` skill handles laying and promoting the ledger).
 
 ## Role Separation (Issue-Driven phase)
 
@@ -31,13 +31,6 @@ The condition for moving from the MVP phase to the Issue-Driven phase is that th
 - The Builder (Code) implements from the Issue and stops at a local commit. Pushing, PR creation, and production commands are forbidden; publishing happens in `issue-finish` after the user's review.
 
 - Verification steps: the Builder writes them in the commit message body under `## 検証手順`; `issue-finish` turns that body into the PR description, and the user executes the steps.
-
----
-
-## Supported Agent
-
-Claude Code is used as the Builder.
-To eliminate environment differences, it creates a worktree and a branch on the local machine and runs in isolation. The persistent instruction file is `CLAUDE.md`.
 
 ---
 
@@ -57,9 +50,7 @@ Each repository holds a persistent instruction file for the selected Agent and t
     └── {NN}_{slug}.md
 ```
 
-The master Issue template lives at `~/.claude/skills/repo-standardize/reference/issue-template.md` (managed by dotfiles); it is not copied into each repository. The `new-issue` skill reads it directly.
-
-The `pr-workflow` (Builder) and `new-issue` (Consultant) skills are not copied per repository; they live in the global `~/.claude/skills/` (managed by dotfiles). Repository-specific checks and verification steps go in each repository's CLAUDE.md, which the skills reference.
+The `pr-workflow` (Builder) and `new-issue` (Consultant) skills, as well as the master Issue template, are not copied per repository; they live in the global `~/.claude/skills/` (managed by dotfiles). Repository-specific checks and verification steps go in each repository's CLAUDE.md, which the skills reference.
 
 ---
 
@@ -105,10 +96,8 @@ Never reopen the original Issue or send follow-up prompts into the same Agent se
 
 ### Information Security
 
-- Never write concrete connection details in human-readable text (Issues, PRs, commit messages, comments). Use the `<PLACEHOLDER>` entries defined in the `secrets-agents/` dictionaries instead.
-- Masked: real domains, public ports, Tunnel UUIDs, cloudflared paths, production absolute paths, Tailscale IPs / SSH usernames, WiFi SSIDs, app-specific values (accounts / strategy names). Not masked: device names, localhost, development ports, repository-relative paths, LocalStack resource names.
-- Dictionary files: `network.md` / `paths.md` / `cloud.md` / `apps.md` (conventions in `secrets-agents/README.md`). The `secrets-agents/` directory itself is never published.
-- When a value that does not exist locally (accounts, etc.) is entered into an app, append it to the matching dictionary as you go.
+- Never write concrete connection details in human-readable text (Issues, PRs, commit messages, comments). Use the `<PLACEHOLDER>` entries defined in the local secrets dictionaries (`secrets-agents/`, never published) instead.
+- Masked: real domains, public ports, Tunnel UUIDs, production absolute paths, VPN IPs / SSH usernames, app-specific values. Not masked: localhost, development ports, repository-relative paths.
 
 ---
 
@@ -119,7 +108,7 @@ Never reopen the original Issue or send follow-up prompts into the same Agent se
 Selects the target Issue and launches the Agent. Local files under `issues/` are the single source of truth; the GitHub Issue is a record-only mirror that `issue-finish` leaves behind as "create → close immediately" on completion.
 
 1. Select an Issue with `status: open` via `fzf` (with preview).
-2. Create worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}`, commit the selected Issue file on that branch, then launch the `claude` command inside it. The Issue file stays untracked on the main side, so parallel Issues never leak into each other's branches. The main checkout stays clean and multiple Issues can run in parallel. No stashing needed (the worktree is cut from HEAD, so uncommitted changes are not carried over).
+2. Create worktree `{repo}.wt/{id}-{slug}` on branch `claude/{id}-{slug}`, commit the selected Issue file on that branch, then launch the `claude` command inside it. The main checkout stays clean and multiple Issues can run in parallel.
 
 Code never touches GitHub (pushing, PR creation, and the record Issue are all handled by `issue-finish`).
 

@@ -39,7 +39,7 @@ One design principle: **Maintain a single hygiene baseline across all repos.** E
 ## 3. Secrets (Repo Side)
 
 - `.env` is ignored; **`.env.example` must always exist** (keys only, no real values).
-- Do not write specific connection information in human-readable prose. Follow the mask dictionary at `~/dotfiles/secrets-agents/` (repo-side application of the global CLAUDE.md rule).
+- Do not write specific connection information in human-readable prose (masking conventions: the Information Security section of `issue-driven-workflow.md`).
 - Production `.env` on the host side is outside repo scope (`cicd-guide.md`).
 
 ---

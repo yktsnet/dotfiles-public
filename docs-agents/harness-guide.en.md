@@ -72,8 +72,7 @@ For self-hosted environments, also add `ssh` and `rsync` to deny (blocking the d
 
 Push commands are blocked by deny taking precedence, so `Bash(git *)` allow is compatible.
 
-> [!NOTE]
-> To allow reading external private information, set `permissions` in `.claude/settings.json` to `read_file: ["~/dotfiles/secrets-agents/"]`.
+To let the agent read directories outside the repository (e.g. a secrets dictionary), add the paths to `additionalDirectories` under `permissions`.
 
 ### allow (per category)
 

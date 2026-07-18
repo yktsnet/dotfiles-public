@@ -39,7 +39,7 @@
 ## 3. シークレット（repo 面）
 
 - `.env` は ignore し、**`.env.example` を必ず置く**（実値なし、キーのみ）。
-- 人間が読む地の文に固有接続情報を直書きしない。マスク辞書 `~/dotfiles/secrets-agents/` に従う（global CLAUDE.md の repo 面での適用）。
+- 人間が読む地の文に固有接続情報を直書きしない（マスク規約は `issue-driven-workflow.md` の情報セキュリティ節）。
 - ホスト側に置く本番 `.env` は repo の管轄外（`cicd-guide.md`）。
 
 ---
