@@ -16,6 +16,8 @@ Each repository is in one of two phases. The user decides the phase and states i
 
 If the phase is unclear, do not implement; ask the user.
 
+The condition for moving from the MVP phase to the Issue-Driven phase is that the guarantee ledger has been promoted to official operation (the `guarantee-audit` promotion is complete and `(Draft)` has been removed from `docs/guarantees.md`). The phase change (recorded in the repository's CLAUDE.md) and the laying of the ledger are bundled as a single event.
+
 ## Role Separation (Issue-Driven phase)
 
 | Role | Work |

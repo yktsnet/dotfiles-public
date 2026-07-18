@@ -7,7 +7,7 @@ manual: true
 # repo-readme
 
 `~/dotfiles/docs-agents/readme-guide.md` を唯一の基準として README を作成/更新する。
-**ライフサイクル上の位置**: リポの足場は `repo-standardize` が作る。本 Skill はそれより後、**中身（アーキテクチャ・技術選定・判断）が固まった publish 前**に走らせる。
+**ライフサイクル上の位置**: リポの足場は `repo-standardize` が作り、保証台帳は `guarantee-audit` が先に敷く（README が台帳へリンクするには台帳が先に要る）。本 Skill はそれらより後、**中身（アーキテクチャ・技術選定・判断）が固まった publish 前**に走らせる。
 
 ## 0. 基準を読む（必須・最初に）
 

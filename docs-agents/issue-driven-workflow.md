@@ -16,6 +16,8 @@ AI Agent（Claude Code）を活用したIssue起点の開発フロー。
 
 フェーズが不明・曖昧な場合は実装せず user に確認する。
 
+MVP期からIssueドリブン期への移行条件として、保証台帳の正式運用化（`guarantee-audit` の格上げ完了。`docs/guarantees.md` から `(Draft)` が外れた状態）を満たすこと。フェーズ変更（各リポ CLAUDE.md への記載）と台帳敷設は同一イベントとして束ねる。
+
 ## 担当分離（Issueドリブン期）
 
 | 担当 | 作業 |
