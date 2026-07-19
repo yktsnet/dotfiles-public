@@ -12,7 +12,7 @@ npm view <pkg> version bin                  # npm 製か・bin 名の確認
 
 ---
 
-## Python ツール — 手本 `apps/env-context.nix` の `notebooklm-py`
+## Python ツール — `buildPythonApplication`
 
 `fetchFromGitHub` + 固定 hash + `buildPythonApplication`。
 
@@ -31,7 +31,24 @@ pkgs.python3Packages.buildPythonApplication rec {
 }
 ```
 
-ランタイムにブラウザ等の外部資産が要る場合は `symlinkJoin` + `makeWrapper` でラップ（同ファイルの `notebooklm-wrapped` 参照）。
+ランタイムにブラウザ等の外部資産が要る場合は `symlinkJoin` + `makeWrapper` でラップ。
+
+## Rust ツール — `buildRustPackage`
+
+手本 `home-manager/modules/ctx.nix`。
+
+```nix
+pkgs.rustPlatform.buildRustPackage rec {
+  pname = "...";
+  version = "x.y.z";
+  src = pkgs.fetchFromGitHub {
+    owner = "..."; repo = "..."; rev = "vx.y.z";
+    hash = "sha256-...";
+  };
+  cargoHash = "sha256-...";   # 初回は lib.fakeHash → エラーに出る実値を埋める
+  doCheck = false;
+}
+```
 
 ---
 
@@ -76,6 +93,11 @@ pkgs.writeShellScriptBin "<name>" ''
   - GUI 共通: `home-manager/modules/desktop/gui-bundle.nix` の `imports`。
   - デバイス個別: `devices/gui/<host>/home.nix` の `imports` か `home.packages` 直書き。
 - どのホストで使うかを決めてから配線する（全ホストに撒かない）。
+
+## アップデート追随
+
+この手法（`fetchFromGitHub` を derivation 内に直書き）は dependabot の `nix` ecosystem の対象外。dependabot が見るのは `flake.lock`（flake input）のみで、flake外で手書き pin した version/rev/hash は自動更新されず、追随には手作業が要る。
+候補が増えてきたら flake input（`flake = false;`）へ切り出す選択肢もあるが、`cargoHash`/`npmDepsHash` 等の依存ハッシュは連動しないため部分的な自動化にしかならない。1個体だけなら手作業のままで十分。
 
 ## 静的チェック
 
