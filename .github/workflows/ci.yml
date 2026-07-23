@@ -20,7 +20,7 @@ jobs:
           nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Magic Nix Cache
-        uses: determinateSystems/magic-nix-cache-action@v2
+        uses: determinateSystems/magic-nix-cache-action@v14
 
       - name: Check Nix Flake
         env:
