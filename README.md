@@ -43,9 +43,11 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 * **`issue-abort`**: 進行中の worktree を作業ブランチごと破棄。
 * **`issue-finish`**: レビュー済みブランチの push → PR 作成 → マージ → 後片付けを一括実行。
 
+分離を硬直させないための例外も定義している。障害対応などのリアルタイム ops、user が明示宣言する単発例外、そしてロジックに触れない小規模変更を Issue 化なしで通す軽量経路の3経路である。
+
 詳細は [issue-driven-workflow.md](docs-agents/issue-driven-workflow.md) を参照。
 
-このリポジトリは Claude Code の plugin marketplace としても利用できる。`/plugin marketplace add yktsnet/dotfiles-public` → `/plugin install public-skills` で、汎用性のある4 skill（readme-i18n, repo-about, jp-writing, jp-writing-code）を導入できる。
+このリポジトリは Claude Code の plugin marketplace としても利用できる。`/plugin marketplace add yktsnet/dotfiles-public` → `/plugin install public-skills` で、汎用性のある6 skill（readme-i18n, repo-about, jp-writing, jp-writing-code, vhs-demo, app-demo-gif）を導入できる。
 
 ---
 

@@ -140,6 +140,18 @@ GitHub Actions で使う Secrets。値はリポに載せない。
 | `TS_OAUTH_SECRET` | Tailscale OAuth Secret |
 | `{APP}_API_KEY` | アプリ固有の外部 API キー |
 
+### 再利用とリポ別作業の切り分け
+
+2つ目以降の自ホストデプロイは、ほとんどが既存資産の再利用になる。新規アプリで実際に要る作業だけを見極める。
+
+| 層 | 内容 | 頻度 |
+|---|---|---|
+| **アカウント全体・一度きり** | Tailscale ACL の `tag:ci`、デプロイ先ホストの Docker | 初回のみ。2つ目以降は不要 |
+| **リポ別** | 上表の Secrets を当該リポに登録（値は全リポ共通を流用） | リポごとに1回。Secrets はリポ単位スコープのため省略不可 |
+| **アプリ別** | デプロイ先に置く `.env`（本番値）。`rsync --exclude='.env' --delete` で初回設置後は保持される | アプリごとに1回 |
+
+デプロイ経路そのもの（GitHub Secrets＋ホスト上の SSH 鍵・`.env`）は **IaC の管轄外**に置く（秘密を nix store に入れない）。ホスト側の宣言的設定（Docker 有効化・Cloudflare Tunnel ingress 等）とは層が別であることを意識する。
+
 ---
 
 ## 6. 依存更新（Dependabot）

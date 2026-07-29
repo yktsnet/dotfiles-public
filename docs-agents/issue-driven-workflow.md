@@ -9,14 +9,16 @@ AI Agent（Claude Code）を活用したIssue起点の開発フロー。
 
 ## フェーズ
 
-各リポは **MVP期** か **Issueドリブン期** のいずれかにあり、user が決定してリポの CLAUDE.md に明記する（相談者はフェーズを判断・変更しない）。記載が無ければ Issueドリブン期をデフォルトとする。
+フェーズ概念（MVP期／Issueドリブン期）は**公開パイプラインに乗るリポ**にのみ適用する。該当リポは **MVP期** か **Issueドリブン期** のいずれかにあり、user が決定してリポの CLAUDE.md に明記する（相談者はフェーズを判断・変更しない）。記載が無ければ Issueドリブン期をデフォルトとする。
 
 - **MVP期**: 方向性・構造が固まっていない立ち上がり期。相談者が開放チャットで直接実装してよい。
 - **Issueドリブン期**: 方向性が固まった段階。以下の「担当分離」に従う。
 
 フェーズが不明・曖昧な場合は実装せず user に確認する。
 
-MVP期からIssueドリブン期への移行は、保証台帳（`docs/guarantees.md`）の正式運用化と同一イベントとして行う（`guarantee-audit` skill が敷設・格上げを担う）。
+MVP期からIssueドリブン期への移行条件として、保証台帳の正式運用化（`guarantee-audit` の格上げ完了。`docs/guarantees.md` から `(Draft)` が外れた状態）を満たすこと。フェーズ変更（各リポ CLAUDE.md への記載）と台帳敷設は同一イベントとして束ねる。
+
+公開パイプラインに乗らないリポ（個人インフラ・ops 運用リポ等。公開を準備中のリポを含む）にはフェーズ概念を適用しない。相談者は開放チャットで直接実装してよいのが基本であり、以下の「担当分離」は user が明示的にIssue化を依頼した場合のみ運用する。
 
 ## 担当分離（Issueドリブン期）
 
@@ -31,6 +33,14 @@ MVP期からIssueドリブン期への移行は、保証台帳（`docs/guarantee
 - 実行者（Code）は Issue に基づき実装し、ローカルコミットで止まる。push・PR 作成・本番コマンド実行は禁止。リモートへの公開は user のレビュー後に `issue-finish` が行う。
 
 - 検証手順：実行者がコミットメッセージ本文の `## 検証手順` に記載（`issue-finish` がその本文をそのまま PR 本文にする）。userが実施。
+
+### 担当分離の例外
+
+Issue駆動の硬直を緩和するため、次の3経路に限り相談者の直接編集を認める。
+
+- **リアルタイム ops**: 事前に Issue 設計できない障害対応は相談者側で直接やってよい。そこから派生した実装は Issue 化する。
+- **単発例外**: user が開放チャットで明示的に「今回は例外で直接編集してほしい」と宣言した場合、相談者は対象ファイルと理由を一言添えて直接編集してよい。常用化はしない（頻発する場合はフェーズ自体を MVP 期に戻すよう user に促す）。
+- **軽量経路**: diff がロジックに触れない（config・README・コメント等）・保証台帳（`docs/guarantees.md`）に触れない・単一ファイル数十行以内の3条件を全て満たす場合、Issue化せず単発宣言も不要で相談者が直接編集してよい。
 
 ---
 
@@ -50,7 +60,7 @@ MVP期からIssueドリブン期への移行は、保証台帳（`docs/guarantee
     └── {NN}_{slug}.md
 ```
 
-`pr-workflow`（実行者用）と `new-issue`（相談者用）のスキル、および Issue テンプレートの正本はリポごとに持たず、グローバル `~/.claude/skills/`（dotfiles 管理）に置く。リポ固有の検証手段・検証手順は各リポの CLAUDE.md に書き、スキルがそれを参照する。
+`pr-workflow`（実行者用）と `new-issue`（相談者用）のスキルはリポごとに持たず、グローバル `~/.claude/skills/`（dotfiles 管理）を使う。Issue テンプレートの正本は `~/.claude/skills/repo-standardize/reference/issue-template.md` にあり、各リポにコピーは配布しない（`new-issue` スキルがこれを直接読む）。リポ固有の検証手段・検証手順は各リポの CLAUDE.md に書き、スキルがそれを参照する。
 
 ---
 
@@ -85,7 +95,7 @@ draft  →（設計完了・user が保証節を裁可）→  open  →（issue-
 ```
 
 - `draft`: 設計中。`issue()` の選択肢から除外。
-- `open`: 実装可能。`issue()` で選択可能。実行者は `status:` を変更しない。**open は user が保証節を裁可済みであることを含む**。
+- `open`: 実装可能。`issue()` で選択可能。実行者は `status:` を変更しない。**open は user が保証節を読み、削る・足す・直したうえで裁可済みであることを含む**。
 - `close`: 完了済み。`issue-finish` が更新する。
 
 ### 派生 Issue
@@ -108,7 +118,7 @@ draft  →（設計完了・user が保証節を裁可）→  open  →（issue-
 対象Issueを選択し、Agentを起動。Issueの管理はローカルファイル（`issues/`）が唯一の真実。GitHub Issue は記録用ミラーで、`issue-finish` が完了時に「作成→即クローズ」で残す。
 
 1. `status: open` のIssueを `fzf` で選択（プレビュー表示）。
-2. worktree `{repo}.wt/{id}-{slug}` をブランチ `claude/{id}-{slug}` で作成し、選択した issue ファイルをブランチ上でコミットしてから、その中で `claude` コマンドを起動。main のチェックアウトは汚れず、複数Issueの並列実行が可能。
+2. worktree `{repo}.wt/{id}-{slug}` をブランチ `claude/{id}-{slug}` で作成し、選択した issue ファイルをブランチ上でコミットしてから、その中で `claude` コマンドを起動。issue ファイルは main 側では untracked のまま残るため、並行する Issue が互いのブランチに混入しない。main のチェックアウトは汚れず、複数Issueの並列実行が可能。stash は不要（worktree は HEAD から切られるため、未コミット変更は持ち込まれない）。
 
 Code は GitHub に一切触れない（push・PR 作成・記録用 Issue はすべて `issue-finish` が担う）。
 
@@ -124,7 +134,8 @@ Code は GitHub に一切触れない（push・PR 作成・記録用 Issue は�
 
 1. `main` 未マージの `claude/*` ブランチを `fzf` で選択（コミットログと diff をプレビュー）。
 2. 選択ブランチを push し、コミットメッセージ本文を PR 本文として `gh pr create` → `gh pr merge --squash`。issue ファイルの open コミットも PR に含まれてマージされる。必須ステータスチェックのあるリポでは即時マージが拒否されるため、auto-merge に切り替えて CI 完了とマージ完了を待つ。
-3. `git pull --prune` を実行（main のチェックアウトは常に main のまま）。
+3. `git pull --prune` を実行（main のチェックアウトは常に main のまま。squash マージ後は untracked の issue ファイルを退避してから pull する）。
 4. マージした `claude/*` の worktree・ローカル・リモートブランチを削除。
 5. 記録用 GitHub Issue を作成して即クローズ（`github_issue:` に番号が既にあればクローズのみ）。作成失敗はフローを止めない。
-6. ローカルIssueファイルを `status: close` に更新し、`main` へコミット・Push。
+6. 対象Issueファイルの `status:` を `close` にする（ファイル自体は移動しない）。PRを紐付けてマージした場合は、そのPRのタイトル・URL・マージコミットSHA・本文を**別ファイル**として `issues/done/{同名ファイル}` に書き出す。Issueファイル1つ・PR記録ファイル1つの計2ファイル構成になる。
+7. 変更したファイル（Issueファイル、あればPR記録ファイル）を `main` へコミット・Push。

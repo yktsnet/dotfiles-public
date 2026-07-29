@@ -14,8 +14,9 @@ External dependencies are received via DI; tests substitute fakes for them (neve
 
 Each repository may keep a guarantee ledger for its public surface at `docs/guarantees.md`.
 
-- **Structure**: natural-language guarantee bullets paired with a table of corresponding tests (file and test name). Only contract-level guarantees belong there; tests for internal implementation do not. Drift between the ledger and the implementation is something to flag.
-- **Laying it down**: the first version is laid by the `guarantee-audit` skill — for a new repository as part of publish preparation (before the README is written, since the README links to the ledger), for an existing repository as an inventory pass over its tests.
+- **Structure**: natural-language guarantee bullets paired with a table of corresponding tests (file and test name). Only contract-level guarantees belong there; tests for internal implementation do not. The ledger has the same standing as design-decisions.md: drift between the ledger and the implementation is something to flag.
+- **Laying it down**: the first version is laid by the `guarantee-audit` skill — for a new repository as the second step of the publishing pipeline (before the README is written, since the README links to the ledger), for an existing repository as an inventory pass over its tests.
 - **Tracking**: after that, the ledger is updated in the same PR as the Issue's guarantee section. Drift between the ledger and the tests is detected by periodic audits with `guarantee-audit`.
+- **Scope**: when a new contract surface appears outside the ledger's scope, decide at Issue drafting time whether to bring it in (being out of scope is never a reason to wave a change through).
 - **Reachability**: the ledger should be reachable from the README (link placement follows the readme guide).
 - **Gaps section**: records things that should be guaranteed but lack tests, each with its deferral reason; delete the section entirely once empty.

@@ -9,7 +9,7 @@ manual: true
 `~/dotfiles/docs-agents/` の4ガイドを唯一の基準として、対象リポを準拠状態にする。
 基準そのものは本ファイルに転記しない。**毎回ガイドを読み、最新の基準に従う**。
 
-**ライフサイクル上の位置**: 本 Skill が最初（足場とコアメッセージ確定が先）。次工程は `guarantee-audit`（保証台帳の敷設）→ `repo-readme`（README 本格化）。
+**公開パイプラインの固定順**: `repo-standardize → guarantee-audit → repo-readme → readme-i18n → repo-publish → repo-about`。本 Skill は**第1**（足場とコアメッセージ確定が先、README 本格化は後）。この順は都度再判断しない。
 
 ## 前提
 
@@ -36,7 +36,7 @@ manual: true
 | 類型 | 設定 / ロジック / Web / ツール | settings.json の allow/deny、検証手段、CI |
 | 公開 | Public / Private | LICENSE 必須性、層3 CI の要否 |
 | スタック | 例: Go+Vue / Python+React / Astro / Nix | コマンド・conventions・CI ステップ |
-| 検証手段 | 例: `make test` / `nix flake check` | CLAUDE.md・pr-workflow・CI |
+| 検証手段 | 例: `make test` / `nix flake check` | CLAUDE.md・CI |
 
 **引数は使わない。** 既存ファイルから読み取れない項目は推測で埋めず、**必ずユーザーに質問する**。
 
@@ -47,16 +47,16 @@ manual: true
 | 雛形 | 出力先 |
 |---|---|
 | `settings-json-{type}.json` | `.claude/settings.json` |
-| `pr-workflow.md` | `.claude/skills/pr-workflow/SKILL.md` |
-| `issue-template.md` | `issues/00_template.md` |
 | `gitignore-base.txt` | `.gitignore` |
 | `license-mit.txt` | `LICENSE`（Public のみ必須） |
 | `dependabot-base.yml` | `.github/dependabot.yml` |
-| `dependabot-auto-merge.yml` | `.github/workflows/dependabot-auto-merge.yml`（CI 有リポのみ。運用ルールとリポ設定は `cicd-guide.md` §6） |
+| `dependabot-auto-merge.yml` | `.github/workflows/dependabot-auto-merge.yml`（CI 有リポのみ。運用ルールとリポ設定は `cicd.md` §6） |
 
 `settings-json-{type}.json` は JSON のためコメントが使えない。allow 配列にスタック固有の行を追加する。deny・attribution は変えない。
 
 既存の `.gitignore` がある場合は、base の共通行が含まれていることを確認し、不足があれば追加する（上書きしない）。
+
+`.claude/skills/pr-workflow/SKILL.md` は雛形を持たない。`~/dotfiles/.claude/skills/pr-workflow/SKILL.md`（正本・グローバル）の内容をそのまま `cp` する。この正本は FILL マーカーを持たず、検証手段はリポ CLAUDE.md 側の「静的チェック / 検証手順の雛形」に委ねる設計になっているため、リポ固有の埋め込みは不要。
 
 `issues/done/.gitkeep` も作成する。
 
@@ -83,7 +83,6 @@ manual: true
 [ ] .env 非追跡 ＋ .env.example 有（.env 使用時）
 [ ] .claude/settings.json 有（JSON 妥当・deny に push/force、attribution 空）
 [ ] CLAUDE.md / context/{conventions,structure}.md / skills/pr-workflow/SKILL.md 有・非空
-[ ] issues/00_template.md 有
 [ ] README の H1 直下に readme-guide.md §3 の型（何を解決/実証するか＋どういう手段で）を満たすコアメッセージ1文がある。無ければ種別（Type A/B）を判定して1文を書く。**それ以上のセクションは書かない**（肉付けは publish 前に `repo-readme` が行う）
 [ ] CI 有（Public/自動デプロイ時）
 [ ] dependabot.yml 有（grouping＋レジストリ系 cooldown）。CI 有なら auto-merge workflow＋allow_auto_merge＋ruleset（cicd-guide.md §6）

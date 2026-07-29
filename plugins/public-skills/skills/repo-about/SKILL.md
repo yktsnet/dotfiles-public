@@ -1,54 +1,24 @@
 ---
 name: repo-about
-description: GitHub リポの About（description）と topics を README から生成し gh repo edit で設定する。
-manual: true
+description: README（英語版優先）から GitHub リポの About (description) と topics を生成し、gh repo edit で設定する。
 ---
 
 # repo-about
 
-README.md（英語版があれば README.en.md）を読み、GitHub の About と topics を設定する。
+README.en.md（なければ README.md）から本質的な内容を読み取り、GitHub の About（description）と topics を生成して適用する。
 
-## 対象の決定
+**公開パイプラインの固定順**: `repo-standardize → guarantee-audit → repo-readme → readme-i18n → repo-publish → repo-about`。本 Skill は**第6**（README 完成・公開後の仕上げ）。この順は都度再判断しない。
 
-1. `$ARGUMENTS` にリポのパスがあればそのリポを対象にする
-2. なければカレントディレクトリを対象にする
-3. カレントに README.md がなければ、1階層下のサブディレクトリで README.md を持つものを列挙し、対象一覧をユーザーに提示して確認を得てから一括処理する
+## 手順
 
-README.md 以外のファイル（CLAUDE.md・context/ 等）は読まない。
+1. **README の確認**
+   - `README.en.md` があれば優先して読み、なければ `README.md` を読む。
 
-## 手順（リポごと）
+2. **内容の生成**
+   - **Description**: リポの本質を捉えた簡潔な英文（100〜120文字程度）を生成する。
+   - **Topics**: 技術スタック、用途、主要機能から本質的なキーワードを 5〜10 個抽出する。
 
-### 1. README を読む
-
-README.en.md があればそちらを優先して読む（description は英語で書くため）。なければ README.md を読む。
-
-### 2. description の生成
-
-- README の内容から、リポが何であるかを英語 100〜120 文字で要約する
-- 技術的に正確で、初見の人がリポの目的を理解できる1文にする
-
-### 3. topics の生成
-
-README の内容から 5〜10 個を目安に選ぶ。以下の優先順で検討する:
-
-- 言語 / フレームワーク（`python`, `astro`, `nix`）
-- プラットフォーム（`cloudflare-workers`, `raspberry-pi`）
-- ドメイン / 用途（`attendance`, `weather-api`）
-
-既存の topics は一度すべて削除してから新規設定する（クリーンリセット）。削除は `gh repo view --json repositoryTopics` で取得し、各 topic を `--remove-topic` で除去する。
-
-### 4. ユーザー確認
-
-設定する description と topics を提示し、確認を得る。
-
-### 5. 適用
-
-```
-gh repo edit --description "..." --add-topic topic1,topic2,...
-```
-
-一括処理の場合は各リポで `gh repo edit -R owner/repo` を使う。
-
-### 6. 結果報告
-
-処理したリポ一覧と設定内容を表示する。
+3. **確認と適用**
+   - 提案する description と topics をユーザーに提示して確認を得る。
+   - 確認後、既存の topics を一度すべて削除（クリーンリセット）してから、`gh repo edit` を用いて設定を適用する。
+     - 削除は `gh repo view --json repositoryTopics` で既存の topic を取得し、各 topic を `--remove-topic` で除去する。

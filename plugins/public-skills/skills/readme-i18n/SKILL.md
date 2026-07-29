@@ -8,6 +8,8 @@ manual: true
 
 既存の日本語 README.md を原本として英語版を生成/更新する。
 
+**公開パイプラインの固定順**: `repo-standardize → guarantee-audit → repo-readme → readme-i18n → repo-publish → repo-about`。本 Skill は**第4**（日本語 README が `repo-readme` で本格化した後に翻訳する。先に訳すと二度手間になる）。この順は都度再判断しない。
+
 ## 対象の決定
 
 1. `$ARGUMENTS` にパスがあればそのディレクトリの README を対象にする

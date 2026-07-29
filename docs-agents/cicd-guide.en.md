@@ -140,6 +140,18 @@ Secrets used in GitHub Actions. Values are never stored in the repo.
 | `TS_OAUTH_SECRET` | Tailscale OAuth Secret |
 | `{APP}_API_KEY` | App-specific external API key |
 
+### Separating Reusable Assets from Per-Repository Work
+
+From the second self-hosted deployment onward, most of the setup is reuse of existing assets. Identify only the work a new app actually needs.
+
+| Layer | Content | Frequency |
+|---|---|---|
+| **Account-wide, one-time** | `tag:ci` in the Tailscale ACL, Docker on the deployment host | First time only; not needed from the second app onward |
+| **Per repository** | Register the Secrets above in the repository (values reused across repositories) | Once per repository; Secrets are repository-scoped, so this cannot be skipped |
+| **Per app** | The production `.env` on the deployment target; `rsync --exclude='.env' --delete` preserves it after the initial placement | Once per app |
+
+The deployment path itself (GitHub Secrets plus the SSH key and `.env` on the host) stays **outside IaC's jurisdiction** (never put secrets in the nix store). Keep it distinct from the host's declarative configuration (enabling Docker, Cloudflare Tunnel ingress, etc.), which lives in a different layer.
+
 ---
 
 ## 6. Dependency Updates (Dependabot)

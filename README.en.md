@@ -43,9 +43,11 @@ Hand-offs between roles are performed by Zsh macros:
 * **`issue-abort`**: Discards an in-progress worktree together with its work branch.
 * **`issue-finish`**: Runs push → PR creation → merge → cleanup for a reviewed branch in one pass.
 
+Exceptions keep the separation from becoming rigid: real-time ops such as incident response, one-off exceptions the user declares explicitly, and a lightweight route that lets small, logic-free changes through without an Issue.
+
 See [issue-driven-workflow.md](docs-agents/issue-driven-workflow.en.md) for details.
 
-This repository also serves as a Claude Code plugin marketplace. `/plugin marketplace add yktsnet/dotfiles-public` → `/plugin install public-skills` installs the four general-purpose skills (readme-i18n, repo-about, jp-writing, jp-writing-code).
+This repository also serves as a Claude Code plugin marketplace. `/plugin marketplace add yktsnet/dotfiles-public` → `/plugin install public-skills` installs the six general-purpose skills (readme-i18n, repo-about, jp-writing, jp-writing-code, vhs-demo, app-demo-gif).
 
 ---
 
