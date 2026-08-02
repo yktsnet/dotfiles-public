@@ -5,14 +5,57 @@ _aiagent_confirm() {
   [[ "$ans" == [yY]* ]]
 }
 
+# sed -i の in-place 引数は BSD（macOS）と GNU（NixOS）で非互換なため吸収する
+_aiagent_sed_inplace() {
+  local expr="$1" file="$2"
+  if sed --version >/dev/null 2>&1; then
+    sed -i "$expr" "$file"
+  else
+    sed -i '' "$expr" "$file"
+  fi
+}
+
+# main を origin/main に追従させる。
+# 前提となる運用: main 上のローカル変更は Issue ドキュメント・settings 等の周辺ファイルのみで、
+# コードの実体は常に claude/* ブランチ → PR 経由で origin に入る。この前提の下では
+#   - 未コミット変更は --autostash で退避・復元してよい
+#   - コミット済みローカル変更と origin の衝突は origin 側（squash マージ後の姿）を正としてよい
+# ため、人手の解決を待たず機械的に同期を完了させる。
+_aiagent_pull_main() {
+  emulate -L zsh
+
+  # draft issueファイル等が何らかの理由でintent-to-add(空blob)としてindexに乗ると、
+  # 「main上のissueファイルは常にuntracked」という前提(_aiagent_run参照)が崩れ、
+  # 直後のautostash用git stashが "Entry not uptodate. Cannot merge." で失敗する。
+  # intent-to-addは`git diff --cached`には出ない(git仕様)ため、`git status --porcelain=v2`の
+  # XY列が".A"(staged側は無変更・worktree側のみ追加)のエントリで検出し、untrackedへ戻す。
+  local f
+  for f in "${(@f)$(git status --porcelain=v2 2>/dev/null | awk '$2==".A"{ sub(/^([^ ]+ +){8}/,""); print }')}"; do
+    [[ -n "$f" ]] && git reset -- "$f" >/dev/null
+  done
+
+  if ! git fetch --prune origin; then
+    echo "git fetch failed. Fix manually."
+    return 1
+  fi
+
+  # -X ours: rebase 中の "ours" は origin/main 側。衝突ハンクは origin を採用する
+  if ! git rebase --autostash -X ours origin/main; then
+    git rebase --abort 2>/dev/null
+    echo "Failed to sync main with origin/main. Fix manually:"
+    git status --short
+    return 1
+  fi
+}
+
 _aiagent_select_issue() {
   local base_dir="$1"
   local _entries=()
   local _f
 
-  # カレントリポジトリの issues ディレクトリのみを対象にする
+  # カレントリポジトリの issues ディレクトリ直下のみを対象にする
   for _f in "${base_dir}/issues/"*.md(N); do
-    grep -q '^status: open' "$_f" 2>/dev/null || continue
+    head -n 15 "$_f" 2>/dev/null | grep -q '^status:[[:space:]]*open$' || continue
     _entries+=("$(basename "$_f")	${_f}")
   done
 
@@ -26,6 +69,46 @@ _aiagent_select_issue() {
           --delimiter=$'\t' \
           --with-nth=1 \
           --preview='cat {2}'
+}
+
+_aiagent_select_draft_issue() {
+  local base_dir="$1"
+  local _entries=()
+  local _f
+
+  for _f in "${base_dir}/issues/"*.md(N); do
+    head -n 15 "$_f" 2>/dev/null | grep -q '^status:[[:space:]]*draft$' || continue
+    _entries+=("$(basename "$_f")	${_f}")
+  done
+
+  if [[ ${#_entries[@]} -eq 0 ]]; then
+    echo "No draft issues in ${base_dir}/issues" >&2
+    return 1
+  fi
+
+  printf '%s\n' "${_entries[@]}" \
+    | fzf --prompt="Select draft issue: " \
+          --delimiter=$'\t' \
+          --with-nth=1 \
+          --preview='cat {2}'
+}
+
+# git の管理簿に居ない {repo}.wt/ 配下の残骸を消す（.wt は issue() 専用領域なので安全）
+_aiagent_sweep_wt() {
+  emulate -L zsh
+  local git_root wt_base
+  git_root=$(git rev-parse --show-toplevel 2>/dev/null) || return 0
+  wt_base="${git_root}.wt"
+  [[ -d "$wt_base" ]] || return 0
+  local -a registered=(${(f)"$(git worktree list --porcelain | awk '$1=="worktree"{print $2}')"})
+  local d
+  for d in "$wt_base"/*(N/); do
+    if (( ! ${registered[(Ie)$d]} )); then
+      rm -rf "$d"
+      echo "Removed stale worktree dir: $d"
+    fi
+  done
+  rmdir "$wt_base" 2>/dev/null || true
 }
 
 _aiagent_abort() {
@@ -61,7 +144,26 @@ _aiagent_abort() {
 
   git worktree remove --force "$dir"
   git branch -D "$branch"
+  _aiagent_sweep_wt
   echo "Aborted: $branch"
+}
+
+_aiagent_open() {
+  emulate -L zsh
+
+  local base
+  base=$(git rev-parse --show-toplevel) || return 1
+
+  local selected
+  selected=$(_aiagent_select_draft_issue "$base") || return 0
+
+  local target_file
+  target_file=$(echo "$selected" | cut -f2)
+
+  _aiagent_sed_inplace "s/^status: draft$/status: open/" "$target_file"
+  echo "Opened: $(basename "$target_file")"
+
+  cd "$base" || return 1
 }
 
 _aiagent_finish() {
@@ -77,14 +179,11 @@ _aiagent_finish() {
     git checkout main || return 1
   fi
 
-  if ! git pull --prune; then
-    echo "git pull failed. Fix manually."
-    return 1
-  fi
+  _aiagent_pull_main || return 1
 
   # ローカルの未マージ claude/* ブランチを選び、記録用に push → PR作成 → squash マージする
   # （Builder はリモートに触れないので、レビュー済みのものだけがここで初めて公開される）
-  local pr_num pr_title pr_body pr_url
+  local pr_num pr_title pr_body pr_url pr_merge_sha
   local branch_list
   branch_list=$(git branch --no-merged main --format='%(refname:short)' | grep '^claude/')
 
@@ -124,6 +223,8 @@ _aiagent_finish() {
           return 1
         fi
       fi
+      pr_merge_sha=$(gh pr view "$pr_num" --json mergeCommit --jq '.mergeCommit.oid' 2>/dev/null)
+
       # squash マージ後の pull は、main 側に残る untracked の issue ファイルと衝突する
       # （マージ後は origin 由来の tracked ファイルとして戻ってくるため、pull 前に退避する）
       local merge_pid=""
@@ -137,10 +238,7 @@ _aiagent_finish() {
         done
       fi
 
-      if ! git pull --prune; then
-        echo "git pull failed after merge. Fix manually."
-        return 1
-      fi
+      _aiagent_pull_main || return 1
       # squash マージは main の履歴にブランチのコミットが含まれず --merged で検出できないため、ここで明示的に掃除する
       local squashed_wt
       squashed_wt=$(git worktree list --porcelain \
@@ -175,6 +273,7 @@ _aiagent_finish() {
     esac
   done
   git worktree prune
+  _aiagent_sweep_wt
 
   local merged_branch
   git branch --merged main --format='%(refname:short)' | grep "^claude/" | while read -r merged_branch; do
@@ -182,12 +281,17 @@ _aiagent_finish() {
     [[ -n "$merged_branch" ]] && git push origin --delete "$merged_branch" 2>/dev/null || true
   done
 
-  if [[ -n "$head_branch" && "$head_branch" =~ ^claude/([0-9]+[a-z]?)- ]]; then
+  # id だけでなく branch-slug も一致させる（同一 id の派生 Issue を取り違えないため）
+  if [[ -n "$head_branch" && "$head_branch" =~ ^claude/([0-9]+[a-z]?)-(.*)$ ]]; then
     local pid="${match[1]}"
+    local branch_slug="${match[2]}"
     local f
     for f in "$issues_dir"/*.md; do
       [[ -f "$f" ]] || continue
       grep -q "^id: ${pid}$" "$f" || continue
+      local file_slug
+      file_slug=$(grep '^branch-slug:' "$f" | awk '{print $2}' | tr -d '\r\n[:space:]')
+      [[ -n "$branch_slug" && "$file_slug" == "$branch_slug" ]] || continue
       grep -q '^status: open$' "$f" || continue
       close_file="$f"
       break
@@ -204,18 +308,20 @@ _aiagent_finish() {
   fi
 
   if [[ -n "$close_file" && -f "$close_file" ]]; then
+    local rec_id
+    rec_id=$(grep '^id:' "$close_file" | awk '{print $2}')
+
     # 記録用 GitHub Issue（形だけ残す。作成→即クローズ。失敗してもフローは止めない）
     local gh_num
     gh_num=$(grep '^github_issue:' "$close_file" | awk '{print $2}' | tr -d '\r\n[:space:]')
     if [[ -z "$gh_num" ]]; then
-      local rec_id rec_type rec_title issue_url
-      rec_id=$(grep '^id:' "$close_file" | awk '{print $2}')
+      local rec_type rec_title issue_url
       rec_type=$(grep '^type:' "$close_file" | awk '{print $2}')
       rec_title=$(head -n 1 "$close_file" | sed 's/^##[[:space:]]*//')
       issue_url=$(gh issue create --title "${rec_type}: [#${rec_id}] ${rec_title}" --body-file "$close_file" 2>/dev/null)
       if [[ -n "$issue_url" ]]; then
         gh_num=$(echo "${issue_url##*/}" | tr -d '\r\n[:space:]')
-        sed -i "s/^github_issue:.*$/github_issue: ${gh_num}/" "$close_file"
+        _aiagent_sed_inplace "s/^github_issue:.*$/github_issue: ${gh_num}/" "$close_file"
         echo "Record: GitHub Issue #${gh_num}"
       else
         echo "Warning: Failed to create record GitHub Issue. Continuing."
@@ -225,21 +331,32 @@ _aiagent_finish() {
       gh issue close "$gh_num" 2>/dev/null || echo "Warning: Failed to close GitHub Issue #${gh_num}."
     fi
 
-    sed -i "s/^status: open$/status: close/" "$close_file"
-    git add "$close_file"
+    _aiagent_sed_inplace "s/^status: open$/status: close/" "$close_file"
 
-    echo "Staged:"
-    git diff --cached --name-only
-
-    if ! git commit -m "chore(issues): close $(basename "$close_file")"; then
-      echo "Commit failed. Keeping staged changes for inspection."
-      return 1
+    # マージされたPRの内容は別ファイルとして issues/done/ に記録する（Issueファイル自体は移動しない）
+    local commit_paths=("$close_file")
+    if [[ -n "$pr_num" ]]; then
+      mkdir -p "$issues_dir/done"
+      local done_file="$issues_dir/done/$(basename "$close_file")"
+      {
+        echo "## PR記録: ${pr_title:-#$pr_num}"
+        echo "issue: ${rec_id:-unknown} ($(basename "$close_file"))"
+        echo "PR: ${pr_url:-#$pr_num}"
+        [[ -n "$pr_merge_sha" ]] && echo "Merged: $pr_merge_sha"
+        if [[ -n "$pr_body" ]]; then
+          echo ""
+          echo "$pr_body"
+        fi
+      } > "$done_file"
+      commit_paths+=("$done_file")
     fi
 
-    if git push origin main; then
-      echo "Closed: $(basename "$close_file")"
+    if git -C "$base" add "${commit_paths[@]}" \
+      && git -C "$base" commit -m "chore(issues): close ${rec_id:-$(basename "$close_file")}" >/dev/null; then
+      echo "Committed: ${commit_paths[*]}"
+      git -C "$base" push || echo "Warning: Failed to push. Push manually."
     else
-      echo "Warning: git push failed. Push main manually."
+      echo "Warning: Failed to commit ${commit_paths[*]}. Commit manually."
     fi
   fi
 
@@ -301,22 +418,125 @@ _aiagent_run() {
   # 後発ブランチへの先発 open コミットの混入を防ぐ
   local issue_file_rel="${issue_file#${git_root}/}"
   if [[ -n "$(git status --porcelain -- "$issue_file")" ]]; then
+    mkdir -p "$(dirname "${wt_dir}/${issue_file_rel}")"
     cp "$issue_file" "${wt_dir}/${issue_file_rel}"
     git -C "$wt_dir" add "$issue_file_rel"
     git -C "$wt_dir" commit -m "chore(issues): open $(basename "$issue_file")"
   fi
 
+  # tmux内なら別ペインでBuilderの変更をライブ表示する（working tree・コミット済みを問わずmain比較で追従）
+  if [[ -n "$TMUX" ]]; then
+    tmux split-window -h -c "$wt_app_dir" "hunk diff main --watch"
+  fi
+
   (
     cd "$wt_app_dir" || exit 1
-    claude --model sonnet --system-prompt \
+    claude --model claude-sonnet-5 --system-prompt \
       "You are the Builder. Implement based on the Issue file and commit locally when done. Do NOT push, create PRs, or touch the remote. Do NOT design new Issues or modify issue files." \
-      "/pr-workflow ${wt_app_dir}/issues/$(basename "$issue_file")"
+      "/pr-workflow ${wt_dir}/${issue_file_rel}"
   )
+
+  # tmux外だった場合のみ、実行者の終了後にmain未マージのコミットがあればhunkでレビューを開く
+  # （tmux内は上で開いた別ペインが既にレビュー導線になっているため何もしない。open コミットのみなら開かない）
+  if [[ -z "$TMUX" ]] && [[ -n "$(git log main.."$branch_name" --oneline 2>/dev/null | grep -v 'chore(issues): open')" ]]; then
+    echo "Opening hunk review: ${branch_name} vs main"
+    (cd "$wt_dir" && hunk diff main)
+  fi
+}
+
+_aiagent_import_pr() {
+  emulate -L zsh
+  local pr_num=$1
+  if [[ -z "$pr_num" ]]; then
+    echo "Usage: issue-import-pr <PR_NUMBER>"
+    return 1
+  fi
+
+  local base
+  base=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$base" ]]; then
+    echo "Error: Not a git repository."
+    return 1
+  fi
+
+  local repo_name
+  repo_name=$(git -C "$base" remote get-url origin 2>/dev/null | sed -E 's|https://github.com/([^/]+/[^/.]+)(\.git)?|\1|')
+  if [[ -z "$repo_name" ]]; then
+    echo "Error: Could not determine GitHub repository name."
+    return 1
+  fi
+
+  local pr_title pr_body pr_url pr_merge_sha head_branch
+  pr_title=$(gh pr view "$pr_num" --repo "$repo_name" --json title --jq '.title' 2>/dev/null)
+  if [[ -z "$pr_title" ]]; then
+    echo "Error: Failed to fetch PR #$pr_num from $repo_name."
+    return 1
+  fi
+
+  pr_body=$(gh pr view "$pr_num" --repo "$repo_name" --json body --jq '.body' 2>/dev/null)
+  pr_url=$(gh pr view "$pr_num" --repo "$repo_name" --json url --jq '.url' 2>/dev/null)
+  pr_merge_sha=$(gh pr view "$pr_num" --repo "$repo_name" --json mergeCommit --jq '.mergeCommit.oid' 2>/dev/null || true)
+  head_branch=$(gh pr view "$pr_num" --repo "$repo_name" --json headRefName --jq '.headRefName' 2>/dev/null)
+
+  local pid="" branch_slug=""
+  if [[ "$head_branch" =~ ^(claude/)?([0-9]+[a-z]?)-(.*)$ ]]; then
+    pid="${match[2]}"
+    branch_slug="${match[3]}"
+  fi
+
+  if [[ -z "$pid" || -z "$branch_slug" ]]; then
+    echo "Error: Could not parse issue ID or branch slug from branch: $head_branch"
+    return 1
+  fi
+
+  local issues_dir="$base/issues"
+  local close_file=""
+  local f
+  for f in "$issues_dir"/*.md(N); do
+    [[ -f "$f" ]] || continue
+    local clean_pid=$(echo "$pid" | sed 's/^0//')
+    if grep -qE "^id: (0?${clean_pid}|${pid})$" "$f"; then
+      local file_slug
+      file_slug=$(grep '^branch-slug:' "$f" | awk '{print $2}' | tr -d '\r\n[:space:]')
+      if [[ -n "$branch_slug" && "$file_slug" == "$branch_slug" ]]; then
+        close_file="$f"
+        break
+      fi
+    fi
+  done
+
+  if [[ -z "$close_file" ]]; then
+    echo "Error: Issue file not found for ID: $pid, slug: $branch_slug in: $issues_dir"
+    return 1
+  fi
+
+  mkdir -p "$issues_dir/done"
+  local done_file="$issues_dir/done/$(basename "$close_file")"
+
+  {
+    echo "## PR記録: ${pr_title}"
+    echo "issue: ${pid} ($(basename "$close_file"))"
+    echo "PR: ${pr_url}"
+    [[ -n "$pr_merge_sha" ]] && echo "Merged: $pr_merge_sha"
+    if [[ -n "$pr_body" ]]; then
+      echo ""
+      echo "$pr_body"
+    fi
+  } > "$done_file"
+
+  _aiagent_sed_inplace "s/^status:.*$/status: close/" "$close_file"
+
+  echo "Synced PR #$pr_num to $(basename "$done_file")"
 }
 
 issue() {
   emulate -L zsh
   _aiagent_run "$@"
+}
+
+issue-open() {
+  emulate -L zsh
+  _aiagent_open "$@"
 }
 
 issue-abort() {
@@ -327,4 +547,9 @@ issue-abort() {
 issue-finish() {
   emulate -L zsh
   _aiagent_finish "$@"
+}
+
+issue-import-pr() {
+  emulate -L zsh
+  _aiagent_import_pr "$@"
 }

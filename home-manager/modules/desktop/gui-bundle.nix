@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ./../lazygit.nix
+    ./../hunk.nix
     ./gtk.nix
     ../vscode.nix
     ../fonts.nix

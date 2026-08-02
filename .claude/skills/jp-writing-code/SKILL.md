@@ -8,7 +8,7 @@ manual: true
 
 `.astro`、`.html`、`.vue`、`.tsx` 等のソースファイルに含まれる日本語テキストを修正する。
 
-規範は `~/dotfiles/.claude/skills/jp-writing/SKILL.md` の「規範」セクションに従う。毎回読みに行くこと。
+規範は同階層の `../jp-writing/SKILL.md` の「規範」セクションに従う。毎回読みに行くこと。
 
 ## 1. ファイルを選ぶ
 
@@ -25,7 +25,7 @@ grep -rl '[ぁ-ん]' --include='*.astro' --include='*.html' --include='*.vue' --
 ## 2. 修正する
 
 1. 対象ファイルを読む
-2. `~/dotfiles/.claude/skills/jp-writing/SKILL.md` の規範セクションを読む
+2. `../jp-writing/SKILL.md` の規範セクションを読む
 3. ファイル内の日本語テキスト部分のみを規範に照らして修正する
 4. コード・属性・変数名・コメントのロジック部分には手を付けない
 

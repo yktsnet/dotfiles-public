@@ -227,8 +227,8 @@ gp() {
   fi
 }
 
-# difit launcher: pick a review target via a simple menu, no arguments.
-# 差分を difit（ブラウザベースのビューア）で開き、AI と相談しながらレビューを進めるための入口。
+# hunk launcher: pick a review target via a simple menu, no arguments.
+# 差分を hunk（TUI ビューア）で開き、AI と相談しながらレビューを進めるための入口。
 d() {
   emulate -L zsh
   _ensure_npm_path
@@ -237,47 +237,57 @@ d() {
   repo_root=$(git rev-parse --show-toplevel 2>/dev/null || true)
   [[ -z "$repo_root" ]] && { print "d: not a git repository" >&2; return 1; }
 
-  # default branch: origin/HEAD -> main -> master
-  local base
-  base=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null)
-  base="${base#origin/}"
-  [[ -z "$base" ]] && { git show-ref --verify -q refs/heads/main && base=main || base=master; }
-
-  print "difit — what to review?"
-  print "  1) working   uncommitted changes"
-  print "  2) branch    whole branch vs ${base} (PR-equivalent)"
-  print "  3) commit    pick a single commit"
-  print "  4) range     compare two commits"
+  print "hunk — what to review?"
+  print "  1) working    uncommitted changes"
+  print "  2) unpushed    committed but not pushed"
+  print "  3) commit     pick from recent 5 commits"
+  print "  4) date       pick from recent 5 dates (grouped)"
   local choice
-  read "choice?select> "
-
-  # kill leftover difit processes to free ports
-  pkill -f 'node.*difit' 2>/dev/null
+  read -r "choice?select> "
+  print ""
 
   case "$choice" in
     1)
       if git diff --quiet HEAD 2>/dev/null && [[ -z "$(git ls-files --others --exclude-standard)" ]]; then
         print "d: no uncommitted changes" >&2; return 1
       fi
-      difit working --include-untracked &>/dev/null &!
+      hunk diff --watch
       ;;
-    2) difit "$base" --merge-base &>/dev/null &! ;;
+    2)
+      if ! git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
+        print "d: no upstream configured for current branch" >&2; return 1
+      fi
+      if git diff --quiet '@{u}' HEAD 2>/dev/null; then
+        print "d: nothing to push" >&2; return 1
+      fi
+      hunk diff '@{u}'
+      ;;
     3)
-      local sha
-      sha=$(git log --oneline -n 50 --color=always \
-        | fzf --ansi --prompt="commit> " --height=60% --reverse) || return 1
-      [[ -z "$sha" ]] && return 1
-      difit "${sha%% *}" &>/dev/null &!
+      local selected_commit
+      selected_commit=$(git log -n 5 --oneline 2>/dev/null | fzf | awk '{print $1}')
+      [[ -z "$selected_commit" ]] && { print "d: cancelled" >&2; return 1; }
+      hunk show "$selected_commit"
       ;;
     4)
-      local from to
-      from=$(git log --oneline -n 50 --color=always \
-        | fzf --ansi --prompt="from> " --height=60% --reverse) || return 1
-      [[ -z "$from" ]] && return 1
-      to=$(git log --oneline -n 50 --color=always \
-        | fzf --ansi --prompt="to> " --height=60% --reverse) || return 1
-      [[ -z "$to" ]] && return 1
-      difit "${from%% *}" "${to%% *}" &>/dev/null &!
+      local selected_date
+      selected_date=$(git log --format="%ad" --date=short 2>/dev/null | awk '!seen[$0]++' | head -n 5 | fzf)
+      [[ -z "$selected_date" ]] && { print "d: cancelled" >&2; return 1; }
+
+      local -a day_commits
+      day_commits=($(git log --format="%H %ad" --date=short 2>/dev/null | grep " ${selected_date}$" | awk '{print $1}'))
+      [[ ${#day_commits} -eq 0 ]] && { print "d: no commits on ${selected_date}" >&2; return 1; }
+
+      local latest oldest base
+      latest="${day_commits[1]}"
+      oldest="${day_commits[-1]}"
+
+      if git rev-parse --verify "${oldest}~1" >/dev/null 2>&1; then
+        base="${oldest}~1"
+      else
+        base="$oldest"
+      fi
+
+      git diff "$base" "$latest" | hunk patch -
       ;;
     *) print "d: cancelled" >&2; return 1 ;;
   esac
