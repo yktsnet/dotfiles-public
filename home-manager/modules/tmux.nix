@@ -1,5 +1,27 @@
 { config, pkgs, ... }:
 
+let
+  # ディレクトリ単位で使い回すスクラッチターミナル popup（toggleterm.nvim の代替）。
+  # popup 内で再度同キーを押すと detach してトグルになる。
+  termPopup = pkgs.writeShellScript "tmux-term-popup.sh" ''
+    set -uo pipefail
+    current="$1"; path="$2"
+
+    case "$current" in
+      term-*) exec tmux detach-client ;;
+    esac
+
+    hash="$(printf '%s\n' "$path" | md5sum | cut -c1-8)"
+    session="term-$hash"
+
+    if ! tmux has-session -t "=$session" 2>/dev/null; then
+      tmux new-session -d -s "$session" -c "$path"
+      tmux set-option -t "$session" status off
+    fi
+
+    tmux display-popup -w 90% -h 90% -E "tmux attach-session -t '$session'"
+  '';
+in
 {
   programs.tmux = {
     enable = true;
@@ -48,6 +70,9 @@
       bind-key -n M-t new-window -c "#{pane_current_path}"
       bind-key -n M-J next-window
       bind-key -n M-K previous-window
+
+      # スクラッチターミナル popup（トグル）
+      bind-key -n M-p run-shell "${termPopup} '#{q:session_name}' '#{q:pane_current_path}'"
 
       # その他
       bind-key -n M-v copy-mode

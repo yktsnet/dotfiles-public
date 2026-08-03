@@ -22,14 +22,14 @@ return {
     event = "VeryLazy",
     keys = {
       {
-        "<leader>th",
+        "<leader>bh",
         function()
           require("close_buffers").delete({ type = "hidden" })
         end,
         desc = "Close Hidden Buffers",
       },
       {
-        "<leader>tu",
+        "<leader>bu",
         function()
           require("close_buffers").delete({ type = "nameless" })
         end,

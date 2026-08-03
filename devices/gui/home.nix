@@ -45,7 +45,6 @@
     desktop-file-utils
     wl-clipboard
     neovim
-    yazi
     gcc
     gnumake
   ];
@@ -60,10 +59,6 @@
 
   xdg.configFile."nvim" = {
     source = ../../home-manager/config/nvim;
-    recursive = true;
-  };
-  xdg.configFile."yazi" = {
-    source = ../../home-manager/config/yazi;
     recursive = true;
   };
 }

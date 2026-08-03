@@ -1,22 +1,5 @@
 alias t='tmux new-session -A -s main'
 
-y() {
-  local tmp final_dir
-  tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
-
-  # yazi を起動し、終了時の位置を tmp に記録
-  yazi "$@" --cwd-file="$tmp"
-
-  if [[ -f "$tmp" ]]; then
-    final_dir="$(cat "$tmp")"
-    rm -f "$tmp"
-
-    # 終了時の位置が有効、かつ現在の場所と異なる場合のみ cd
-    if [[ -d "$final_dir" && "$final_dir" != "$PWD" ]]; then
-      builtin cd "$final_dir"
-    fi
-  fi
-}
 list() {
   emulate -L zsh
   setopt localoptions typesetsilent

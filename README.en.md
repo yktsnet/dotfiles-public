@@ -85,8 +85,7 @@ Fleet-wide status checks run through `apps/zsh/fleet_monitor.py`, which keeps no
 
 A Nix-unified TUI environment for both agents and humans to work in the same environment.
 
-* **Neovim**: An integrated development environment based on `lazy.nvim`. LSP completion, static type checking, auto-formatting (conform.nvim), Yazi integration, and automatic session restoration.
-* **Yazi**: A file manager written in Rust. fzf/ripgrep integration and a wrapper function that syncs the shell's current directory on exit.
+* **Neovim**: An integrated development environment based on `lazy.nvim`. LSP completion, static type checking, auto-formatting (conform.nvim), and automatic session restoration. File operations go through oil.nvim, which edits directories as ordinary text buffers.
 * **Tmux**: Prefix-key-free pane operations, OSC 52 clipboard sync, True Color support. Operable with the same shortcuts as Neovim's split windows.
 
 For detailed keybindings and configuration, see [TUI Environment (docs/tui_environment.md)](docs/tui_environment.md).

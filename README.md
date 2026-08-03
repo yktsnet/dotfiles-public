@@ -85,8 +85,7 @@ GUI と headless で共通モジュールを分け、機体固有の差分（`ha
 
 エージェントと人間が同一環境で作業を行うための、Nixで一元化されたTUI環境。
 
-* **Neovim**: `lazy.nvim` ベースの統合開発環境。LSP 補完・静的型チェック・自動整形（conform.nvim）・Yazi 統合・自動セッション復元。
-* **Yazi**: Rust製ファイラー。fzf/ripgrep 連携と、終了時にシェルのカレントディレクトリを同期するラッパー関数。
+* **Neovim**: `lazy.nvim` ベースの統合開発環境。LSP 補完・静的型チェック・自動整形（conform.nvim）・自動セッション復元。ファイル操作は oil.nvim で、ディレクトリを通常のテキストバッファとして編集する。
 * **Tmux**: プレフィックスキー不要のペイン操作、OSC 52 クリップボード同期、True Color 対応。Neovim の分割ウィンドウと同一ショートカットで操作できる。
 
 詳細なキーバインドや構成は [TUI Environment (docs/tui_environment.md)](docs/tui_environment.md) を参照。

@@ -43,7 +43,6 @@
     fzf
     rsync
     neovim
-    yazi
     fd
     unzip
     ncdu
@@ -56,10 +55,6 @@
 
   xdg.configFile."nvim" = {
     source = ../../../home-manager/config/nvim;
-    recursive = true;
-  };
-  xdg.configFile."yazi" = {
-    source = ../../../home-manager/config/yazi;
     recursive = true;
   };
 }

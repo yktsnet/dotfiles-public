@@ -28,7 +28,7 @@ Issue 駆動ワークフロー（[docs-agents/issue-driven-workflow.md](../docs-
 | `functions/aiagent.sh` | `issue` `issue-abort` `issue-finish`（Claude Code 用 Issue 駆動） |
 | `functions/claude.sh` | `skill`（手動起動 skill を fzf で選んで Claude Code に渡す） |
 | `functions/git.sh` | `gs` `gc` `gca` `gp` `gpl` ほか git ショートカット |
-| `functions/utils.sh` | `y`（Yazi 連携）`list` `dot` `disk` `ssh`（fzf 補完）ほか |
+| `functions/utils.sh` | `list` `dot` `disk` `ssh`（fzf 補完）ほか |
 
 `functions/` は稼働環境の実装を汎用化したスナップショットである。ワークフローの振る舞いの正は [issue-driven-workflow.md](../docs-agents/issue-driven-workflow.md) にあり、稼働側の実装が先行している場合がある（例: `issue-finish` の PR 記録ファイル書き出し）。
 

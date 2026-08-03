@@ -21,7 +21,6 @@
   home.packages = [
     pkgs.bat
     pkgs.neovim
-    pkgs.yazi
     pkgs.gcc
     pkgs.gnumake
     pkgs.gopls
@@ -33,10 +32,6 @@
 
   xdg.configFile."nvim" = {
     source = ../../home-manager/config/nvim;
-    recursive = true;
-  };
-  xdg.configFile."yazi" = {
-    source = ../../home-manager/config/yazi;
     recursive = true;
   };
 
