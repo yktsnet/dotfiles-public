@@ -33,7 +33,7 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 * **WebChat（設計・対話型AI）**:
   ユーザーと対話しながら、MVP期は仕様策定と設計ファイルの作成を、Issueドリブン期は調査と Issue 設計を行う。実装はしない。
 * **AI Agent（実装・自律型AI）**:
-  Issue ファイルをインプットとしてコード編集・テスト実装・静的エラー確認・ローカルコミットまでを自律実行し、リモートには触れない。`rebuild` 等の破壊的コマンドや機密へのアクセスは `.claude/settings.json` の deny で構造的に遮断する。
+  Issue ファイルをインプットとしてコード編集・テスト実装・静的エラー確認・ローカルコミットまでを自律実行し、リモートには触れない。手順は [pr-workflow](.claude/skills/pr-workflow/SKILL.md) に固定してある。`rebuild` 等の破壊的コマンドや機密へのアクセスは `.claude/settings.json` の deny で遮断し、前方一致では判定できないもの（パス付き実行のパッケージ導入、生成物への直接編集）は [`.claude/hooks/`](.claude/hooks/) の PreToolUse フックが受け持つ。
 * **User（裁可・検証・人間）**:
   Issue の保証節を裁可し、エージェントのコミットをローカルでレビュー・動作確認し、`issue-finish` で公開（push・PR作成・マージ）を実行する。レビューを通った変更だけがリモートに残る。
 
@@ -55,9 +55,29 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 
 エージェントの自律実行は、環境・機密・知識の3点を構造的に整えてはじめて成立する。
 
-* **Nix による環境同一性**: 環境差はエージェントの「コマンド未検出」「実行時エラー」を招く。Nix Flakes と Home Manager で macOS / Linux のツールチェーンをコードとして同一化し、CI（`nix flake check`）で継続検証する。
+* **Nix による環境同一性**: 環境差はエージェントの「コマンド未検出」「実行時エラー」を招く。Nix Flakes と Home Manager で macOS / Linux のツールチェーンをコードとして同一化し、CI（`nix flake check`）で継続検証する。導入経路の逸脱（`brew` / `npm -g` / `pip install`）は `.claude/hooks/block-non-nix-install.sh` が遮断する。
 * **機密情報の分離**: 公開リポジトリ側のコードや Issue ファイルに本番の IP・ポート・実ホスト名を書かない。実値はローカルの `secrets-agents/` に隔離し、地の文では `<PLACEHOLDER>` を用いる。
 * **暗黙知の skill 化**: 「どのファイルをいつ AI に渡すか」が人間の暗黙知に依存すると、AI 単独で運用を再現できない。「〜するとき」と条件を言える手順は skill 化し、description に起動条件を宣言する。前節のワークフロー自体（`new-issue`・`guarantee-audit` 等）もこの形でコミットされている。詳細は [harness-guide.md](docs-agents/harness-guide.md#知識の配置基準) を参照。
+* **規則の棚卸し**: CLAUDE.md も skill も memory も「人が書いた規則を AI が読む」構造であり、規則同士の矛盾を検出する仕組みを持たない。増え続ける規則を放置すると挙動が不安定になるため、[`consolidate-rules`](.claude/skills/consolidate-rules/SKILL.md) が索引 `.claude/RULES.md` を起点に差分だけを定期監査する。永続メモリの索引も同じく生成物として扱い、SessionStart フックが frontmatter から再生成する。
+
+---
+
+## Device Fleet（管理対象）
+
+単一の Flake が、OS も起動方式も異なる6構成を束ねる。デバイス名は公開にあたり役割ベースの総称に置き換えている。
+
+| 構成 | OS / 起動 | 役割 |
+|---|---|---|
+| `gui/macbook` | macOS（nix-darwin） | 主開発機。相談者チャットと `issue()` の起動元 |
+| `gui/linux-desktop` | NixOS（disko / SSD） | デスクトップ。ビルドホスト |
+| `gui/linux-laptop` | NixOS（disko / SSD） | 可搬 GUI 機。netboot の配信元 |
+| `headless/ssd/linux-server-a` | NixOS headless（VPS） | 公開サービス・ops |
+| `headless/ssd/linux-server-b` | NixOS headless | 常駐ジョブ |
+| `headless/diskless/linux-netboot` | NixOS netboot（tmpfs root） | 無状態機。ストレージを持たず PXE で受信する |
+
+GUI と headless で共通モジュールを分け、機体固有の差分（`hardware.nix` / `disko.nix` / `monitor.nix` 等）だけを各ディレクトリに置く。ディスクレス機は世代保持を捨てて最新1世代のみを配給する（`.claude/skills/netboot-stateless/`）。
+
+フリート横断の状態確認は `apps/zsh/fleet_monitor.py` が行う。リモートにエージェントを常駐させず、ローカルのスクリプトを SSH の標準入力へ流し込んで実行する。
 
 ---
 

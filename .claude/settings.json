@@ -1,4 +1,9 @@
 {
+  "statusLine": {
+    "type": "command",
+    "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/statusline.sh",
+    "padding": 0
+  },
   "permissions": {
     "allow": [
       "Bash(git *)",
@@ -28,5 +33,66 @@
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-non-nix-install.sh",
+            "timeout": 10,
+            "statusMessage": "Nix 外インストールを検査中"
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-new-skill-md.sh",
+            "timeout": 10,
+            "statusMessage": "新規SKILL.md作成を検査中"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-live-claude-config-edit.sh",
+            "timeout": 10,
+            "statusMessage": "~/.claude 直接編集を検査中"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-project-scoped-memory.sh",
+            "timeout": 10,
+            "statusMessage": "memory の書き込み先を検査中"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/sync-memory-index.sh",
+            "timeout": 10,
+            "statusMessage": "memory インデックスを同期中"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/opus-scope-and-concision.sh",
+            "timeout": 10,
+            "statusMessage": "Opus向け簡潔性指示を注入中"
+          }
+        ]
+      }
+    ]
   }
 }

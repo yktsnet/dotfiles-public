@@ -15,9 +15,13 @@ dotfiles-public/
 ├── home-manager/      # ユーザ環境
 │   ├── config/        # 各種 dotfiles 設定
 │   └── modules/       # 再利用モジュール
+├── .claude/
+│   ├── settings.json  # 権限（allow/deny）・attribution・フックの配線
+│   ├── hooks/         # PreToolUse / SessionStart フック（deny で判定できない遮断・注入）
+│   └── skills/        # ワークフロー用スキル（正本。home-manager が ~/.claude/skills へ配置）
 ├── zsh/
 │   └── functions/     # Issue 駆動ワークフローのシェルマクロ（issue / issue-finish 等）
-├── apps/              # アプリ共通の env 定義（env-context.nix）
+├── apps/              # アプリ共通の env 定義（env-context.nix）と運用スクリプト（zsh/）
 ├── docs/              # 環境ドキュメント（tui_environment.md 等）
 ├── docs-agents/       # AI Agent 向けガイド（cicd / harness / issue-driven / readme / repo-guide）
 ├── secrets-agents/    # 機密辞書（実値・公開しない / 読み書き禁止）
@@ -31,6 +35,8 @@ dotfiles-public/
 - **デバイス層**: `devices/`。GUI / headless で分け、共通モジュールを import。
 - **ユーザ環境層**: `home-manager/`。TUI ツールチェーン（Neovim・Yazi・Tmux 等）と dotfiles を宣言的に管理。
 - **ワークフロー層**: `zsh/functions/`。`issue` / `issue-abort` / `issue-finish` 等のマクロ。
+- **ハーネス層**: `.claude/`。`settings.json` の deny（前方一致で足りるもの）と `hooks/` の PreToolUse（コマンド構造・編集先の判定が要るもの）で遮断を二段に分ける。`skills/` が正本で、`home-manager/modules/claude.nix` が `~/.claude/` へ配置する。
+- **運用スクリプト層**: `apps/zsh/`。シェル関数の実体になる Python（フリート監視・secret 暗号化）。
 - **ガイド層**: `docs-agents/`。新規リポの組成・ハーネス・CI/CD・README・Issue プロセスの基準。
 - **機密層**: `secrets-agents/`。実値辞書。公開せず、Agent からは読み書きしない。
 

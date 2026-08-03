@@ -33,15 +33,17 @@ The PR's `## Verification Steps` section documents checks the Agent cannot compl
 
 | Layer | Content | Applies To |
 |---|---|---|
-| Layer 1: Accident Prevention | `settings.json` deny + attribution | All repos |
+| Layer 1: Accident Prevention | `settings.json` deny + attribution + `hooks/` PreToolUse | All repos |
 | Layer 2: Operations Foundation | Instruction files (CLAUDE.md / context/ / Skills) + verification methods | All repos running an Agent |
 | Layer 3: Public Verification | CI (`cicd-guide.md`) | Public or auto-deployed repos |
 
 ---
 
-## 3. Layer 1 — settings.json
+## 3. Layer 1 — settings.json and Hooks
 
 Check in `.claude/settings.json`. `.local.json` is for personal overrides (gitignored).
+
+There are two mechanisms for blocking. `deny` is declarative and easy to read, but it only ever sees a **string prefix**. Anything that requires judging the structure of a command or the meaning of an edit target belongs in a PreToolUse hook (Section 3.5).
 
 ### deny (common)
 
@@ -90,6 +92,44 @@ To let the agent read directories outside the repository (e.g. a secrets diction
 
 Remove Co-Authored-By. The stance is that the Agent is a tool, not a co-author. Mixing non-human names in commit history also degrades blame readability.
 
+### 3.5 Hooks (`.claude/hooks/`)
+
+`deny` matches a string prefix; it does not interpret the command. Putting `Bash(pip install *)` in deny matches neither a path-qualified `/tmp/venv/bin/pip install x` nor one chained after `make setup &&`. **When what you want to forbid is an action rather than a string**, decide it in a PreToolUse hook.
+
+The implementations live in `.claude/hooks/`. In the operating fleet, `home-manager/modules/claude.nix` deploys `.claude/` to `~/.claude/`, so the same files take effect across every repo.
+
+| Hook | Trigger | What it blocks |
+|---|---|---|
+| `block-non-nix-install.sh` | PreToolUse `Bash` | Package installs outside Nix (pip / brew / npm -g / cargo / gem). Catches path-qualified executions and installs nested in compound commands |
+| `block-live-claude-config-edit.sh` | PreToolUse `Edit\|Write` | Direct edits to `~/.claude/`, which is generated output. Rewrites the path to the source and returns it |
+| `block-new-skill-md.sh` | PreToolUse `Write` | Writing a new `SKILL.md` by hand. Redirects to `skill-creator` |
+| `block-project-scoped-memory.sh` | PreToolUse `Edit\|Write` | Memory written to the wrong store (Section 4.5) |
+| `sync-memory-index.sh` | SessionStart | (Generates rather than blocks) regenerates `MEMORY.md` |
+| `opus-scope-and-concision.sh` | SessionStart | (Injects rather than blocks) adds concision and scope discipline for Opus models only |
+
+#### Match on command position
+
+`block-non-nix-install.sh` performs its match like this.
+
+```bash
+stripped=$(printf '%s' "$cmd" | sed "s/'[^']*'//g" | sed 's/"[^"]*"//g')
+pre='(^|[;&|`]|\$\()[[:space:]]*(sudo[[:space:]]+)?(env[[:space:]]+)?([[:alnum:]@/_.~+-]*/)?'
+```
+
+Quoted spans are dropped first, so merely naming an installer inside a commit message doesn't trip it. `pre` then restricts the match to command position (start of line, or right after `;` `|` `&` `` ` `` `$(`) and absorbs path-qualified executions and a leading `sudo` / `env`.
+
+The trade-off is that this reads shell syntax, not intent: prose that quotes an example command in command position still matches. Documentation about the hook is the common false positive.
+
+#### Write the denial message as a router
+
+A denied Agent will try something else, and the denial text is where you get to say what. So a hook's `permissionDecisionReason` should carry **both the reason and the alternative**. `block-non-nix-install.sh` returns the distinction between `nix run` / `nix shell` / `home.nix` / `shell.nix` plus the `nix-tool-install` skill; `block-live-claude-config-edit.sh` mechanically rewrites the edit target and hands it back.
+
+```bash
+dotfiles_path="${file_path/#$home\/.claude\//$home/dotfiles/.claude/}"
+```
+
+If all you need is a wall, `deny` suffices. The payoff of a hook is that it can push the Agent onto the right path at the moment it refuses.
+
 ---
 
 ## 4. Layer 2 — Instruction Files
@@ -129,12 +169,13 @@ Add files as the repo's nature requires. If everything fits in 2 files, no need 
 
 ### Skills
 
-Workflow skills are not copied per repository; they live in the global `~/.claude/skills/` (home-manager copies them from dotfiles' `.claude/skills/`).
+Workflow skills are not copied per repository; they live in the global `~/.claude/skills/`. The source of truth is this repository's `.claude/skills/`, which `home-manager/modules/claude.nix` copies there.
 
 | Skill | Role |
 |---|---|
 | `pr-workflow` | For the Builder. Implementation → run verification → local commit (the branch and worktree are created by `issue()`; push and PR creation happen in `issue-finish`) |
 | `new-issue` | For the Consultant. Organize requirements → mask secrets → write the Issue into `issues/` |
+| `consolidate-rules` | Audits rule files for contradiction and staleness (Section 4.6) |
 
 Both define only the generic flow; repository-specific checks and verification steps (Section 1 above) go in each repository's CLAUDE.md, which the skills reference.
 `pr-workflow` is launched via the `claude` command from the `issue()` shell function in `issue-driven-workflow.md`.
@@ -164,6 +205,41 @@ description: Operational procedure for encrypting, decrypting, and re-encrypting
 The description enumerates trigger conditions as "use when ~," turning tacit knowledge into a declaration.
 
 Skill updates are not auto-extracted. If a drift is noticed during work, stop at a suggestion — don't mass-produce norms that go unreviewed.
+
+### 4.5 Persistent Memory
+
+Knowledge that must survive across sessions goes in `~/memory/`, one fact per file, split into subdirectories by type.
+
+| Type | Content |
+|---|---|
+| `user` | Who the user is (role, expertise, preferences) |
+| `feedback` | Guidance on how to work. Record the reason (**Why**) and how to apply it (**How to apply**) |
+| `project` | Ongoing constraints not derivable from the code or git history. Convert relative dates to absolute ones |
+| `reference` | Pointers to external resources (URLs, dashboards, tickets) |
+
+The index `~/memory/MEMORY.md` is **generated, never hand-written**. The SessionStart hook `sync-memory-index.sh` rebuilds it from each file's frontmatter (`name` / `description`), and rewrites only when the content differs, so a session that changes nothing touches nothing.
+
+The harness system prompt may instruct the agent to store memory in `~/.claude/projects/<project>/memory/`. The source of truth here is `~/memory/`, so anything written there accumulates as duplicates that never appear in the index. `block-project-scoped-memory.sh` denies writes to the project scope and returns the correct destination, assembled from the filename.
+
+Auto-generating the index does nothing if the writes land elsewhere. **Generation (`sync-memory-index.sh`) and blocking (`block-project-scoped-memory.sh`) are separate countermeasures, and both are required.**
+
+### 4.6 Auditing the Rules
+
+CLAUDE.md, skills, and memory all share one structure: rules a human wrote, read by an AI. None of them detects contradictions between rules. Since rule files only accumulate, contradiction and staleness eventually destabilize Agent behavior. The `consolidate-rules` skill handles this audit.
+
+It looks for three kinds of drift.
+
+1. Internal contradictions within `docs-agents` (e.g., `test-policy.md` and `issue-driven-workflow.md` disagreeing on a criterion)
+2. Divergence between CLAUDE.md and `docs-agents` (a rule that exists only in CLAUDE.md, left behind when a guide is updated)
+3. Divergence between a skill's `description` and its body (the rule changed, the trigger condition didn't)
+
+Two points of design matter.
+
+**Read only the diff, via an index.** `.claude/RULES.md` holds no rule content — only a pointer per file, a one-line summary, cross-references, and the commit and date of the last audit. From the second run onward, that index is the starting point, and only files changed since the record get read in depth. Without an index, every run reads every target, and the cost of scheduled execution grows in proportion to the number of targets.
+
+**Don't maintain an exclusion list.** What gets audited is the rules you wrote, not vendored technical references or bundled skills. Keeping that as a fixed list means maintenance every time a skill is added, so the split is made mechanically: whether the frontmatter `description` is written in Japanese.
+
+Findings are applied one at a time, each with explicit approval from the user. Never batch them into a single sign-off.
 
 ---
 

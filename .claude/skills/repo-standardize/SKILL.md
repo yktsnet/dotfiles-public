@@ -19,10 +19,10 @@ manual: true
 
 以下4本を読む。これが基準のすべて。
 
-- `~/dotfiles/docs-agents/repo.md` — ファイル衛生（LICENSE・.gitignore・.env.example・0バイト禁止・成果物非追跡）
-- `~/dotfiles/docs-agents/harness.md` — `.claude/`（settings.json の層1・CLAUDE.md・context/・skills/pr-workflow）と検証手段
-- `~/dotfiles/docs-agents/workflow.md` — issues/・担当分離・Issue フォーマット
-- `~/dotfiles/docs-agents/cicd.md` — CI/デプロイ（Public のみ層3）
+- `~/dotfiles/docs-agents/repo-guide.md` — ファイル衛生（LICENSE・.gitignore・.env.example・0バイト禁止・成果物非追跡）
+- `~/dotfiles/docs-agents/harness-guide.md` — `.claude/`（settings.json の層1・CLAUDE.md・context/・skills/pr-workflow）と検証手段
+- `~/dotfiles/docs-agents/issue-driven-workflow.md` — issues/・担当分離・Issue フォーマット
+- `~/dotfiles/docs-agents/cicd-guide.md` — CI/デプロイ（Public のみ層3）
 
 > `readme-guide.md` のうち §1・§3 のみ本 Skill で使う（コアメッセージ1文の確定まで）。アウトライン以降の本格構成は `repo-readme` Skill の管轄。
 
@@ -50,13 +50,13 @@ manual: true
 | `gitignore-base.txt` | `.gitignore` |
 | `license-mit.txt` | `LICENSE`（Public のみ必須） |
 | `dependabot-base.yml` | `.github/dependabot.yml` |
-| `dependabot-auto-merge.yml` | `.github/workflows/dependabot-auto-merge.yml`（CI 有リポのみ。運用ルールとリポ設定は `cicd.md` §6） |
+| `dependabot-auto-merge.yml` | `.github/workflows/dependabot-auto-merge.yml`（CI 有リポのみ。運用ルールとリポ設定は `cicd-guide.md` §6） |
 
 `settings-json-{type}.json` は JSON のためコメントが使えない。allow 配列にスタック固有の行を追加する。deny・attribution は変えない。
 
 既存の `.gitignore` がある場合は、base の共通行が含まれていることを確認し、不足があれば追加する（上書きしない）。
 
-`.claude/skills/pr-workflow/SKILL.md` は雛形を持たない。`~/dotfiles/.claude/skills/pr-workflow/SKILL.md`（正本・グローバル）の内容をそのまま `cp` する。この正本は FILL マーカーを持たず、検証手段はリポ CLAUDE.md 側の「静的チェック / 検証手順の雛形」に委ねる設計になっているため、リポ固有の埋め込みは不要。
+`.claude/skills/pr-workflow/SKILL.md` は雛形を持たない。正本（本リポの `.claude/skills/pr-workflow/SKILL.md`。稼働環境では home-manager が `~/.claude/skills/` へ配置したもの）の内容をそのまま `cp` する。この正本は FILL マーカーを持たず、検証手段はリポ CLAUDE.md 側の「静的チェック / 検証手順の雛形」に委ねる設計になっているため、リポ固有の埋め込みは不要。
 
 `issues/done/.gitkeep` も作成する。
 

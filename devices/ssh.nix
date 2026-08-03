@@ -16,8 +16,8 @@
           ControlMaster = "no";
         };
       };
-      "pi2" = {
-        hostname = "<PI2_IP_ADDRESS>";
+      "raspberry-pi" = {
+        hostname = "<RASPBERRY_PI_IP_ADDRESS>";
         user = "pi";
         identityFile = "~/.ssh/id_ed25519";
         extraOptions = {

@@ -32,6 +32,12 @@ Issue 駆動ワークフロー（[docs-agents/issue-driven-workflow.md](../docs-
 
 `functions/` は稼働環境の実装を汎用化したスナップショットである。ワークフローの振る舞いの正は [issue-driven-workflow.md](../docs-agents/issue-driven-workflow.md) にあり、稼働側の実装が先行している場合がある（例: `issue-finish` の PR 記録ファイル書き出し）。
 
+### 公開範囲
+
+稼働環境の `zsh/` はデバイス別（macOS / Linux）に実装を分け、Issue 駆動のほかにも ops・電源管理・netboot 配信・マイコン書き込み・ドキュメント変換など十数本のモジュールを持つ。ここに収めているのは**そのうち Issue 駆動ワークフローに直接必要な4本**で、フリート固有の接続情報を含む ops 系は公開していない。
+
+デバイス別に分かれている実装をここでは OS 別の2エントリポイントへ畳んでいるため、稼働側と1対1では対応しない。
+
 ## 配線
 
 | デバイス | import するエントリポイント |

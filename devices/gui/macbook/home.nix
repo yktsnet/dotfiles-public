@@ -3,6 +3,7 @@
   imports = [
     ../../../home-manager/modules/btop.nix
     ../../../home-manager/modules/tmux.nix
+    ../../../home-manager/modules/claude.nix
     ../../ssh.nix
     ../../../zsh/darwin.nix
     ../../../home-manager/modules/glow.nix

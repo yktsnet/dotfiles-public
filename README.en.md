@@ -33,7 +33,7 @@ The execution machinery for the two workflows above. Responsibilities are strict
 * **WebChat (Design / Conversational AI)**:
   In dialogue with the user, formulates specifications and design files during the MVP phase, and performs investigation and Issue design during the Issue-driven phase. Never implements.
 * **AI Agent (Implementation / Autonomous AI)**:
-  Autonomously executes code editing, test implementation, static error checking, and local commits using Issue files as input; it never touches the remote. Destructive commands such as `rebuild` and access to secrets are structurally blocked by the deny list in `.claude/settings.json`.
+  Autonomously executes code editing, test implementation, static error checking, and local commits using Issue files as input; it never touches the remote. The procedure is fixed in [pr-workflow](.claude/skills/pr-workflow/SKILL.md). Destructive commands such as `rebuild` and access to secrets are blocked by the deny list in `.claude/settings.json`, and whatever a string prefix cannot decide (path-qualified package installs, edits to generated output) is handled by the PreToolUse hooks in [`.claude/hooks/`](.claude/hooks/).
 * **User (Approval, Verification / Human)**:
   Approves the guarantee sections of Issues, reviews and verifies the agent's commits locally, then publishes them (push, PR creation, merge) via `issue-finish`. Only reviewed changes ever reach the remote.
 
@@ -55,9 +55,29 @@ This repository also serves as a Claude Code plugin marketplace. `/plugin market
 
 Autonomous agent execution only works once three things are structurally in place: environment, secrets, and knowledge.
 
-* **Environment consistency via Nix**: Environment differences cause "command not found" and runtime errors for agents. Nix Flakes and Home Manager unify the macOS / Linux toolchain as code, continuously verified by CI (`nix flake check`).
+* **Environment consistency via Nix**: Environment differences cause "command not found" and runtime errors for agents. Nix Flakes and Home Manager unify the macOS / Linux toolchain as code, continuously verified by CI (`nix flake check`). Installs that bypass this route (`brew`, `npm -g`, and the like) are blocked by `.claude/hooks/block-non-nix-install.sh`.
 * **Secrets isolation**: Production IPs, ports, and real hostnames never appear in code or Issue files on the public repository. Actual values are isolated in the local `secrets-agents/` directory, and prose uses `<PLACEHOLDER>` instead.
 * **Making tacit knowledge explicit as skills**: When "which file to hand the AI and when" depends on human tacit knowledge, the AI cannot reproduce operations alone. Any procedure statable as "when doing X" becomes a skill with its trigger condition declared in the description. The workflows in the previous section (`new-issue`, `guarantee-audit`, etc.) are committed in this form. See [harness-guide.md](docs-agents/harness-guide.md#knowledge-placement-criteria) for details.
+* **Auditing the rules**: CLAUDE.md, skills, and memory all share one structure — rules a human wrote, read by an AI — and none of them detects contradictions between rules. Left alone, an ever-growing rule set destabilizes behavior, so [`consolidate-rules`](.claude/skills/consolidate-rules/SKILL.md) audits only the diff on a schedule, starting from the index `.claude/RULES.md`. The persistent-memory index is treated the same way: generated output, rebuilt from frontmatter by a SessionStart hook.
+
+---
+
+## Device Fleet
+
+A single Flake binds six configurations that differ in OS and in how they boot. Device names are replaced with role-based generics for publication.
+
+| Configuration | OS / Boot | Role |
+|---|---|---|
+| `gui/macbook` | macOS (nix-darwin) | Primary dev machine. Where consultant chat and `issue()` are launched |
+| `gui/linux-desktop` | NixOS (disko / SSD) | Desktop. Build host |
+| `gui/linux-laptop` | NixOS (disko / SSD) | Portable GUI machine. Serves netboot images |
+| `headless/ssd/linux-server-a` | NixOS headless (VPS) | Public services and ops |
+| `headless/ssd/linux-server-b` | NixOS headless | Resident jobs |
+| `headless/diskless/linux-netboot` | NixOS netboot (tmpfs root) | Stateless machine. No storage; receives over PXE |
+
+Common modules are split between GUI and headless, and only per-machine differences (`hardware.nix`, `disko.nix`, `monitor.nix`, and so on) live in each directory. Diskless machines drop NixOS generation retention and serve only the latest one (`.claude/skills/netboot-stateless/`).
+
+Fleet-wide status checks run through `apps/zsh/fleet_monitor.py`, which keeps no agent resident on the remotes: it pipes the local script into SSH's stdin instead.
 
 ---
 
