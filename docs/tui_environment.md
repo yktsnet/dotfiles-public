@@ -2,6 +2,17 @@
 
 エージェントと人間が同一環境で作業するための、Nix で一元化された TUI 環境。
 
+## Claude Code 連携ツール
+
+この環境には Claude Code の利用体験を補う4つのツールが同梱されている。詳細は各リンク先を参照。
+
+| ツール | 役割 | 詳細 |
+|---|---|---|
+| [tmux-claude-session-manager](https://github.com/craftzdog/tmux-claude-session-manager) | popup で Claude Code セッションを起動しバックグラウンド常駐・ピッカー復帰 | [§1 tmux](#1-tmux) |
+| [hunk](https://github.com/modem-dev/hunk) | 差分レビュー用 TUI ビューア | [§2.6 Git](#26-gitgitsignsnvim) |
+| [ctx](https://github.com/ctxrs/ctx) | セッション履歴を SQL でクエリ。Agent（Claude 自身）が `ctx-history-search` skill 経由で使う | [§3 補助 CLI](#3-claude-code-補助-cli) |
+| [claude-history](https://github.com/raine/claude-history) | セッション履歴を fzf 風 TUI で検索・再開。人間が対話的に使う | [§3 補助 CLI](#3-claude-code-補助-cli) |
+
 ## キーの4層
 
 キーは押す対象ごとに4つの層に分かれている。迷ったらここに戻る。
