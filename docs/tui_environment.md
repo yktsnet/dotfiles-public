@@ -40,11 +40,14 @@
 | `Alt + p` | スクラッチターミナルを popup でトグル。ディレクトリごとにセッションを使い回すため、閉じても中身が残る |
 | `Alt + v` | コピーモード（vi 操作、`v` で選択開始・`y` でコピー） |
 | `Alt + ;` | コマンドプロンプト（`sp` / `vs` / `q` のエイリアスあり） |
+| `Alt + y` / `Alt + Y` | 新規 Claude Code セッションを popup で起動（Sonnet / Opus）。`macbook` / `linux-desktop` のみ |
+| `Alt + u` | バックグラウンドで走らせた Claude Code セッションのピッカーに切替。`macbook` / `linux-desktop` のみ |
 
 ### 設計上のポイント
 
 * **OSC 52 透過型クリップボード同期**: `set-clipboard on` により、SSH 越しのリモート環境やコンテナ内からでも OS 側のクリップボードへ同期する。
 * **Neovim 最適化**: True Color と波線アンダーライン（Undercurls）を有効化し、色彩再現性を担保。Focus events により Nvim の自動保存・外部変更検知が正常に動く。
+* **バックグラウンド常駐の Claude セッション管理**: [tmux-claude-session-manager](https://github.com/craftzdog/tmux-claude-session-manager) を使い、popup で新規 Claude Code セッションを起動したままバックグラウンドへ切り離し、ピッカーから他のセッションへ復帰できる。
 
 ---
 
@@ -152,3 +155,12 @@
 * **hjkl 連打の抑止（discipline）**: `hjkl` を連続10回以上押すと警告し、`5j` のようなモーションの使用を促す。
 * **セッション復元**: 引数なしで起動すると、直前に開いていた有効なファイルを最後のカーソル位置から再開する（コミットメッセージや一時ファイルは除外）。既存ファイルを開き直したときのカーソル位置復元も併用。
 * **キーマップ案内（which-key.nvim）**: `Space` を押して待つと候補が画面下部に出る。上の4層モデルを覚えていなくても辿れる。
+
+---
+
+## 3. Claude Code 補助 CLI
+
+過去の Claude Code セッション履歴を検索するための2つの CLI。どちらも「セッション履歴を検索する」点は共通だが、使い手が異なる。
+
+* [ctx](https://github.com/ctxrs/ctx): セッション履歴を SQL でクエリできる形にインデックスする CLI。人間が直接叩くのではなく、Agent（Claude 自身）が `ctx-history-search` skill 経由で過去セッションを検索する用途で使う。
+* [claude-history](https://github.com/raine/claude-history): 過去のセッションを fzf 風の TUI で検索・再開する CLI。`ctx` とは対照的に、人間が対話的に探す用途で使う。

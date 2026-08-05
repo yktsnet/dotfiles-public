@@ -23,6 +23,26 @@
         "type": "github"
       }
     },
+    "claude-history": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785526203,
+        "narHash": "sha256-0KMdKe2fBm8HkIqktp+QkQbOjNfw6Oajd4tnUSFz0/0=",
+        "owner": "raine",
+        "repo": "claude-history",
+        "rev": "77edc802cdb8b97ba26680c895330fb137df8630",
+        "type": "github"
+      },
+      "original": {
+        "owner": "raine",
+        "repo": "claude-history",
+        "type": "github"
+      }
+    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -137,6 +157,7 @@
     "root": {
       "inputs": {
         "chaotic": "chaotic",
+        "claude-history": "claude-history",
         "disko": "disko",
         "home-manager": "home-manager_2",
         "nix-darwin": "nix-darwin",

@@ -11,6 +11,7 @@
     ../../../home-manager/modules/alacritty.nix
     ../../../home-manager/modules/git.nix
     ../../../home-manager/modules/hunk.nix
+    ../../../home-manager/modules/ctx.nix
   ];
 
   home.username = "ykts";
@@ -51,6 +52,7 @@
     home-manager
     pure-prompt
     aerospace
+    inputs.claude-history.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
 
   xdg.configFile."nvim" = {
