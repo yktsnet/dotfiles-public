@@ -61,6 +61,7 @@ in
 
   powerManagement.cpuFreqGovernor = "powersave";
 
+  home-manager.extraSpecialArgs = { inherit inputs; osConfig = config; };
   home-manager.users.yktsnet = import ./home.nix;
 
   boot.loader.systemd-boot.enable = true;
