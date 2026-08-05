@@ -1,8 +1,8 @@
 ## Claude Code 補助CLI3種（ctx / tmux-claude-session-manager / claude-history）を公開反映する
 id: 08
 branch-slug: claude-cli-tools-publish
-github_issue:
-status: open
+github_issue: 31
+status: close
 type: feat
 対象:
 - flake.nix
