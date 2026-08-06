@@ -106,6 +106,7 @@ Co-Authored-By を外す。Agent は道具であり共著者ではない、と�
 | `block-project-scoped-memory.sh` | PreToolUse `Edit\|Write` | メモリの置き場違い（後述の 4.5） |
 | `sync-memory-index.sh` | SessionStart | （遮断ではなく生成）`MEMORY.md` の再生成 |
 | `opus-scope-and-concision.sh` | SessionStart | （遮断ではなく注入）Opus 系のときだけ簡潔性とスコープ厳守を足す |
+| `backup-secret-json.sh` | PreToolUse `Edit\|Write` | `secrets/**/*.json.age` の上書き前にバックアップ（遮断ではなく安全網。直近5世代のみ保持） |
 
 #### 判定はコマンド位置で行う
 

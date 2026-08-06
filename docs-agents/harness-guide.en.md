@@ -106,6 +106,7 @@ The implementations live in `.claude/hooks/`. In the operating fleet, `home-mana
 | `block-project-scoped-memory.sh` | PreToolUse `Edit\|Write` | Memory written to the wrong store (Section 4.5) |
 | `sync-memory-index.sh` | SessionStart | (Generates rather than blocks) regenerates `MEMORY.md` |
 | `opus-scope-and-concision.sh` | SessionStart | (Injects rather than blocks) adds concision and scope discipline for Opus models only |
+| `backup-secret-json.sh` | PreToolUse `Edit\|Write` | Backs up `secrets/**/*.json.age` before it gets overwritten (a safety net, not a block; keeps only the last 5 generations) |
 
 #### Match on command position
 
