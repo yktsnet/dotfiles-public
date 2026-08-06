@@ -1,8 +1,8 @@
 ## はてブ / Zenn / GitHub Trending の daily digest 一式を公開する
 id: 10
 branch-slug: daily-digest-publish
-github_issue:
-status: open
+github_issue: 35
+status: close
 type: feat
 対象:
 - apps/zsh/hatenadigest.py (新規)
