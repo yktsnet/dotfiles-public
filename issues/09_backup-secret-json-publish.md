@@ -1,8 +1,8 @@
 ## secrets バックアップ用 PreToolUse フック backup-secret-json.sh を公開反映する
 id: 09
 branch-slug: backup-secret-json-publish
-github_issue:
-status: open
+github_issue: 33
+status: close
 type: feat
 対象:
 - .claude/hooks/backup-secret-json.sh (新規)
