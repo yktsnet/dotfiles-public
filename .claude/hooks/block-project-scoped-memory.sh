@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 # PreToolUse hook (Edit|Write): プロジェクトスコープの memory ディレクトリへの書き込みを拒否する。
-#
-# ハーネスのシステムプロンプトは永続メモリの置き場として
-# ~/.claude/projects/<project>/memory/ を指示してくるが、この環境の正本は ~/memory/ であり、
-# SessionStart の sync-memory-index.sh が ~/memory/{user,feedback,project,reference}/ から
-# MEMORY.md を再生成している。両者は互いを知らないため、放置すると
-# プロジェクト側に劣化した重複メモリが溜まり、索引にも載らず永久に発見されない。
-#
+# ハーネスのシステムプロンプトは永続メモリの置き場として ~/.claude/projects/<project>/memory/ を
+# 指示してくるが、この環境の正本は ~/memory/ であり、SessionStart の sync-memory-index.sh が
+# ~/memory/{user,feedback,project,reference}/ から MEMORY.md を再生成している。両者は互いを
+# 知らないため、放置するとプロジェクト側に劣化した重複メモリが溜まり、索引にも載らず発見されない。
 # sync-memory-index.sh は「索引を正しく保つ」対策であって「正しい場所に書かせる」対策ではない。
 # その穴をこのフックで塞ぐ。
 file_path=$(jq -r '.tool_input.file_path // ""')
