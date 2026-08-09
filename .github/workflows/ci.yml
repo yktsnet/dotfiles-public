@@ -44,3 +44,21 @@ jobs:
           for f in zsh/functions/*.sh; do
             zsh -n "$f"
           done
+
+  python-check:
+    name: Python Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install pytest
+        run: pip install pytest
+
+      - name: Run Tests
+        run: pytest apps/lpt/tests/
