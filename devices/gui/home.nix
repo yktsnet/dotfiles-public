@@ -6,6 +6,7 @@
     ../../home-manager/modules/tmux.nix
     ../../home-manager/modules/claude.nix
     ../../home-manager/modules/memory.nix
+    ../../home-manager/modules/guarantees.nix
     ../../home-manager/modules/secrets-agents.nix
     ../ssh.nix
     ../../home-manager/modules/alacritty.nix
