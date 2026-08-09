@@ -1,8 +1,8 @@
 ## 永続メモリの正本管理（memory.nix）を公開する
 id: 13
 branch-slug: memory-source-of-truth
-github_issue:
-status: open
+github_issue: 41
+status: close
 type: feat
 対象:
 - home-manager/modules/memory.nix (新規)
