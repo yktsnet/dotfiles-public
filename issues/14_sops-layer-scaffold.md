@@ -1,8 +1,8 @@
 ## sops-nix による secret 管理レイヤの土台を敷く
 id: 14
 branch-slug: sops-layer-scaffold
-github_issue:
-status: open
+github_issue: 43
+status: close
 type: feat
 対象:
 - flake.nix
