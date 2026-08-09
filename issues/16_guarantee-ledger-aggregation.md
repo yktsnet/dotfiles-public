@@ -1,8 +1,8 @@
 ## 保証台帳をフリート横断で集約する仕組みを公開する
 id: 16
 branch-slug: guarantee-ledger-aggregation
-github_issue:
-status: open
+github_issue: 47
+status: close
 type: feat
 対象:
 - apps/lpt/link_guarantees.py (新規)
