@@ -1,8 +1,8 @@
 ## マスク辞書の配布機構（secrets-agents.nix）と sops-secrets skill を公開する
 id: 15
 branch-slug: secrets-agents-dictionary
-github_issue:
-status: open
+github_issue: 45
+status: close
 type: feat
 対象:
 - home-manager/modules/secrets-agents.nix (新規)
