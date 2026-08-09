@@ -36,6 +36,9 @@
         modules = [
           inputs.sops-nix.nixosModules.sops
           ./devices/secrets.nix
+          # secrets-agents.nix（home-manager 側）が sops.secrets を使うための home-manager 用 module。
+          # system 側の module だけでは home-manager.users.*.sops オプションが存在しない。
+          { home-manager.sharedModules = [ inputs.sops-nix.homeManagerModules.sops ]; }
         ];
       })
       (import ./devices/flake-edit.nix {
@@ -50,6 +53,7 @@
         modules = [
           inputs.home-manager.darwinModules.home-manager
           inputs.sops-nix.darwinModules.sops
+          { home-manager.sharedModules = [ inputs.sops-nix.homeManagerModules.sops ]; }
           ./devices/gui/macbook/system.nix
         ];
       };
