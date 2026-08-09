@@ -211,6 +211,8 @@ Skill updates are not auto-extracted. If a drift is noticed during work, stop at
 
 Knowledge that must survive across sessions goes in `~/memory/`, one fact per file, split into subdirectories by type.
 
+`~/memory` is not the entity itself but a symlink into dotfiles (`memory/`). Keeping the entity inside the repo lets multi-device sync and conflict resolution ride on git. The link is created by the activation script in `home-manager/modules/memory.nix`; if `~/memory` already exists as a real directory, it leaves it untouched and stops with a message asking you to migrate the contents first. Hooks can keep referring to `$HOME/memory` unchanged, since it's a symlink.
+
 | Type | Content |
 |---|---|
 | `user` | Who the user is (role, expertise, preferences) |

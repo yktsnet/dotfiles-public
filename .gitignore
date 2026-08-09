@@ -15,6 +15,9 @@ __pycache__/
 # 非公開ドキュメント
 docs-agents/sv6-hosting.md
 
+# 永続メモリの実体（user個人の事実、memory.nixがsymlinkを張る）
+memory/
+
 # エディタ一時ファイル
 .vscode/
 .idea/

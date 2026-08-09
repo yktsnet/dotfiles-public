@@ -5,6 +5,7 @@
     ../../home-manager/modules/btop.nix
     ../../home-manager/modules/tmux.nix
     ../../home-manager/modules/claude.nix
+    ../../home-manager/modules/memory.nix
     ../ssh.nix
     ../../home-manager/modules/alacritty.nix
     ../../zsh/nixos.nix
