@@ -45,6 +45,8 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 
 分離を硬直させないための例外も定義している。障害対応などのリアルタイム ops、user が明示宣言する単発例外、そしてロジックに触れない小規模変更を Issue 化なしで通す軽量経路の3経路である。
 
+このロール分離は1本の Issue の流れを説明したものであり、実際には複数の worktree と相談者セッションが同時に走る。同じモデル・同じ規則で動くセッションは、自分が方向を外したことを自分では検出できない。外部の読み手を用意するのが `M-m`（[session-nudge](.claude/skills/session-nudge/SKILL.md)、[キーバインド](docs/tui_environment.md)）で、送信は cross-session messaging で行うが、文案は必ず user が承認してから送る。自動で他セッションへ介入はしない。
+
 詳細は [issue-driven-workflow.md](docs-agents/issue-driven-workflow.md) を参照。
 
 このリポジトリは Claude Code の plugin marketplace としても利用できる。`/plugin marketplace add yktsnet/dotfiles-public` → `/plugin install public-skills` で、汎用性のある6 skill（readme-i18n, repo-about, jp-writing, jp-writing-code, vhs-demo, app-demo-gif）を導入できる。

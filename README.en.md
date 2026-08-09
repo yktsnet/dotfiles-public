@@ -45,6 +45,8 @@ Hand-offs between roles are performed by Zsh macros:
 
 Exceptions keep the separation from becoming rigid: real-time ops such as incident response, one-off exceptions the user declares explicitly, and a lightweight route that lets small, logic-free changes through without an Issue.
 
+This role separation describes the flow of a single Issue; in practice, multiple worktrees and consultant sessions run in parallel. A session running on the same model and the same rules cannot detect on its own that it has drifted off course. `M-m` ([session-nudge](.claude/skills/session-nudge/SKILL.md), [keybindings](docs/tui_environment.md)) provides that external reader: it sends via cross-session messaging, but only after the user approves the draft message. It never intervenes in another session automatically.
+
 See [issue-driven-workflow.md](docs-agents/issue-driven-workflow.en.md) for details.
 
 This repository also serves as a Claude Code plugin marketplace. `/plugin marketplace add yktsnet/dotfiles-public` → `/plugin install public-skills` installs the six general-purpose skills (readme-i18n, repo-about, jp-writing, jp-writing-code, vhs-demo, app-demo-gif).
