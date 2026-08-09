@@ -1,0 +1,22 @@
+# 使い方:
+# 1. このファイルを `.sops.yaml` としてコピーする（`.sops.yaml` は .gitignore で除外される実体ファイル）。
+# 2. `age-keygen -o ~/.config/sops/age/keys.txt` で鍵を作り、表示された公開鍵を下の age: に列挙する。
+#    公開鍵はそれ自体秘密ではないが、デバイス構成の指紋になるため実値を公開リポにコミットしない。
+# 3. 既存の secrets/**/*.age がある状態で鍵を足した／入れ替えたときは、全 secret を再暗号化する:
+#      find secrets -name "*.age" -exec sops updatekeys --yes {} \;
+
+keys:
+  - &macbook age1<PLACEHOLDER_AGE_PUBLIC_KEY>
+  - &linux-laptop age1<PLACEHOLDER_AGE_PUBLIC_KEY>
+  - &linux-desktop age1<PLACEHOLDER_AGE_PUBLIC_KEY>
+  - &linux-server-a age1<PLACEHOLDER_AGE_PUBLIC_KEY>
+  - &linux-server-b age1<PLACEHOLDER_AGE_PUBLIC_KEY>
+creation_rules:
+  - path_regex: secrets/.*$
+    key_groups:
+      - age:
+          - *macbook
+          - *linux-laptop
+          - *linux-desktop
+          - *linux-server-a
+          - *linux-server-b

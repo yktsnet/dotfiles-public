@@ -42,6 +42,17 @@ One design principle: **Maintain a single hygiene baseline across all repos.** E
 - Do not write specific connection information in human-readable prose (masking conventions: the Information Security section of `issue-driven-workflow.md`).
 - Production `.env` on the host side is outside repo scope (`cicd-guide.md`).
 
+### sops Layer (Encrypted Distribution of Real Values)
+
+`.env.example` covers "keys only in the repo." How the real values themselves get distributed to each device is the domain of sops-nix (age-key encryption). The policy:
+
+- Placing `secrets/<category>/<name>.age` registers it as a secret named `<category>/<name>` without any change to configuration files. Adding a new category also requires no configuration change.
+- Format is determined by the filename extension (`.env` → dotenv / `.json` → json / anything else → binary).
+- Plaintext secrets are never placed in the repo or on disk. Decrypted files are only ever materialized on a RAM disk.
+- When adding a new device, follow the order "register key → re-encrypt existing secrets → build." Getting the order wrong breaks home-manager with secrets that can't be decrypted.
+
+The encrypted files (`.age`) and the real `.sops.yaml` are never committed to the repo. Operational commands are the domain of a skill; this guide stops at policy.
+
 ---
 
 ## 4. Pre-Publication Checklist

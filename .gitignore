@@ -18,6 +18,10 @@ docs-agents/sv6-hosting.md
 # 永続メモリの実体（user個人の事実、memory.nixがsymlinkを張る）
 memory/
 
+# sops（実体は非公開。.sops.yaml.example と secrets/.gitkeep は追跡する）
+.sops.yaml
+secrets/**/*.age
+
 # エディタ一時ファイル
 .vscode/
 .idea/
