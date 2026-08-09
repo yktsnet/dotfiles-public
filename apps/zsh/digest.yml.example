@@ -4,7 +4,8 @@ name: Daily Hatena & GitHub Digest
 
 on:
   schedule:
-    - cron: '0 14 * * *' # UTC 14:00 ＝ JST 23:00
+    # 毎時0分は schedule のディスパッチが最も混むため非0分にし、遅延分を見越して前倒しする
+    - cron: '27 13 * * *' # UTC 13:27 ＝ JST 22:27
   workflow_dispatch: # 手動起動ボタンを有効化
 
 jobs:
