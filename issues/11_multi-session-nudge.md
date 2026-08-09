@@ -1,8 +1,8 @@
 ## 並列セッションを横から観測・介入する層（session-nudge）を公開する
 id: 11
 branch-slug: multi-session-nudge
-github_issue:
-status: open
+github_issue: 37
+status: close
 type: feat
 対象:
 - home-manager/modules/tmux.nix
