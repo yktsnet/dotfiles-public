@@ -22,6 +22,10 @@ memory/
 .sops.yaml
 secrets/**/*.age
 
+# マスク辞書の復号先（secrets-agents.nix が secrets/agents/*.age をここへ平文で復号する）。
+# production-server.md は既に追跡済みのサンプルで、追跡済みファイルはこのルールの影響を受けない。
+secrets-agents/*
+
 # エディタ一時ファイル
 .vscode/
 .idea/

@@ -5,6 +5,7 @@
     ../../../home-manager/modules/tmux.nix
     ../../../home-manager/modules/claude.nix
     ../../../home-manager/modules/memory.nix
+    ../../../home-manager/modules/secrets-agents.nix
     ../../ssh.nix
     ../../../zsh/darwin.nix
     ../../../home-manager/modules/glow.nix
