@@ -58,6 +58,109 @@ let
     tmux display-popup -w 90% -h 90% -E "tmux attach-session -t '$session'"
   '';
 
+  # session-nudge の fzf プレビュー: sessionId からトランスクリプトを引いて直近を表示する。
+  # ファイルは ~/.claude/projects/<プロジェクト>/ 配下にあるが、cwd からディレクトリ名を
+  # 組み立てず glob で引く（プロジェクト名への変換規則に依存させないため）。
+  nudgePreview = pkgs.writeShellScript "session-nudge-preview.sh" ''
+    set -uo pipefail
+    sid="''${1:-}"
+    [ -n "$sid" ] || { echo "(no session selected)"; exit 0; }
+
+    file=""
+    for f in "$HOME"/.claude/projects/*/"$sid".jsonl; do
+      [ -f "$f" ] && file="$f" && break
+    done
+    [ -n "$file" ] || { printf 'no transcript for %s\n' "$sid"; exit 0; }
+
+    ${pkgs.jq}/bin/jq -r '
+      select(type=="object" and (.type=="user" or .type=="assistant"))
+      | (if .type=="user" then "> " else "  " end)
+        + ((.message.content // "") | if type=="string" then .
+           else ([.[]
+                  | if .type=="text" then .text
+                    elif .type=="tool_use" then "$ " + .name
+                    else "" end] | join(" ")) end)
+    ' "$file" 2>/dev/null \
+      | grep -v '^[> ] *$' \
+      | grep -v '^> <' \
+      | tail -n 60
+  '';
+
+  # session-nudge: 対象セッションを fzf で選び、選んだ相手を引数に session-nudge を起動する。
+  # 呼び出し元セッションを候補から外すため pane を照合する。claude のプロセス ID は tmux の
+  # pane_pid（シェル側の PID）と一致しないため、ps -o ppid= で親を辿って解決する。
+  nudgePickAndLaunch = pkgs.writeShellScript "session-nudge-pick.sh" ''
+    set -uo pipefail
+
+    self_pane="$(tmux display-message -p '#{session_name}:#{window_index}.#{pane_index}' 2>/dev/null || true)"
+
+    resolve_pane() {
+      pid="$1"
+      while [ -n "$pid" ] && [ "$pid" -gt 1 ] 2>/dev/null; do
+        pane="$(tmux list-panes -a -F '#{pane_pid} #{session_name}:#{window_index}.#{pane_index}' \
+          | awk -v p="$pid" '$1==p{print $2; exit}')"
+        if [ -n "$pane" ]; then
+          printf '%s' "$pane"
+          return 0
+        fi
+        pid="$(ps -o ppid= -p "$pid" 2>/dev/null | tr -d ' ')"
+      done
+      return 1
+    }
+
+    # そのセッションが何の話か: 最初の実ユーザー発言を見出しにする。
+    # 冒頭のスラッシュコマンド・system-reminder・skill 本文は除外する。
+    topic_of() {
+      for f in "$HOME"/.claude/projects/*/"$1".jsonl; do
+        [ -f "$f" ] || continue
+        head -n 80 "$f" | ${pkgs.jq}/bin/jq -r '
+          select(type=="object" and .type=="user")
+          | (.message.content // "")
+          | if type=="string" then . else ([.[] | select(.type=="text") | .text] | join(" ")) end
+          | select(length > 0
+                   and (startswith("<") | not)
+                   and (startswith("/") | not)
+                   and (startswith("Base directory for this skill") | not))
+        ' 2>/dev/null | head -n 1 | tr '\t' ' ' | cut -c1-48
+        return 0
+      done
+    }
+
+    rows=""
+    tab="$(printf '\t')"
+    while IFS="$tab" read -r name status cwd pid sid; do
+      [ -n "$name" ] || continue
+      pane="$(resolve_pane "$pid")" || continue
+      [ "$pane" = "$self_pane" ] && continue
+      topic="$(topic_of "$sid")"
+      rows="$rows$name$tab$status$tab$(basename "$cwd")$tab''${topic:--}$tab$sid
+    "
+    done <<EOF
+    $(claude agents --json 2>/dev/null \
+      | ${pkgs.jq}/bin/jq -r '.[] | select(.kind == "interactive") | [.name, .status, .cwd, .pid, .sessionId] | @tsv')
+    EOF
+
+    [ -n "$(printf '%s' "$rows" | tr -d '[:space:]')" ] || {
+      printf 'No other interactive session found.\n'
+      read -r _
+      exit 0
+    }
+
+    selected="$(
+      printf '%s' "$rows" \
+        | ${pkgs.fzf}/bin/fzf --reverse --delimiter='\t' --with-nth=1,2,3,4 \
+            --header='Select target session (name / status / repo / topic)' \
+            --preview='${nudgePreview} {5}' \
+            --preview-window='right,65%,wrap,follow'
+    )" || exit 0
+
+    target="$(printf '%s' "$selected" | cut -f1)"
+    [ -n "$target" ] || exit 0
+
+    exec env CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --model opus --effort medium --permission-mode bypassPermissions \
+      "/session-nudge target=$target"
+  '';
+
   # $HOME 直下と、リポ群を束ねるクラスタ（$HOME/github-public 等、`github-*` 命名）の
   # 1階層下を横断的に列挙し、リポ選択 → そのリポ専用セッションへ切替
   # （craftzdog の ghq+fzf 相当）。存在しないディレクトリは find が黙って無視する。
@@ -155,9 +258,13 @@ in
       # M-y/M-Y は押すたびに新しい Claude を起動する（使い回しはしない）。
       # M-y: Sonnet5/Medium（通常運用）、M-Y: Opus5/Low（軽い壁打ち用）
       # 不要になった手前のセッションは exit すれば自動で畳まれる。裏にあるものへ戻るのは M-u。
-      bind-key -n M-y run-shell "${claudeLaunchVariant} sonnet 90% 90% '#{q:pane_current_path}' env CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --model sonnet --effort medium"
-      bind-key -n M-Y run-shell "${claudeLaunchVariant} opus 90% 90% '#{q:pane_current_path}' env CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --model opus --effort low"
+      bind-key -n M-y run-shell "${claudeLaunchVariant} sonnet 90% 90% '#{q:pane_current_path}' env CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --model sonnet --effort medium --permission-mode auto"
+      bind-key -n M-Y run-shell "${claudeLaunchVariant} opus 90% 90% '#{q:pane_current_path}' env CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 claude --model opus --effort low --permission-mode auto"
       bind-key -n M-u run-shell "PATH=\"${lib.makeBinPath [ pkgs.tmux pkgs.fzf pkgs.jq pkgs.coreutils ]}:\$PATH\" ${claudeSessionManager}/share/tmux-plugins/claude-session-manager/scripts/list.sh '#{q:client_name}'"
+
+      # session-nudge: 別の稼働中セッションを外から客観視する相談セッションを popup で起動。
+      # 判定と送信は確認を挟まず自走してよい作業なので Auto mode で起動する。
+      bind-key -n M-m run-shell "${claudeLaunchVariant} nudge 90% 90% '#{q:pane_current_path}' ${nudgePickAndLaunch}"
     '' + ''
 
       set -as command-alias sp="split-window -v -c '#{pane_current_path}'"

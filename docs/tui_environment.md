@@ -53,6 +53,7 @@
 | `Alt + ;` | コマンドプロンプト（`sp` / `vs` / `q` のエイリアスあり） |
 | `Alt + y` / `Alt + Y` | 新規 Claude Code セッションを popup で起動（Sonnet / Opus）。`macbook` / `linux-desktop` のみ |
 | `Alt + u` | バックグラウンドで走らせた Claude Code セッションのピッカーに切替。`macbook` / `linux-desktop` のみ |
+| `Alt + m` | 走っている別セッションを選び、外から客観視する相談セッションを popup で起動。`macbook` / `linux-desktop` のみ |
 
 ### 設計上のポイント
 
