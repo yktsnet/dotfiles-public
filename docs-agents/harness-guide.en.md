@@ -101,8 +101,8 @@ The implementations live in `.claude/hooks/`. In the operating fleet, `home-mana
 | Hook | Trigger | What it blocks |
 |---|---|---|
 | `block-non-nix-install.sh` | PreToolUse `Bash` | Package installs outside Nix (pip / brew / npm -g / cargo / gem). Catches path-qualified executions and installs nested in compound commands |
-| `block-live-claude-config-edit.sh` | PreToolUse `Edit\|Write` | Direct edits to `~/.claude/`, which is generated output. Rewrites the path to the source and returns it |
-| `block-new-skill-md.sh` | PreToolUse `Write` | Writing a new `SKILL.md` by hand. Redirects to `skill-creator` |
+| `block-live-claude-config-edit.sh` | PreToolUse `Edit\|Write\|Bash` | Direct edits to `~/.claude/`, which is generated output. Rewrites the path to the source and returns it. Also catches shell-side writes such as `sed -i` (reads are let through) |
+| `block-new-skill-md.sh` | PreToolUse `Write\|Bash` | New `SKILL.md` files that break convention. Checks frontmatter (`name` / `description` / explicit-invocation flag) and placement: writing into `~/.claude/skills/` is denied, repo-local placement prompts for confirmation |
 | `block-project-scoped-memory.sh` | PreToolUse `Edit\|Write` | Memory written to the wrong store (Section 4.5) |
 | `sync-memory-index.sh` | SessionStart | (Generates rather than blocks) regenerates `MEMORY.md` |
 | `opus-scope-and-concision.sh` | SessionStart | (Injects rather than blocks) adds concision and scope discipline for Opus models only |

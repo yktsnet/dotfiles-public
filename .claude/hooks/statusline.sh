@@ -11,6 +11,8 @@ dir_name=$(basename "${dir:-.}")
 branch=$(git -C "${dir:-.}" branch --show-current 2>/dev/null)
 
 ctx_pct=$(get '.context_window.used_percentage')
+ctx_in=$(get '.context_window.total_input_tokens')
+ctx_out=$(get '.context_window.total_output_tokens')
 five_pct=$(get '.rate_limits.five_hour.used_percentage')
 five_reset=$(get '.rate_limits.five_hour.resets_at')
 week_pct=$(get '.rate_limits.seven_day.used_percentage')
@@ -41,8 +43,24 @@ color_for() {
 }
 default_style='#[fg=#a6accd]'
 
+fmt_tokens() {
+  local n="$1"
+  [ -z "$n" ] && return
+  if (( n >= 1000 )); then
+    awk -v n="$n" 'BEGIN { printf "%.1fk", n / 1000 }'
+  else
+    printf '%d' "$n"
+  fi
+}
+
 line="${dir_name}${branch:+:${branch}} [${model:-?}]"
-[ -n "$ctx_pct" ] && line="${line} ctx:${ctx_pct%.*}%"
+if [ -n "$ctx_pct" ]; then
+  ctx_tokens=""
+  if [ -n "$ctx_in" ] && [ -n "$ctx_out" ]; then
+    ctx_tokens="($(fmt_tokens $(( ctx_in + ctx_out ))))"
+  fi
+  line="${line} ctx:${ctx_pct%.*}%${ctx_tokens}"
+fi
 [ -n "$five_pct" ] && line="${line} 5h:${five_pct%.*}%($(remain "$five_reset"))"
 [ -n "$week_pct" ] && line="${line} 7d:${week_pct%.*}%($(remain "$week_reset"))"
 

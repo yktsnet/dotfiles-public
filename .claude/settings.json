@@ -44,11 +44,17 @@
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-non-nix-install.sh",
             "timeout": 10,
             "statusMessage": "Nix 外インストールを検査中"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-live-claude-config-edit.sh",
+            "timeout": 10,
+            "statusMessage": "~/.claude 直接編集を検査中"
           }
         ]
       },
       {
-        "matcher": "Write",
+        "matcher": "Write|Bash",
         "hooks": [
           {
             "type": "command",

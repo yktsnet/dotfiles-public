@@ -101,8 +101,8 @@ Co-Authored-By を外す。Agent は道具であり共著者ではない、と�
 | フック | 契機 | 塞いでいるもの |
 |---|---|---|
 | `block-non-nix-install.sh` | PreToolUse `Bash` | Nix 外のパッケージ導入（pip / brew / npm -g / cargo / gem）。パス付き実行・複合コマンド内も捕捉する |
-| `block-live-claude-config-edit.sh` | PreToolUse `Edit\|Write` | 生成物である `~/.claude/` への直接編集。生成元のパスへ書き換えて返す |
-| `block-new-skill-md.sh` | PreToolUse `Write` | 新規 `SKILL.md` の直書き。`skill-creator` 経由へ誘導する |
+| `block-live-claude-config-edit.sh` | PreToolUse `Edit\|Write\|Bash` | 生成物である `~/.claude/` への直接編集。生成元のパスへ書き換えて返す。`sed -i` 等のシェル経由の書き込みも見る（読み取りは通す） |
+| `block-new-skill-md.sh` | PreToolUse `Write\|Bash` | 新規 `SKILL.md` の規約違反。frontmatter（`name` / `description` / 明示呼び出し指定）と配置先を検査し、`~/.claude/skills/` への直書きは拒否、repo-local は確認を挟む |
 | `block-project-scoped-memory.sh` | PreToolUse `Edit\|Write` | メモリの置き場違い（後述の 4.5） |
 | `sync-memory-index.sh` | SessionStart | （遮断ではなく生成）`MEMORY.md` の再生成 |
 | `opus-scope-and-concision.sh` | SessionStart | （遮断ではなく注入）Opus 系のときだけ簡潔性とスコープ厳守を足す |
