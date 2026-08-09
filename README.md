@@ -49,7 +49,7 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 
 詳細は [issue-driven-workflow.md](docs-agents/issue-driven-workflow.md) を参照。
 
-このリポジトリは Claude Code の plugin marketplace としても利用できる。`/plugin marketplace add yktsnet/dotfiles-public` → `/plugin install public-skills` で、汎用性のある6 skill（readme-i18n, repo-about, jp-writing, jp-writing-code, vhs-demo, app-demo-gif）を導入できる。
+このリポジトリは Claude Code の plugin marketplace としても利用できる。`/plugin marketplace add yktsnet/dotfiles-public` → `/plugin install public-skills` で、汎用性のある7 skill（readme-i18n, repo-about, jp-writing, jp-writing-code, vhs-demo, app-demo-gif, comment-cleanup）を導入できる。
 
 ---
 
