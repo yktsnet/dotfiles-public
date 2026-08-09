@@ -1,8 +1,8 @@
 ## skill の配置基準（skill-dev / module-dev）と comment-cleanup を公開する
 id: 12
 branch-slug: skill-placement-and-comment-cleanup
-github_issue:
-status: open
+github_issue: 39
+status: close
 type: feat
 対象:
 - .claude/skills/skill-dev/SKILL.md (新規)
