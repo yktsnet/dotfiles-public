@@ -2,7 +2,7 @@
 id: 18
 branch-slug: module-guide-judgment
 github_issue:
-status: draft
+status: open
 type: feat
 対象:
 - docs-agents/module-guide.md
