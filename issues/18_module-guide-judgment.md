@@ -1,8 +1,8 @@
 ## module-guide に型の判定手順とモジュール境界の切り方を足す
 id: 18
 branch-slug: module-guide-judgment
-github_issue:
-status: open
+github_issue: 51
+status: close
 type: feat
 対象:
 - docs-agents/module-guide.md
