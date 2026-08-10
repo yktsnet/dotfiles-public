@@ -1,8 +1,8 @@
 ## docs-agents の2層構造を README と Skill に明示する
 id: 17
 branch-slug: docs-agents-two-tier
-github_issue:
-status: open
+github_issue: 49
+status: close
 type: cleanup
 対象:
 - README.md
