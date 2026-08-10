@@ -94,14 +94,21 @@ For detailed keybindings and configuration, see [TUI Environment (docs/tui_envir
 
 ## Agent Development Guides
 
-A set of guides for starting AI Agent collaborative development in a new repository. Hand all 7 files to the AI together to build a standard development environment.
+A set of guides for starting AI Agent collaborative development in a new repository. The 7 files in `docs-agents/` split into a **judgment layer**, where the answer differs from repo to repo, and a **standard layer**, where the same answer applies once decided. In an operation that launches many repos in parallel, the cost paid on the judgment layer is what governs throughput. The judgment layer is read by the `repo-readme` / `module-dev` Skills; the standard layer by the `repo-standardize` Skill.
+
+### Judgment Layer
+
+| Guide | Role |
+|---|---|
+| [repo-guide.md](docs-agents/repo-guide.md) | Repository structure, secrets management, pre-publish checklist |
+| [module-guide.md](docs-agents/module-guide.md) | Design guide for OSS module-style repos. Type decisions, structure, demo methods |
+| [readme-guide.md](docs-agents/readme-guide.md) | README writing guide. Structure, language rules, JUDGE.md integration |
+
+### Standard Layer
 
 | Guide | Role |
 |---|---|
 | [issue-driven-workflow.md](docs-agents/issue-driven-workflow.md) | Process layer. Issue-driven development flow, role separation, shell functions |
 | [harness-guide.md](docs-agents/harness-guide.md) | Harness layer. `.claude/` structure, settings.json, instruction files, verification methods |
 | [cicd-guide.md](docs-agents/cicd-guide.md) | CI/CD layer. GitHub Actions, auto-deployment, Cloudflare Tunnel |
-| [readme-guide.md](docs-agents/readme-guide.md) | README writing guide. Structure, language rules, JUDGE.md integration |
-| [repo-guide.md](docs-agents/repo-guide.md) | Repository structure, secrets management, pre-publish checklist |
-| [module-guide.md](docs-agents/module-guide.md) | Design guide for OSS module-style repos. Type decisions, structure, demo methods |
-| [test-policy.md](docs-agents/test-policy.en.md) | Test layer. Guarantee approval, guarantee ledger, risk-based test depth |
+| [test-policy.md](docs-agents/test-policy.md) | Test layer. Guarantee approval, guarantee ledger, risk-based test depth |

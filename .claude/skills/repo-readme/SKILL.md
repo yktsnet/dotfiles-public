@@ -12,6 +12,8 @@ manual: true
 
 ## 0. 基準を読む（必須・最初に）
 
+本 Skill は `docs-agents/` の**判断層**に伴走する側を担う（readme-guide.md §1 のリトマス試験はリポごとに答えが変わる）。
+
 - `docs-agents/readme-guide.md` — README の構成・言語規則・JUDGE.md/PLAN.md 統合・docs/ 分離
 - 必要に応じ `docs-agents/cicd-guide.md`（Deploy 節の書き方）・`docs-agents/repo-guide.md`（Secrets を README に書かない方針）
 

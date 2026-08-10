@@ -17,6 +17,8 @@ manual: true
 
 ## 0. 基準を読む（必須・最初に）
 
+本 Skill は `docs-agents/` の**定型層**（一度決めれば次のリポでも同じものを適用するだけの4本）を機械的に適用する側を担う。
+
 以下4本を読む。これが基準のすべて。
 
 - `docs-agents/repo-guide.md` — ファイル衛生（LICENSE・.gitignore・.env.example・0バイト禁止・成果物非追跡）
