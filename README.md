@@ -94,14 +94,21 @@ GUI と headless で共通モジュールを分け、機体固有の差分（`ha
 
 ## Agent Development Guides
 
-新規リポで AI Agent 協調開発を始めるためのガイド群。7ファイルをセットで AI に渡し、標準的な開発環境を構築する。
+新規リポで AI Agent 協調開発を始めるためのガイド群。`docs-agents/` の7ファイルは、リポごとに答えが変わる**判断層**と、一度決めれば機械的に適用できる**定型層**に分かれる。多数のリポを並行して立ち上げる運用では、判断層に払うコストがスループットを左右する。判断層は `repo-readme` / `module-dev` Skill が、定型層は `repo-standardize` Skill が読む。
+
+### 判断層
+
+| ガイド | 役割 |
+|---|---|
+| [repo-guide.md](docs-agents/repo-guide.md) | リポジトリ構成・機密管理・公開前チェックリスト |
+| [module-guide.md](docs-agents/module-guide.md) | OSS モジュール型リポの設計規範。型の判断・構造・デモ方式 |
+| [readme-guide.md](docs-agents/readme-guide.md) | README の書き方。構成・言語規則・JUDGE.md 統合 |
+
+### 定型層
 
 | ガイド | 役割 |
 |---|---|
 | [issue-driven-workflow.md](docs-agents/issue-driven-workflow.md) | プロセス層。Issue 起点の開発フロー・担当分離・シェル関数 |
 | [harness-guide.md](docs-agents/harness-guide.md) | ハーネス層。`.claude/` 構成・settings.json・指示ファイル・検証手段 |
 | [cicd-guide.md](docs-agents/cicd-guide.md) | CI/CD 層。GitHub Actions・自動デプロイ・Cloudflare Tunnel |
-| [readme-guide.md](docs-agents/readme-guide.md) | README の書き方。構成・言語規則・JUDGE.md 統合 |
-| [repo-guide.md](docs-agents/repo-guide.md) | リポジトリ構成・機密管理・公開前チェックリスト |
-| [module-guide.md](docs-agents/module-guide.md) | OSS モジュール型リポの設計規範。型の判断・構造・デモ方式 |
 | [test-policy.md](docs-agents/test-policy.md) | テスト層。保証の裁可・保証台帳・テストの濃淡 |

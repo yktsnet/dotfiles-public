@@ -2,7 +2,7 @@
 id: 17
 branch-slug: docs-agents-two-tier
 github_issue:
-status: draft
+status: open
 type: cleanup
 対象:
 - README.md

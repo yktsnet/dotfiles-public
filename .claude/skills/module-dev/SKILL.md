@@ -5,6 +5,8 @@ description: OSS モジュール型リポ（ポートフォリオ兼実用）の
 
 # module-dev
 
+本 Skill は `docs-agents/` の**判断層**に伴走する側を担う。
+
 規範の正は `docs-agents/module-guide.md`。**まずそれを読む**。要旨:
 
 - **型を決める**: 組み込み型（利用者のビルドに入る package → レジストリ配布必須）/ ツールキット型（機械 + 適用例 → clone）/ 研究型（枠組み公開・答えは外部注入 → clone）。clone リファレンスが既定
