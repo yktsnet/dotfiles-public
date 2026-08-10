@@ -6,7 +6,7 @@ manual: true
 
 # repo-standardize
 
-`~/dotfiles/docs-agents/` の4ガイドを唯一の基準として、対象リポを準拠状態にする。
+本リポの `docs-agents/` の4ガイドを唯一の基準として、対象リポを準拠状態にする。
 基準そのものは本ファイルに転記しない。**毎回ガイドを読み、最新の基準に従う**。
 
 **公開パイプラインの固定順**: `repo-standardize → guarantee-audit → repo-readme → readme-i18n → repo-publish → repo-about`。本 Skill は**第1**（足場とコアメッセージ確定が先、README 本格化は後）。この順は都度再判断しない。
@@ -19,10 +19,10 @@ manual: true
 
 以下4本を読む。これが基準のすべて。
 
-- `~/dotfiles/docs-agents/repo-guide.md` — ファイル衛生（LICENSE・.gitignore・.env.example・0バイト禁止・成果物非追跡）
-- `~/dotfiles/docs-agents/harness-guide.md` — `.claude/`（settings.json の層1・CLAUDE.md・context/・skills/pr-workflow）と検証手段
-- `~/dotfiles/docs-agents/issue-driven-workflow.md` — issues/・担当分離・Issue フォーマット
-- `~/dotfiles/docs-agents/cicd-guide.md` — CI/デプロイ（Public のみ層3）
+- `docs-agents/repo-guide.md` — ファイル衛生（LICENSE・.gitignore・.env.example・0バイト禁止・成果物非追跡）
+- `docs-agents/harness-guide.md` — `.claude/`（settings.json の層1・CLAUDE.md・context/・skills/pr-workflow）と検証手段
+- `docs-agents/issue-driven-workflow.md` — issues/・担当分離・Issue フォーマット
+- `docs-agents/cicd-guide.md` — CI/デプロイ（Public のみ層3）
 
 > `readme-guide.md` のうち §1・§3 のみ本 Skill で使う（コアメッセージ1文の確定まで）。アウトライン以降の本格構成は `repo-readme` Skill の管轄。
 
@@ -96,6 +96,6 @@ manual: true
 
 ## 注意
 
-- 基準は本ファイルでなく `~/dotfiles/docs-agents/` が正。食い違ったらガイドを優先する。
+- 基準は本ファイルでなく `docs-agents/` が正。食い違ったらガイドを優先する。
 - スタック差で settings.json の allow/deny・検証コマンド・CI ステップが変わる。harness の類型表が分岐表。
 - README について standardize はコアメッセージ1文の確定までしか行わない。Quick Start・Tech Stack・Architecture 等のセクションを新設しない。

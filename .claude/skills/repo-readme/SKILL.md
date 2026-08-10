@@ -6,14 +6,14 @@ manual: true
 
 # repo-readme
 
-`~/dotfiles/docs-agents/readme-guide.md` を唯一の基準として README を作成/更新する。
+本リポの `docs-agents/readme-guide.md` を唯一の基準として README を作成/更新する。
 
 **公開パイプラインの固定順**: `repo-standardize → guarantee-audit → repo-readme → readme-i18n → repo-publish → repo-about`。本 Skill は**第3**。足場とコアメッセージは `repo-standardize` が先に作り、保証台帳は `guarantee-audit` が先に敷く（README が台帳へリンクするには台帳が先に要るため）。本 Skill は**中身（アーキテクチャ・技術選定・判断）が固まった publish 前**に走らせる。この順は都度再判断しない。
 
 ## 0. 基準を読む（必須・最初に）
 
-- `~/dotfiles/docs-agents/readme-guide.md` — README の構成・言語規則・JUDGE.md/PLAN.md 統合・docs/ 分離
-- 必要に応じ `~/dotfiles/docs-agents/cicd-guide.md`（Deploy 節の書き方）・`repo-guide.md`（Secrets を README に書かない方針）
+- `docs-agents/readme-guide.md` — README の構成・言語規則・JUDGE.md/PLAN.md 統合・docs/ 分離
+- 必要に応じ `docs-agents/cicd-guide.md`（Deploy 節の書き方）・`docs-agents/repo-guide.md`（Secrets を README に書かない方針）
 
 基準は本ファイルに転記しない。食い違ったらガイドを優先する。
 

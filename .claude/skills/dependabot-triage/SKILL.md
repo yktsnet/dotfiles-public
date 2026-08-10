@@ -1,6 +1,6 @@
 ---
 name: dependabot-triage
-description: 溜まった Dependabot PR（主に major）を横断棚卸しし、github-actions major(CI green)はその場でマージまで実行する。「溜まってる PR 見て」「Dependabot 棚卸しして」と頼まれたときに使う。対象リポは固定リストを保守せず、dotfiles / github-public / github-private 配下を毎回動的に探索する。判断基準の正本は `~/dotfiles/docs-agents/cicd-guide.md` §6。
+description: 溜まった Dependabot PR（主に major）を横断棚卸しし、github-actions major(CI green)はその場でマージまで実行する。「溜まってる PR 見て」「Dependabot 棚卸しして」と頼まれたときに使う。対象リポは固定リストを保守せず、dotfiles / github-public / github-private 配下を毎回動的に探索する。判断基準の正本は `docs-agents/cicd-guide.md` §6。
 ---
 
 Dependabot の自動マージ運用（`cicd-guide.md` §6）は minor/patch を無条件マージするため、放置してよいのは major だけになる。本 Skill はその major の溜まりを棚卸しする作業を代行する。
