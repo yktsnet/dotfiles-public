@@ -1,7 +1,7 @@
 ---
 name: repo-readme
 description: 公開前にリポの README を readme-guide に従って作成・更新する。中身が固まった段階で実行する。Tech Stack の選定理由・Design Decisions・JUDGE.md/PLAN.md 統合（統合後は削除）・docs/ 分離・構成図まで含む本格 README を書きたいときに使う。
-manual: true
+disable-model-invocation: true
 ---
 
 # repo-readme

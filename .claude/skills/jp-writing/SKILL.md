@@ -5,7 +5,7 @@ description: 日本語の文章規範。README・技術記事・Zenn・リポ内
 
 # jp-writing
 
-日本語の Markdown・文書を書く/直すときに常に適用する文章規範。README・技術記事・Zenn・リポ内の解説 Markdown を主対象とする。ソースコード内（.astro, .tsx 等）の日本語は jp-writing-code の管轄。
+日本語の Markdown・文書を書く/直すときに常に適用する文章規範。README・技術記事・Zenn・リポ内の解説 Markdown を主対象とする。ソースコード内（.astro, .tsx 等）の日本語にも同じ規範を適用する。
 
 ## 使い方
 

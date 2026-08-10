@@ -1,7 +1,7 @@
 ---
 name: repo-publish
 description: Private リポを Public 化する。全履歴のシークレットスキャン → 公開 → 公開時にしかできない設定（ruleset・auto-merge）までを一括で行う。公開したいとき、gh repo edit --visibility を打ちたくなったときに必ず使用する。
-manual: true
+disable-model-invocation: true
 ---
 
 # repo-publish

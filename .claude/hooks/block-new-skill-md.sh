@@ -105,7 +105,7 @@ printf '%s\n' "$frontmatter" | grep -q '^description:' \
 
 # フリート既定: 明示呼び出し専用にする。
 # 自動発火させたい場合は user が明示的に指示したうえで、この行を外して作成する。
-if ! printf '%s\n' "$frontmatter" | grep -qE '^(disable-model-invocation|manual):[[:space:]]*true'; then
+if ! printf '%s\n' "$frontmatter" | grep -qE '^disable-model-invocation:[[:space:]]*true'; then
   deny "$(cat <<'EOF'
 frontmatter に disable-model-invocation: true がない。
 

@@ -1,7 +1,7 @@
 ---
 name: readme-i18n
 description: 既存の日本語 README.md から英語版 README.en.md を生成・同期し、両ファイルの冒頭に言語切り替えリンクを挿入する。
-manual: true
+disable-model-invocation: true
 ---
 
 # readme-i18n

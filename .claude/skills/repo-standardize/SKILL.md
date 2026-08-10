@@ -1,7 +1,7 @@
 ---
 name: repo-standardize
 description: 新規リポの組成、または既存リポの公開前点検を docs-agents の4基準で行う。リポを初期化・標準化・点検したいとき、新規ディレクトリを作って足場を整えたいときに使う。
-manual: true
+disable-model-invocation: true
 ---
 
 # repo-standardize
