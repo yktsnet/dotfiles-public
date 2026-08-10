@@ -6,8 +6,6 @@
   },
   "permissions": {
     "allow": [
-      "Bash(git *)",
-      "Bash(gh pr *)",
       "Bash(nix flake check *)",
       "Bash(nix flake check)",
       "Bash(nix fmt *)",
@@ -15,9 +13,7 @@
       "Bash(zsh -n *)"
     ],
     "deny": [
-      "Bash(git push origin main*)",
-      "Bash(git push --force *)",
-      "Bash(git push -f *)",
+      "Bash(ssh *)",
       "Bash(nixos-rebuild *)",
       "Bash(darwin-rebuild *)",
       "Bash(home-manager switch *)",
@@ -25,14 +21,8 @@
       "Bash(nix flake update *)",
       "Edit(flake.lock)",
       "Edit(secrets-agents/**)",
-      "Read(secrets-agents/**)",
-      "Bash(ssh *)",
-      "Bash(rsync *)"
+      "Read(secrets-agents/**)"
     ]
-  },
-  "attribution": {
-    "commit": "",
-    "pr": ""
   },
   "hooks": {
     "PreToolUse": [
