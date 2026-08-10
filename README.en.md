@@ -49,8 +49,6 @@ This role separation describes the flow of a single Issue; in practice, multiple
 
 See [issue-driven-workflow.md](docs-agents/issue-driven-workflow.en.md) for details.
 
-This repository also serves as a Claude Code plugin marketplace. `/plugin marketplace add yktsnet/dotfiles-public` → `/plugin install public-skills` installs the seven general-purpose skills (readme-i18n, repo-about, jp-writing, jp-writing-code, vhs-demo, app-demo-gif, comment-cleanup).
-
 ---
 
 ## Foundation (Prerequisites for Autonomous Execution)
