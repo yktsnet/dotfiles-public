@@ -68,14 +68,16 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 
 | 構成 | OS / 起動 | 役割 |
 |---|---|---|
-| `gui/macbook` | macOS（nix-darwin） | 主開発機。相談者チャットと `issue()` の起動元 |
-| `gui/linux-desktop` | NixOS（disko / SSD） | デスクトップ。ビルドホスト |
+| `gui/linux-desktop` | NixOS（disko / SSD） | 主開発機。相談者チャットと `issue()` の起動元。dotfiles の配布元 |
+| `gui/macbook` | macOS（nix-darwin） | macOS 構成。現在は非稼働 |
 | `gui/linux-laptop` | NixOS（disko / SSD） | 可搬 GUI 機。netboot の配信元 |
 | `headless/ssd/linux-server-a` | NixOS headless（VPS） | 公開サービス・ops |
 | `headless/ssd/linux-server-b` | NixOS headless | 常駐ジョブ |
 | `headless/diskless/linux-netboot` | NixOS netboot（tmpfs root） | 無状態機。ストレージを持たず PXE で受信する |
 
 GUI と headless で共通モジュールを分け、機体固有の差分（`hardware.nix` / `disko.nix` / `monitor.nix` 等）だけを各ディレクトリに置く。ディスクレス機は世代保持を捨てて最新1世代のみを配給する（`.claude/skills/netboot-stateless/`）。
+
+更新は Linux（NixOS）側を主として進む。macOS（nix-darwin）構成は Flake に同居したままだが、稼働機が無い間は追従が遅れる。
 
 フリート横断の状態確認は `apps/zsh/fleet_monitor.py` が行う。リモートにエージェントを常駐させず、ローカルのスクリプトを SSH の標準入力へ流し込んで実行する。
 

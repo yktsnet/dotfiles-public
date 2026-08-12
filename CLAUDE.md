@@ -17,7 +17,7 @@ Claude Code は本ファイルを最優先の指示として実行すること�
 - Zsh 構文チェック: `zsh -n zsh/functions/<file>.zsh`
 
 ## アーキテクチャの要点
-- Nix Flakes で macOS（nix-darwin）〜 ヘッドレス VPS（NixOS）を一元管理する。
+- Nix Flakes で GUI（NixOS）〜 ヘッドレス VPS（NixOS）を一元管理する。macOS（nix-darwin）構成も同居するが、現在の更新は Linux 側が主。
 - デバイス定義は `devices/`（`gui/` と `headless/`）、ユーザ環境は `home-manager/`（`config/` と `modules/`）。
 - Issue 駆動の役割分離ワークフローを支える Zsh マクロは `zsh/functions/`。
 - 機密の実値は `secrets-agents/` に分離し、公開リポには載せない（読み書き禁止）。

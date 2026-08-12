@@ -68,14 +68,16 @@ A single Flake binds six configurations that differ in OS and in how they boot. 
 
 | Configuration | OS / Boot | Role |
 |---|---|---|
-| `gui/macbook` | macOS (nix-darwin) | Primary dev machine. Where consultant chat and `issue()` are launched |
-| `gui/linux-desktop` | NixOS (disko / SSD) | Desktop. Build host |
+| `gui/linux-desktop` | NixOS (disko / SSD) | Primary dev machine. Where consultant chat and `issue()` are launched; distributes the dotfiles |
+| `gui/macbook` | macOS (nix-darwin) | macOS configuration. Currently inactive |
 | `gui/linux-laptop` | NixOS (disko / SSD) | Portable GUI machine. Serves netboot images |
 | `headless/ssd/linux-server-a` | NixOS headless (VPS) | Public services and ops |
 | `headless/ssd/linux-server-b` | NixOS headless | Resident jobs |
 | `headless/diskless/linux-netboot` | NixOS netboot (tmpfs root) | Stateless machine. No storage; receives over PXE |
 
 Common modules are split between GUI and headless, and only per-machine differences (`hardware.nix`, `disko.nix`, `monitor.nix`, and so on) live in each directory. Diskless machines drop NixOS generation retention and serve only the latest one (`.claude/skills/netboot-stateless/`).
+
+Development moves on the Linux (NixOS) side. The macOS (nix-darwin) configuration still lives in the Flake, but it lags while no macOS machine is in service.
 
 Fleet-wide status checks run through `apps/zsh/fleet_monitor.py`, which keeps no agent resident on the remotes: it pipes the local script into SSH's stdin instead.
 

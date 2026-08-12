@@ -3,7 +3,7 @@
 コードの書き方・編集の共通ルール（どう書くか）。ディレクトリ構成は `structure.md` を参照。
 
 ## 1. 技術スタック
-- **Nix Flakes**: macOS（nix-darwin）と NixOS（ヘッドレス VPS 含む）を統一管理。
+- **Nix Flakes**: NixOS（GUI・ヘッドレス VPS）を統一管理。macOS（nix-darwin）構成も同居するが、更新は Linux 側が主。
 - **home-manager**: ユーザ環境（TUI ツールチェーン・dotfiles）を宣言的に管理。
 - **Zsh**: Issue 駆動ワークフローのシェルマクロ（`zsh/functions/`）。
 

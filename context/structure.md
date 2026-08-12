@@ -10,7 +10,7 @@ dotfiles-public/
 ├── flake.nix          # Flake エントリ（inputs: nixpkgs / home-manager / nix-darwin / disko / chaotic）
 ├── flake.lock         # 入力のロック（編集しない）
 ├── devices/           # デバイス別の NixOS / nix-darwin 構成
-│   ├── gui/           # GUI デバイス（macOS 等）
+│   ├── gui/           # GUI デバイス（NixOS・macOS）
 │   └── headless/      # ヘッドレス VPS
 ├── home-manager/      # ユーザ環境
 │   ├── config/        # 各種 dotfiles 設定
