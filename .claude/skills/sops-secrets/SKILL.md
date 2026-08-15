@@ -80,7 +80,7 @@ sops --decrypt --output-type binary secrets/<カテゴリ>/<ファイル名>.age
 
 ## 新デバイス追加・トラブルシューティング
 
-順序を誤ると SOPS デッドロック（鍵未登録 → 復号失敗 → Home Manager 破損 → TTY 送り）になる。**鍵登録 → 既存 secret 再暗号化（`find secrets -name "*.age" -exec sops updatekeys --yes {} \;`）→ ビルド**の順を厳守する。
+順序を誤ると SOPS デッドロック（鍵未登録 → 復号失敗 → Home Manager 破損 → TTY 送り）になる。**鍵登録 → 既存 secret 再暗号化 → ビルド**の順を厳守する。再暗号化は format ごとに2回に分ける（dotenv は `.age` 拡張子から JSON と誤判定されるため `--input-type dotenv` が要る。1本の `find` で済ませると dotenv 分だけ黙って失敗し、その1ファイルが原因で `sops-install-secrets` が全体を中断する）。
 
 手順の詳細とエラー別対処は作業マシンの OS で選ぶ:
 

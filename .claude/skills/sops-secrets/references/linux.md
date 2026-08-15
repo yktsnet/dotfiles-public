@@ -153,7 +153,11 @@ creation_rules:
 
 ```bash
 cd ~/dotfiles
-find secrets -name "*.age" -exec sops updatekeys --yes {} \;
+# binary 形式（拡張子から format を推定できるもの）
+find secrets -name "*.age" ! -name "*.env.age" -exec sops updatekeys --yes {} \;
+# dotenv 形式。`.age` 拡張子だと sops が JSON と誤判定して
+# `Could not unmarshal input data` で失敗するため input-type を明示する
+find secrets -name "*.env.age" -exec sops updatekeys --yes --input-type dotenv {} \;
 ```
 
 #### G. dotfilesをコミットして新デバイスに反映

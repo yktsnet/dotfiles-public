@@ -17,6 +17,9 @@ case "$tool_name" in
     target="(~|\\\$HOME|${home})/\\.claude/${guarded}"
     write='(>>?[[:space:]]*[^|&;]|[[:space:]]-i([[:space:]]|$)|(^|[;&|`(])[[:space:]]*(sudo[[:space:]]+)?(tee|cp|mv|rm|ln|mkdir|touch|chmod|install|dd|truncate|patch|python3?|perl|ruby|node)([[:space:]]|$))'
     printf '%s' "$cmd" | grep -Eq "$target" || exit 0
+    # /dev/null への捨てリダイレクトは書き込みではない。読み取り専用コマンドに
+    # 付く 2>/dev/null で誤爆するため、判定前に落とす。
+    cmd=$(printf '%s' "$cmd" | sed -E 's#[0-9]*>>?[[:space:]]*/dev/null##g')
     printf '%s' "$cmd" | grep -Eq "$write" || exit 0
     ;;
   *)

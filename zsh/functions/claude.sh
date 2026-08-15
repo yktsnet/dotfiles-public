@@ -9,6 +9,8 @@ c() {
   read -r "choice?select> "
   print ""
 
+  # 画面レイアウトの責務は持たず、今いるペインで起動する（並行させたい場合は M-/ や M-t で
+  # 場所を先に作る）。裏に回った Claude へは M-u のピッカーが loose ペインとして拾ってくれる。
   case "$choice" in
     1) claude --model sonnet --effort medium --permission-mode auto ;;
     2) claude --model opus --effort low --permission-mode auto ;;
@@ -30,8 +32,13 @@ i() {
   print ""
 
   case "$choice" in
-    1) issue-open ;;
-    2) issue ;;
+    1)
+      issue-open || return $?
+      local run_now
+      read -r "run_now?continue to implement? [y/N] "
+      [[ "$run_now" == [yY]* ]] && issue -a
+      ;;
+    2) issue -a ;;
     3) issue-finish ;;
     4) issue-abort ;;
     *) print "i: cancelled" >&2; return 1 ;;

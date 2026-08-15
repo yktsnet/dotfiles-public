@@ -96,7 +96,7 @@ GUI と headless で共通モジュールを分け、機体固有の差分（`ha
 
 ## Agent Development Guides
 
-新規リポで AI Agent 協調開発を始めるためのガイド群。`docs-agents/` の7ファイルは、リポごとに答えが変わる**判断層**と、一度決めれば機械的に適用できる**定型層**に分かれる。多数のリポを並行して立ち上げる運用では、判断層に払うコストがスループットを左右する。判断層は `repo-readme` / `module-dev` Skill が、定型層は `repo-standardize` Skill が読む。
+新規リポで AI Agent 協調開発を始めるためのガイド群。`docs-agents/` の8ファイルは、リポごとに答えが変わる**判断層**と、一度決めれば機械的に適用できる**定型層**に分かれる。多数のリポを並行して立ち上げる運用では、判断層に払うコストがスループットを左右する。判断層は `repo-readme` / `module-dev` Skill が、定型層は `repo-standardize` Skill が読む。
 
 ### 判断層
 
@@ -105,6 +105,7 @@ GUI と headless で共通モジュールを分け、機体固有の差分（`ha
 | [repo-guide.md](docs-agents/repo-guide.md) | リポジトリ構成・機密管理・公開前チェックリスト |
 | [module-guide.md](docs-agents/module-guide.md) | OSS モジュール型リポの設計規範。型の判断・構造・デモ方式 |
 | [readme-guide.md](docs-agents/readme-guide.md) | README の書き方。構成・言語規則・JUDGE.md 統合 |
+| [diagram-guide.md](docs-agents/diagram-guide.md) | 図を描くかの判断・幅の制約・形と線種・抽象度 |
 
 ### 定型層
 

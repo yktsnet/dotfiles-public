@@ -224,21 +224,24 @@ in
       set -g focus-events on
       set -g allow-passthrough on
       set -g renumber-windows on
+      setw -g aggressive-resize on
+
+      # popup が起動した隠しセッションのexit時、デフォルト(on)だとデタッチしtmux終了に見えるためoffにして直前セッションへ自動復帰させる。
+      set -g detach-on-destroy off
 
       # Prefix-less Shortcuts (Alt + Key Only)
       # vim-tmux-navigator integration
       is_vim="ps -o state= -o comm= -t '#{pane_tty}' \
           | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|l?n?vim?x?)(diff)?$'"
-      bind-key -n M-Left if-shell "$is_vim" "send-keys M-Left" "select-pane -L"
-      bind-key -n M-Down if-shell "$is_vim" "send-keys M-Down" "select-pane -D"
-      bind-key -n M-Up if-shell "$is_vim" "send-keys M-Up" "select-pane -U"
-      bind-key -n M-Right if-shell "$is_vim" "send-keys M-Right" "select-pane -R"
- 
-      bind-key -n M-/ if-shell "$is_vim" "send-keys M-/" "split-window -h -c '#{pane_current_path}'"
-      bind-key -n M-- if-shell "$is_vim" "send-keys M--" "split-window -v -c '#{pane_current_path}'"
-      bind-key -n M-x if-shell "$is_vim" "send-keys M-x" "kill-pane"
-      bind-key -n M-j select-pane -t :.+
-      bind-key -n M-k select-pane -t :.-
+
+      # 分割・クローズは常に tmux 層（Nvim 内の分割は s プレフィックス: sv/ss/sx）
+      bind-key -n M-/ split-window -h -c '#{pane_current_path}'
+      bind-key -n M-- split-window -v -c '#{pane_current_path}'
+      bind-key -n M-x kill-pane
+
+      # 移動だけはシームレス巡回（Nvim ウィンドウ → tmux ペインを一筆書き）
+      bind-key -n M-j if-shell "$is_vim" "send-keys M-j" "select-pane -t :.+"
+      bind-key -n M-k if-shell "$is_vim" "send-keys M-k" "select-pane -t :.-"
 
       # ウィンドウ操作
       bind-key -n M-t new-window -c "#{pane_current_path}"
@@ -252,6 +255,7 @@ in
       # その他
       bind-key -n M-v copy-mode
       bind-key -n M-\; command-prompt
+      bind-key -n M-d detach-client
     '' + lib.optionalString hasClaudeSessionManager ''
 
       # Claude Codeセッション管理（zsh・Nvim問わずAlt単押しで統一）
