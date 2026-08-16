@@ -238,7 +238,7 @@ It looks for three kinds of drift.
 
 Two points of design matter.
 
-**Read only the diff, via an index.** `.claude/RULES.md` holds no rule content — only a pointer per file, a one-line summary, cross-references, and the commit and date of the last audit. From the second run onward, that index is the starting point, and only files changed since the record get read in depth. Without an index, every run reads every target, and the cost of scheduled execution grows in proportion to the number of targets.
+**Read only the diff, via an index.** `.claude/RULES.md` holds no rule content — only a pointer per file, a one-line summary, cross-references, and the content hash and date of the last audit. From the second run onward, that index is the starting point, and only files whose hash changed get read in depth. Without an index, every run reads every target, and the cost of scheduled execution grows in proportion to the number of targets. The recorded hash is a declaration that this exact content was read in depth; a line that was not read in depth is never updated, even if it was touched for another reason. Intentional differences that the user has approved are kept as one line in a separate section and are never raised again as findings.
 
 **Don't maintain an exclusion list.** What gets audited is the rules you wrote, not vendored technical references or bundled skills. Keeping that as a fixed list means maintenance every time a skill is added, so the split is made mechanically: whether the frontmatter `description` is written in Japanese.
 

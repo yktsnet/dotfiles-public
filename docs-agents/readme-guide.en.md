@@ -12,7 +12,7 @@ The goal of this guide is not to force every README into one template. It is to 
 - **Target** … who you write for (assumed to be a developer; pick by skill level, role layer, or users of a specific technology)
 - **Outline** … the H2 structure that conveys the two points above best
 
-No fixed list of required sections is imposed. Instead, only a **per-type "floor" (the points that must be satisfied)** is defined; the outline above it is decided dynamically per repo. The floor is a set of points to satisfy, not a fixed order or naming of H2s.
+No fixed list of required sections is imposed. Instead, only a **per-type "floor" (the points that must be satisfied)** is defined; the outline above it is decided dynamically per repo.
 
 ---
 
@@ -24,6 +24,8 @@ Type judgment (Type A / B / C)
         └─ Core message + Target                                   ← decided per repo
              └─ Outline (H2 order, naming, weight)                 ← dynamic, derived from the above
 ```
+
+The floor is a set of points to satisfy, not a fixed order or naming of H2s. Only once the core message and the target are decided does the outline that satisfies the floor fall out.
 
 ---
 
@@ -54,7 +56,7 @@ Meant to be used? ── yes → Type B (usage-guarantee)
 
 ## 2. The Floor (Points That Must Be Satisfied)
 
-For each type, define the points the README must satisfy.
+For each type, define the points the README must satisfy. **This is an unordered checklist, not the H2 structure itself.** As long as every point is covered, how you split, order, and name the H2s is free.
 
 ### Type A Floor
 
@@ -119,7 +121,9 @@ If the target changes, the same material gets different weight and order. The co
 
 ## 5. Building the Outline
 
-With satisfying the floor (§2) as the minimum condition, decide the H2s dynamically from the core message (§3) and target (§4). Pull H2s as needed from the following "material pool."
+With satisfying the floor (§2) as the minimum condition, decide the H2s dynamically from the core message (§3) and target (§4). **The order, naming, and splitting of H2s are not fixed.**
+
+On top of satisfying the floor, pull H2s as needed from the following "material pool."
 
 | Material | Content | Suited types |
 |---|---|---|
@@ -152,18 +156,18 @@ Deploy badge only for repos with auto-deployment.
 
 ### Run Steps (Quick Start / Installation)
 
-If it runs on Docker, write the Docker-only steps first. Split individual language-runtime installs into a Local Development section. Make it copy-paste runnable.
+Write the shortest path to a running state first. Prefer the route with the fewest prerequisites (no dependencies, a one-liner launch), and split individual language-runtime installs into a Local Development section. Make it copy-paste runnable.
 
 ```markdown
 ## Quick Start
 
 ### Prerequisites
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- Node.js 24+   ← list only what is actually required; drop the section if there is nothing
 
 ### Setup
 \```bash
 cp .env.example .env
-docker compose up -d --build
+npm start
 \```
 
 - App: http://localhost:{port}
@@ -202,8 +206,13 @@ English headings make the structure internationally readable; Japanese body text
 During development, record technology-selection criteria in `JUDGE.md` and the MVP's definition and completion criteria in `PLAN.md`. These are not instruction files for the AI; they are the user's work products. On publication, integrate them into the README and **delete the originals once integrated** (history lives in git; do not keep double bookkeeping between README and originals).
 
 - `JUDGE.md` … key points go to the README's Design Decisions and the Tech Stack Reason column. The full text moves to `docs/design-decisions.md` (if short, integrate directly into the README and skip docs/) → delete
-- `PLAN.md` … at publication the MVP is complete and its role is over. Absorb only the living content (whatever amounts to Scope) into the README's Scope. For Type C, move method descriptions (task definitions, generation scale) to `docs/method.md` → delete
-- **Mandatory step before deletion**: grep the repo for references (CLAUDE.md, context/, issues/ may point at them). Rewrite the references to README / docs/ before deleting
+- `PLAN.md` … sort the contents into three before deleting. **Do not discard it wholesale**
+  - **Progress** (checkboxes, completion notes) … its role ended when the MVP completed → delete without relocating
+  - **Scope** (what is and isn't done) … absorb into the README's Scope. For Type C, move method descriptions (task definitions, generation scale) to `docs/method.md`
+  - **Concept definitions** (what exists in this world: entities and their boundaries, the names of processing stages, how information sources are divided) … move to `context/domain.md`. Keep them out of the README (different audience; see below)
+- **Mandatory step before deletion**: grep the repo for references (CLAUDE.md, context/, issues/ may point at them). Rewrite the references to README / docs/ / context/ before deleting
+
+**Why concept definitions go to `context/`**: the README is a single claim aimed at people who use or read the project, and its Scope section can only carry what is and isn't covered. The concept definitions PLAN holds (naming the processing stages `input_guard → route → generate → log`, dividing information sources into dist / knowledge / zenn) keep living as the skeleton of the implementation after publication and get consulted on every feature addition. The audience differs, so they do not compete with the README. Give PLAN the same two-tier treatment that leaves JUDGE.md's full text in `docs/design-decisions.md`.
 
 > Premise for the AI: "If `JUDGE.md` exists, reflect its criteria in the README's selection reasons." The AI never invents the criteria itself.
 
@@ -229,7 +238,7 @@ Splitting is not a goal; it is **a retreat that keeps the README a single argume
 | `docs/reproduce.md` | Full replication steps (only if they don't fit in the README) | Type C |
 | `docs/usage.md` | API tables, environment variables, CLI details | Type B / app-style repos |
 | `docs/release.md` | Release / publish procedure | Registry-published repos only |
-| `docs/deploy.md` | Self-hosting steps for users | Clone-reference-style apps |
+| `docs/deploy.md` | Self-hosting steps for users | Clone-reference-style apps (personal operations procedures that include Secrets stay outside the README, under private jurisdiction as before) |
 
 `docs/guarantees.md` is a default resident alongside design-decisions.md; the README links to it from the Scope section (as the detail page for "what is guaranteed and what is not").
 
@@ -258,8 +267,7 @@ The README carries only the deployment-method overview and, if any, the demo URL
 
 **Demo:** https://{subdomain}.{domain}
 
-A push to the main branch triggers an automatic deploy via GitHub Actions (`cicd-guide.md` compose type).
-Published via Cloudflare Tunnel.
+A push to the main branch triggers an automatic build and deploy on Cloudflare Pages (`cicd-guide.md` §3).
 ```
 
 Secrets lists, first-time setup, and server-side configuration are the responsibility of `cicd-guide.md` and operations docs. Do not duplicate them in the README.

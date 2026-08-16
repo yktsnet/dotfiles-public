@@ -15,10 +15,12 @@
 
 | パターン | 典型 | CI | デプロイ |
 |---|---|---|---|
-| **公開アプリ** | Web アプリ・ポートフォリオ作品 | GitHub Actions（型チェック → test → build） | 自ホストへ自動デプロイ → Cloudflare Tunnel でデモ公開 |
+| **公開アプリ** | Web アプリ・ポートフォリオ作品 | GitHub Actions（構文/型チェック → test → build） | Cloudflare（Pages / Workers）へ自動デプロイ |
 | **内部ツール** | データ処理スクリプト・自動化スクリプト・シェルコマンド | 任意（ローカル検証で代替可） | なし（ローカル実行 or dotfiles 経由で配布） |
 
 公開アプリは外から見えるため、CI とデプロイを持つ。内部ツールは自分しか使わないため、`harness-guide.md` の層2（ローカル検証）で十分。
+
+**デプロイ先は Cloudflare に寄せる。** 自ホスト（VPS 等）へ配る経路は新規に作らない。サーバーの生存・OS 更新・鍵の管理が運用コストとして残り続けるため、サーバレスで足りるものはサーバレスに置く。
 
 ---
 
@@ -40,27 +42,39 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4   # 言語に応じて差し替え
-        with: { node-version: 24, cache: npm }
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm test
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6   # 言語に応じて差し替え
+        with: { node-version: 24 }
+      - run: npm test                 # 依存が無いリポは node --test 等をそのまま呼ぶ
 ```
+
+依存パッケージを持たないリポでは `npm ci` を置かない。**実際に走らせているコマンドと CI を一致させる**のが趣旨であり、雛形の踏襲ではない。
 
 内部ツールで CI を入れる場合も同じ構成。ただし多くの場合、Agent のローカル検証（構文チェック・ドライラン）で事足りるため、CI は省略してよい。
 
 ---
 
-## 3. デプロイ（公開アプリ）
+## 3. デプロイ（Cloudflare）
 
-main への push をトリガーに、CI 通過後、Tailscale 経由で自ホストへ転送し再起動する。
-Docker の有無で2型。
+### 3-1. Pages（静的サイト・Pages Functions）
 
-### 3-1. compose 型
+既定はこれ。**GitHub 連携を使い、Actions にデプロイ job を書かない**。Cloudflare 側が push を検知してビルド・配信する。CI（Actions）とデプロイ（Cloudflare）が独立し、デプロイ用の API トークンを GitHub に置かずに済む。
 
-GitHub Actions → Tailscale → scp → `docker compose up -d --build`。
-Web アプリの大半はこの型。
+初回接続は Cloudflare ダッシュボードでの操作になる（user 担当）。設定するのは次の3点。
+
+| 項目 | 内容 |
+|---|---|
+| ビルドコマンド | 無ければ空。ある場合はローカルと同じもの |
+| ビルド出力ディレクトリ | 配信する静的ファイルの置き場（例: `public` / `dist`） |
+| 環境変数 | 本番値は Cloudflare 側に置く。リポには `.env.example` のキーだけ |
+
+`functions/` はリポジトリ直下に置けば自動で Pages Functions として展開される。
+
+CI の通過を待ってから配信したい場合のみ、GitHub 連携をやめて Actions から `wrangler pages deploy` を打つ形に切り替える。トークンの管理が増えるため、必要になるまで採らない。
+
+### 3-2. Workers
+
+`wrangler deploy` を Actions から実行する。
 
 ```yaml
 deploy:
@@ -68,62 +82,22 @@ deploy:
   if: github.ref == 'refs/heads/main'
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@v4
-    - name: Connect to Tailscale
-      uses: tailscale/github-action@v3
+    - uses: actions/checkout@v6
+    - uses: cloudflare/wrangler-action@v3
       with:
-        oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-        oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-        tags: tag:ci
-    - name: Sync source
-      uses: appleboy/scp-action@v0.1.7
-      with:
-        host: ${{ secrets.DEPLOY_HOST }}
-        username: ${{ secrets.DEPLOY_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "."
-        target: "~/apps/{project}/"
-    - name: Up
-      uses: appleboy/ssh-action@v1
-      with:
-        host: ${{ secrets.DEPLOY_HOST }}
-        username: ${{ secrets.DEPLOY_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd ~/apps/{project}
-          docker compose up -d --build
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 ```
 
-### 3-2. バイナリ型
-
-ビルド → scp → systemd restart。クロスコンパイル（Linux amd64）が必要な場合に使う。
-
-```yaml
-    - name: Build
-      run: {cross-compile command}   # 例: GOOS=linux GOARCH=amd64 go build
-    - name: Copy binary
-      uses: appleboy/scp-action@v0.1.7
-      with: { host: ${{ secrets.DEPLOY_HOST }}, ..., source: "{binary}", target: "/tmp/" }
-    - name: Restart service
-      uses: appleboy/ssh-action@v1
-      with:
-        host: ${{ secrets.DEPLOY_HOST }}
-        username: ${{ secrets.DEPLOY_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          sudo mv /tmp/{binary} /opt/{name}/{binary}
-          sudo chmod +x /opt/{name}/{binary}
-          sudo systemctl restart {name}
-```
+`wrangler` は Agent の settings.json で deny する（`harness-guide.md` の Web 類型）。デプロイを打つのは CI か user であって、Agent ではない。
 
 ---
 
-## 4. デモ公開（Cloudflare Tunnel）
+## 4. 公開とアクセス制御
 
-公開アプリは自ホスト上で動作し、Cloudflare Tunnel 経由で `{subdomain}.{domain}` として公開する。
-直接ポートを露出しないため、複数プロジェクトを同居させても外部からは個別ドメインに見える。
+Pages / Workers の独自ドメインは Cloudflare 側で割り当てる。ポート露出も cloudflared の常駐も要らない。
 
-DNS ルート追加とトンネル ingress 設定はサーバー側の運用手順で実施する。ホスト名・トンネル ID・ポート割当などの固有値はリポに書かず、Secrets と運用ドキュメントで管理する。
+非公開で使うアプリ（自分専用の業務ツール等）は **Cloudflare Access** を前段に置き、Google ログイン等で絞る。この場合アプリ側に認証を実装せず、「Access を通った要求だけが届く」前提で書く。その前提は README か CLAUDE.md に明記する。
 
 ---
 
@@ -133,24 +107,13 @@ GitHub Actions で使う Secrets。値はリポに載せない。
 
 | Secret | 用途 |
 |---|---|
-| `DEPLOY_HOST` | デプロイ先ホスト（Tailscale 経由） |
-| `DEPLOY_USER` | デプロイ先ユーザー |
-| `SSH_PRIVATE_KEY` | デプロイ先への SSH 秘密鍵 |
-| `TS_OAUTH_CLIENT_ID` | Tailscale OAuth Client ID |
-| `TS_OAUTH_SECRET` | Tailscale OAuth Secret |
+| `CLOUDFLARE_API_TOKEN` | Workers / Pages のデプロイ（Actions から打つ場合のみ） |
+| `CLOUDFLARE_ACCOUNT_ID` | 同上 |
 | `{APP}_API_KEY` | アプリ固有の外部 API キー |
 
-### 再利用とリポ別作業の切り分け
+**アプリの実行時に要る値は GitHub ではなく Cloudflare 側の環境変数・Secrets Store に置く。** GitHub Secrets はビルドとデプロイのための入れ物であって、実行環境の設定ではない。
 
-2つ目以降の自ホストデプロイは、ほとんどが既存資産の再利用になる。新規アプリで実際に要る作業だけを見極める。
-
-| 層 | 内容 | 頻度 |
-|---|---|---|
-| **アカウント全体・一度きり** | Tailscale ACL の `tag:ci`、デプロイ先ホストの Docker | 初回のみ。2つ目以降は不要 |
-| **リポ別** | 上表の Secrets を当該リポに登録（値は全リポ共通を流用） | リポごとに1回。Secrets はリポ単位スコープのため省略不可 |
-| **アプリ別** | デプロイ先に置く `.env`（本番値）。`rsync --exclude='.env' --delete` で初回設置後は保持される | アプリごとに1回 |
-
-デプロイ経路そのもの（GitHub Secrets＋ホスト上の SSH 鍵・`.env`）は **IaC の管轄外**に置く（秘密を nix store に入れない）。ホスト側の宣言的設定（Docker 有効化・Cloudflare Tunnel ingress 等）とは層が別であることを意識する。
+Pages を GitHub 連携で運用する場合、この表の Cloudflare 系は不要になる。
 
 ---
 
@@ -179,4 +142,13 @@ Compatibility score は他人のリポの CI 統計であり判断材料にし�
 
 ## 7. 担当分離との接続
 
-CI 自動デプロイを持つリポでは、`issue-driven-workflow.md` の担当分離のうちデプロイが user から CI へ移り、user の作業は PR レビューとマージだけになる。内部ツールなど手動実行のリポは従来どおり user が起動する。
+CI 自動デプロイを持つリポでは、`issue-driven-workflow.md` の担当表が変わる。
+
+| 担当 | デプロイ時の作業 |
+|---|---|
+| CI / Cloudflare | main マージ後、自動でビルド・配信 |
+| user | PR レビューとマージ、および Cloudflare 側の初回接続（ダッシュボード操作） |
+
+Cloudflare のプロジェクト作成・GitHub 連携・独自ドメイン割当・Access のポリシー設定は GUI 操作であり user が行う。Agent はリポ内のファイル（`ci.yml`・`functions/`・`.env.example`）までを担当する。
+
+内部ツールなど手動実行のリポは「user: 起動コマンド実行」のまま。

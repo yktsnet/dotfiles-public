@@ -119,5 +119,5 @@ GUI と headless で共通モジュールを分け、機体固有の差分（`ha
 |---|---|
 | [issue-driven-workflow.md](docs-agents/issue-driven-workflow.md) | プロセス層。Issue 起点の開発フロー・担当分離・シェル関数 |
 | [harness-guide.md](docs-agents/harness-guide.md) | ハーネス層。`.claude/` 構成・settings.json・指示ファイル・検証手段 |
-| [cicd-guide.md](docs-agents/cicd-guide.md) | CI/CD 層。GitHub Actions・自動デプロイ・Cloudflare Tunnel |
+| [cicd-guide.md](docs-agents/cicd-guide.md) | CI/CD 層。GitHub Actions・Cloudflare（Pages / Workers）への自動デプロイ・Dependabot |
 | [test-policy.md](docs-agents/test-policy.md) | テスト層。保証の裁可・保証台帳・テストの濃淡 |

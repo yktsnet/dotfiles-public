@@ -12,9 +12,6 @@ result-*
 __pycache__/
 *.pyc
 
-# 非公開ドキュメント
-docs-agents/sv6-hosting.md
-
 # 永続メモリの実体（user個人の事実、memory.nixがsymlinkを張る）
 memory/
 

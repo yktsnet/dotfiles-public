@@ -21,7 +21,7 @@ One design principle: **Maintain a single hygiene baseline across all repos.** E
 
 ## 1. File Hygiene (Rules of Existence)
 
-- **Do not leave 0-byte / placeholder-only files.** Don't commit empty content. Don't create scaffolding and abandon it.
+- **Do not leave 0-byte / placeholder-only files.** Don't commit empty content. Don't create scaffolding and abandon it. The only exception is `.gitkeep`, used to keep an empty directory in git when the directory's existence is itself part of the structure.
 - **Do not track build artifacts.** Exclude build binaries, `dist/`, `*.db`, `node_modules/`, `.env` via `.gitignore`. Enforce "may exist locally but must not enter the repo."
 - **Separate generated outputs from source files.** Track source files (config JSON, etc.); ignore what's generated from them (DBs, build assets).
 - **Always include a LICENSE.** A public repo without a license defaults to all-rights-reserved (nobody can use it). Place one as the legal minimum regardless of social usage. Verify that `Copyright` year and owner are correct (don't leave copy-paste defaults).
@@ -60,7 +60,7 @@ The encrypted files (`.age`) and the real `.sops.yaml` are never committed to th
 Run before push / publication.
 
 ```
-[ ] No 0-byte / placeholder-only files
+[ ] No 0-byte / placeholder-only files (except `.gitkeep`)
 [ ] No tracked artifacts (binaries/dist/db/node_modules)  (verify with git ls-files)
 [ ] No unrelated stack remnants or duplicate lines in .gitignore
 [ ] .env is not tracked and .env.example exists

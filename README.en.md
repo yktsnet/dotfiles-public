@@ -119,5 +119,5 @@ A set of guides for starting AI Agent collaborative development in a new reposit
 |---|---|
 | [issue-driven-workflow.md](docs-agents/issue-driven-workflow.md) | Process layer. Issue-driven development flow, role separation, shell functions |
 | [harness-guide.md](docs-agents/harness-guide.md) | Harness layer. `.claude/` structure, settings.json, instruction files, verification methods |
-| [cicd-guide.md](docs-agents/cicd-guide.md) | CI/CD layer. GitHub Actions, auto-deployment, Cloudflare Tunnel |
+| [cicd-guide.md](docs-agents/cicd-guide.md) | CI/CD layer. GitHub Actions, auto-deployment to Cloudflare (Pages / Workers), Dependabot |
 | [test-policy.md](docs-agents/test-policy.md) | Test layer. Guarantee approval, guarantee ledger, risk-based test depth |

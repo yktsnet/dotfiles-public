@@ -15,10 +15,12 @@ New repos fall into two categories, which determine the CI/CD configuration.
 
 | Pattern | Typical Use | CI | Deployment |
 |---|---|---|---|
-| **Public App** | Web app, portfolio project | GitHub Actions (type check → test → build) | Auto-deploy to self-hosted server → expose via Cloudflare Tunnel |
+| **Public App** | Web app, portfolio project | GitHub Actions (syntax/type check → test → build) | Auto-deploy to Cloudflare (Pages / Workers) |
 | **Internal Tool** | Data processing scripts, automation, shell commands | Optional (local verification may suffice) | None (local execution or distributed via dotfiles) |
 
 Public apps are externally visible, so they require CI and deployment. Internal tools are personal-use only, so Layer 2 (local verification) from `harness-guide.md` is sufficient.
+
+**Deployment targets converge on Cloudflare.** Do not build new paths that ship to a self-hosted server (VPS, etc.). Keeping a server alive, patching its OS, and managing its keys are permanent operational costs, so anything that fits on serverless goes on serverless.
 
 ---
 
@@ -40,27 +42,39 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4   # swap for appropriate language
-        with: { node-version: 24, cache: npm }
-      - run: npm ci
-      - run: npm run typecheck
-      - run: npm test
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6   # swap for appropriate language
+        with: { node-version: 24 }
+      - run: npm test                 # repos without dependencies call node --test etc. directly
 ```
+
+Repos with no package dependencies do not get an `npm ci` step. The point is to **keep CI identical to the commands actually being run**, not to follow the template.
 
 Internal tools can use the same structure if CI is desired, but in most cases the Agent's local verification (syntax check, dry run) is sufficient and CI can be omitted.
 
 ---
 
-## 3. Deployment (Public Apps)
+## 3. Deployment (Cloudflare)
 
-Triggered on push to main, after CI passes. Transfers to self-hosted server via Tailscale and restarts.
-Two variants depending on Docker usage.
+### 3-1. Pages (static sites, Pages Functions)
 
-### 3-1. Compose Type
+This is the default. **Use the GitHub integration and do not write a deploy job in Actions.** Cloudflare detects the push, builds, and serves. CI (Actions) and deployment (Cloudflare) stay independent, and no deployment API token has to live in GitHub.
 
-GitHub Actions → Tailscale → scp → `docker compose up -d --build`.
-Most web apps use this variant.
+The initial connection is done in the Cloudflare dashboard (the user's job). Three settings:
+
+| Item | Content |
+|---|---|
+| Build command | Empty if there is none; otherwise the same command used locally |
+| Build output directory | Where the static files to serve are placed (e.g. `public` / `dist`) |
+| Environment variables | Production values live on the Cloudflare side; the repo only carries the keys in `.env.example` |
+
+`functions/` placed at the repository root is automatically deployed as Pages Functions.
+
+Only when you need to wait for CI to pass before serving, switch from the GitHub integration to running `wrangler pages deploy` from Actions. That adds token management, so don't adopt it until it is needed.
+
+### 3-2. Workers
+
+Run `wrangler deploy` from Actions.
 
 ```yaml
 deploy:
@@ -68,62 +82,22 @@ deploy:
   if: github.ref == 'refs/heads/main'
   runs-on: ubuntu-latest
   steps:
-    - uses: actions/checkout@v4
-    - name: Connect to Tailscale
-      uses: tailscale/github-action@v3
+    - uses: actions/checkout@v6
+    - uses: cloudflare/wrangler-action@v3
       with:
-        oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-        oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-        tags: tag:ci
-    - name: Sync source
-      uses: appleboy/scp-action@v0.1.7
-      with:
-        host: ${{ secrets.DEPLOY_HOST }}
-        username: ${{ secrets.DEPLOY_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "."
-        target: "~/apps/{project}/"
-    - name: Up
-      uses: appleboy/ssh-action@v1
-      with:
-        host: ${{ secrets.DEPLOY_HOST }}
-        username: ${{ secrets.DEPLOY_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd ~/apps/{project}
-          docker compose up -d --build
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 ```
 
-### 3-2. Binary Type
-
-Build → scp → systemd restart. Used when cross-compilation (Linux amd64) is needed.
-
-```yaml
-    - name: Build
-      run: {cross-compile command}   # e.g., GOOS=linux GOARCH=amd64 go build
-    - name: Copy binary
-      uses: appleboy/scp-action@v0.1.7
-      with: { host: ${{ secrets.DEPLOY_HOST }}, ..., source: "{binary}", target: "/tmp/" }
-    - name: Restart service
-      uses: appleboy/ssh-action@v1
-      with:
-        host: ${{ secrets.DEPLOY_HOST }}
-        username: ${{ secrets.DEPLOY_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          sudo mv /tmp/{binary} /opt/{name}/{binary}
-          sudo chmod +x /opt/{name}/{binary}
-          sudo systemctl restart {name}
-```
+`wrangler` is denied in the Agent's settings.json (the Web category in `harness-guide.md`). Deployment is run by CI or the user, never by the Agent.
 
 ---
 
-## 4. Demo Publishing (Cloudflare Tunnel)
+## 4. Publishing and Access Control
 
-Public apps run on the self-hosted server and are exposed as `{subdomain}.{domain}` via Cloudflare Tunnel.
-Since ports are not directly exposed, multiple projects can coexist while appearing as individual domains externally.
+Custom domains for Pages / Workers are assigned on the Cloudflare side. No port exposure and no long-running cloudflared are needed.
 
-DNS route additions and tunnel ingress configuration are handled in the server-side operations procedures. Host-specific values such as hostnames, tunnel IDs, and port assignments are not written in the repo — they are managed via Secrets and operations documentation.
+Apps that are not meant to be public (personal internal tools, etc.) sit behind **Cloudflare Access**, restricted by Google login or similar. In that case the app implements no authentication of its own and is written on the assumption that only requests that passed Access arrive. State that assumption in the README or CLAUDE.md.
 
 ---
 
@@ -133,24 +107,13 @@ Secrets used in GitHub Actions. Values are never stored in the repo.
 
 | Secret | Purpose |
 |---|---|
-| `DEPLOY_HOST` | Deployment target host (via Tailscale) |
-| `DEPLOY_USER` | Deployment target user |
-| `SSH_PRIVATE_KEY` | SSH private key for deployment target |
-| `TS_OAUTH_CLIENT_ID` | Tailscale OAuth Client ID |
-| `TS_OAUTH_SECRET` | Tailscale OAuth Secret |
+| `CLOUDFLARE_API_TOKEN` | Workers / Pages deployment (only when run from Actions) |
+| `CLOUDFLARE_ACCOUNT_ID` | Same as above |
 | `{APP}_API_KEY` | App-specific external API key |
 
-### Separating Reusable Assets from Per-Repository Work
+**Values the app needs at runtime belong to Cloudflare's environment variables / Secrets Store, not to GitHub.** GitHub Secrets are a container for building and deploying, not the configuration of the runtime environment.
 
-From the second self-hosted deployment onward, most of the setup is reuse of existing assets. Identify only the work a new app actually needs.
-
-| Layer | Content | Frequency |
-|---|---|---|
-| **Account-wide, one-time** | `tag:ci` in the Tailscale ACL, Docker on the deployment host | First time only; not needed from the second app onward |
-| **Per repository** | Register the Secrets above in the repository (values reused across repositories) | Once per repository; Secrets are repository-scoped, so this cannot be skipped |
-| **Per app** | The production `.env` on the deployment target; `rsync --exclude='.env' --delete` preserves it after the initial placement | Once per app |
-
-The deployment path itself (GitHub Secrets plus the SSH key and `.env` on the host) stays **outside IaC's jurisdiction** (never put secrets in the nix store). Keep it distinct from the host's declarative configuration (enabling Docker, Cloudflare Tunnel ingress, etc.), which lives in a different layer.
+When Pages is operated through the GitHub integration, the Cloudflare entries in this table become unnecessary.
 
 ---
 
@@ -179,4 +142,13 @@ Note: because auto-merge commits originate from `GITHUB_TOKEN`, **push-triggered
 
 ## 7. Connection to Role Separation
 
-For repos with CI auto-deployment, deployment in the role separation of `issue-driven-workflow.md` moves from the user to CI, and the user's work becomes PR review and merge only. Internal tools and other manually-run repos are still launched by the user.
+For repos with CI auto-deployment, the role table in `issue-driven-workflow.md` changes.
+
+| Role | Work at deployment time |
+|---|---|
+| CI / Cloudflare | Builds and serves automatically after the merge into main |
+| user | PR review and merge, plus the initial connection on the Cloudflare side (dashboard operation) |
+
+Creating the Cloudflare project, connecting GitHub, assigning the custom domain, and setting Access policies are GUI operations the user performs. The Agent is responsible up to the files inside the repo (`ci.yml`, `functions/`, `.env.example`).
+
+Internal tools and other manually-run repos keep "user: runs the launch command".
