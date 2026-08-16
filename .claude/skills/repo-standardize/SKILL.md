@@ -17,7 +17,7 @@ disable-model-invocation: true
 
 ## 0. 基準を読む（必須・最初に）
 
-本 Skill は `docs-agents/` の**定型層**（一度決めれば次のリポでも同じものを適用するだけの4本）を機械的に適用する側を担う。
+本 Skill は `docs-agents/` の**定型層**（一度決めれば次のリポでも同じものを適用するだけの層）のうち4本を機械的に適用する側を担う。残る1本 `test-policy.md` は `guarantee-audit` の管轄。
 
 以下4本を読む。これが基準のすべて。
 
@@ -71,6 +71,10 @@ disable-model-invocation: true
 | `CLAUDE.md` | `@import` + 実際に動くコマンド（setup / dev / build / 検証）+ アーキテクチャの要点 + 検証手段。200行以下 |
 | `context/conventions.md` | 実コードから読み取った命名規則・コード規約・スタイル。汎用ルール（「PEP8 準拠」等）の羅列ではなく、**このリポ固有の判断**を書く |
 | `context/structure.md` | **実在するファイル**のディレクトリ構成・データフロー・レイヤー構成 |
+| `context/domain.md` | このリポの世界に何が存在するか。エンティティ・処理段・情報ソースの区分と、**それぞれの名前と境界**（何をそこに乗せてよく、何を乗せてはいけないか）。`PLAN.md` がある場合はその概念定義を移設する（`readme-guide.md` §7）。概念が実質1つしかないリポでは作らない |
+
+`domain.md` は構造ではなく**区別**を書く。`structure.md` が「どのファイルにどう流れるか」なら、`domain.md` は「なぜ A と B を別のものとして扱うか」。enum の値が全部同じ質問への答えになっているか、設定オブジェクトが1つの関心事に閉じているかは、ここに書いた境界で判定する。
+
 `.claude/`・`CLAUDE.md`・`context/`・`issues/` は**公開リポでは追跡対象**（gitignore で全無視しない。無視は `.claude/settings.local.json` のみ）。
 
 ## 4. 決定的チェック（report）

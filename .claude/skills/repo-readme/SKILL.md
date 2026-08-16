@@ -24,7 +24,7 @@ disable-model-invocation: true
 readme-guide.md §1 のリトマス試験（使わせる？→ Type B。読ませるなら証拠がコードか数字かで Type A / Type C）でリポの種別を判定する。判定した種別を前提に、以下を読んでから書く。README は創作でなく**既にあるものの集約**。
 
 - リポのコード・ディレクトリ構成（実際の構造・データフロー）
-- `PLAN.md`（MVP 定義・完成条件）— 生きている内容を README の Scope へ吸収する。**統合ソース（後で削除する対象）**
+- `PLAN.md`（MVP 定義・完成条件）— 中身を3つに仕分ける（`readme-guide.md` §7）。進捗は捨てる／スコープは README の Scope へ／**概念定義は `context/domain.md` へ移設**（README には出さない）。**統合ソース（後で削除する対象）**
 - `JUDGE.md`（あれば）— 技術選定・判断ログ。README の Design Decisions と Tech Stack の Reason 列へ統合する（判断基準を AI が創作しない）。**統合ソース（後で削除する対象）**
 - `context/structure.md` / `context/conventions.md`（設計の意図。これらは残す）
 - `.github/workflows/`（CI/Deploy バッジ・デプロイ方式）
@@ -67,8 +67,10 @@ readme-guide.md §0 の考える順序に従う。固定の H2 リストを流�
 JUDGE.md / PLAN.md は統合が済んだら削除する（統合 = 移設 + 削除。履歴は git にある）。
 
 1. リポ内の参照を grep（`grep -rn "JUDGE\|PLAN" --include="*.md"` 等。CLAUDE.md・context/・issues/ が指していることがある）
-2. 参照先を README / docs/ へ書き換える
+2. 参照先を README / docs/ / context/ へ書き換える
 3. 削除する
+
+削除前に、PLAN の概念定義が `context/domain.md` に移っていることを確認する。**「もう実装済みだから不要」で捨てない**——概念定義は実装が終わっても失効せず、公開後の機能追加で参照され続ける。
 
 ## 6. 出して止まる
 

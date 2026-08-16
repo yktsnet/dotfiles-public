@@ -96,7 +96,7 @@ For detailed keybindings and configuration, see [TUI Environment (docs/tui_envir
 
 ## Agent Development Guides
 
-A set of guides for starting AI Agent collaborative development in a new repository. The 9 files in `docs-agents/` split into a **judgment layer**, where the answer differs from repo to repo, and a **standard layer**, where the same answer applies once decided, with a single **principles layer** above both. In an operation that launches many repos in parallel, the cost paid on the judgment layer is what governs throughput. The judgment layer is read by the `repo-readme` / `module-dev` Skills; the standard layer by the `repo-standardize` Skill.
+A set of guides for starting AI Agent collaborative development in a new repository. The 9 files in `docs-agents/` split into a **judgment layer**, where the answer differs from repo to repo, and a **standard layer**, where the same answer applies once decided, with a single **principles layer** above both. In an operation that launches many repos in parallel, the cost paid on the judgment layer is what governs throughput. The judgment layer is read by the `repo-readme` / `module-dev` Skills; the standard layer by the `repo-standardize` / `guarantee-audit` Skills.
 
 ### Principles Layer
 
@@ -108,7 +108,6 @@ A set of guides for starting AI Agent collaborative development in a new reposit
 
 | Guide | Role |
 |---|---|
-| [repo-guide.md](docs-agents/repo-guide.md) | Repository structure, secrets management, pre-publish checklist |
 | [module-guide.md](docs-agents/module-guide.md) | Design guide for OSS module-style repos. Type decisions, structure, demo methods |
 | [readme-guide.md](docs-agents/readme-guide.md) | README writing guide. Structure, language rules, JUDGE.md integration |
 | [diagram-guide.md](docs-agents/diagram-guide.md) | Whether to draw a diagram, width constraints, shapes and line types, abstraction level |
@@ -117,6 +116,7 @@ A set of guides for starting AI Agent collaborative development in a new reposit
 
 | Guide | Role |
 |---|---|
+| [repo-guide.md](docs-agents/repo-guide.md) | Repository structure, secrets management, pre-publish checklist |
 | [issue-driven-workflow.md](docs-agents/issue-driven-workflow.md) | Process layer. Issue-driven development flow, role separation, shell functions |
 | [harness-guide.md](docs-agents/harness-guide.md) | Harness layer. `.claude/` structure, settings.json, instruction files, verification methods |
 | [cicd-guide.md](docs-agents/cicd-guide.md) | CI/CD layer. GitHub Actions, auto-deployment to Cloudflare (Pages / Workers), Dependabot |
