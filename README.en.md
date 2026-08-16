@@ -96,7 +96,13 @@ For detailed keybindings and configuration, see [TUI Environment (docs/tui_envir
 
 ## Agent Development Guides
 
-A set of guides for starting AI Agent collaborative development in a new repository. The 8 files in `docs-agents/` split into a **judgment layer**, where the answer differs from repo to repo, and a **standard layer**, where the same answer applies once decided. In an operation that launches many repos in parallel, the cost paid on the judgment layer is what governs throughput. The judgment layer is read by the `repo-readme` / `module-dev` Skills; the standard layer by the `repo-standardize` Skill.
+A set of guides for starting AI Agent collaborative development in a new repository. The 9 files in `docs-agents/` split into a **judgment layer**, where the answer differs from repo to repo, and a **standard layer**, where the same answer applies once decided, with a single **principles layer** above both. In an operation that launches many repos in parallel, the cost paid on the judgment layer is what governs throughput. The judgment layer is read by the `repo-readme` / `module-dev` Skills; the standard layer by the `repo-standardize` Skill.
+
+### Principles Layer
+
+| Guide | Role |
+|---|---|
+| [principles.en.md](docs-agents/principles.en.md) | Order of adoption, and the essence, mechanism, and completion condition of each stage. The premises the other guides are written on |
 
 ### Judgment Layer
 

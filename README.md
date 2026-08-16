@@ -96,7 +96,13 @@ GUI と headless で共通モジュールを分け、機体固有の差分（`ha
 
 ## Agent Development Guides
 
-新規リポで AI Agent 協調開発を始めるためのガイド群。`docs-agents/` の8ファイルは、リポごとに答えが変わる**判断層**と、一度決めれば機械的に適用できる**定型層**に分かれる。多数のリポを並行して立ち上げる運用では、判断層に払うコストがスループットを左右する。判断層は `repo-readme` / `module-dev` Skill が、定型層は `repo-standardize` Skill が読む。
+新規リポで AI Agent 協調開発を始めるためのガイド群。`docs-agents/` の9ファイルは、リポごとに答えが変わる**判断層**と、一度決めれば機械的に適用できる**定型層**に分かれ、その上にどちらの前提でもある**原理層**が1本ある。多数のリポを並行して立ち上げる運用では、判断層に払うコストがスループットを左右する。判断層は `repo-readme` / `module-dev` Skill が、定型層は `repo-standardize` Skill が読む。
+
+### 原理層
+
+| ガイド | 役割 |
+|---|---|
+| [principles.md](docs-agents/principles.md) | 導入順序と、各段の本質・機構・完了条件。各ガイドが何を前提に書かれているか |
 
 ### 判断層
 
