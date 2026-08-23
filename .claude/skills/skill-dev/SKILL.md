@@ -34,3 +34,21 @@ SKILL.md を書き始める前に、置き場所を決める。
 - `name` / `description` は必須。
 - 既定は `disable-model-invocation: true`（明示呼び出し専用）。
   自動発火（model invocation）させたい skill は、user に確認したうえでこの行を外す。
+- 自動発火させる skill のうち、**効く場面がファイルで言えるものは `paths` で絞る**。
+
+```yaml
+paths:
+  - "articles/**"
+  - "**/wrangler.jsonc"
+```
+
+`disable-model-invocation: true` は description を skill 一覧から落とし、`paths` は一致する
+ファイルを扱うときだけ自動発火させる。どちらも `/name` での手動呼び出しは残るので、
+絞りすぎの代償は「自動で出てこない」だけで済む。迷ったら絞る側へ倒す。
+
+一覧はモデルのコンテキスト長の1%程度に収められ、溢れると**呼ぶ頻度の低いものから
+description が落ちる**。落ちる順は重要度ではなく頻度なので、放置すると稀にしか使わない
+重要な skill が先に痩せる。基準は `docs-agents/harness-guide.md` §4「自動発火の範囲を絞る」。
+
+- 全走査を伴う skill（棚卸し・点検・突き合わせ）は、読み込みを読み取り専用の subagent へ
+  出す。裁可と編集は親に残す。基準は同 §4「読み込み量の多い skill は探索を分ける」。

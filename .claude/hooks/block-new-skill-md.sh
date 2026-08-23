@@ -29,7 +29,13 @@ ask() { decide ask "$1"; }
 
 if [ "$tool_name" = "Bash" ]; then
   cmd=$(printf '%s' "$payload" | jq -r '.tool_input.command // ""')
-  printf '%s' "$cmd" | grep -Eq '(>|tee|cp|mv|install)[^|&;]*SKILL\.md' || exit 0
+  # 書き込み動詞はコマンド位置に限る。素の部分一致だと語中に埋もれた綴りを拾い、
+  # guarantee-audit/SKILL.md の "tee" のような読み取り専用のコマンドまで拒否する。
+  # 判定の形は block-non-nix-install.sh と揃えてある。
+  pre='(^|[;&|`]|\$\()[[:space:]]*(sudo[[:space:]]+)?(env[[:space:]]+)?([[:alnum:]@/_.~+-]*/)?'
+  printf '%s' "$cmd" \
+    | grep -Eq ">[[:space:]]*[^|&;]*SKILL\.md|${pre}(tee|cp|mv|install)[[:space:]][^|&;]*SKILL\.md" \
+    || exit 0
   deny "$(cat <<'EOF'
 SKILL.md をシェル経由で作成・上書きしない。Write / Edit ツールを使うこと。
 

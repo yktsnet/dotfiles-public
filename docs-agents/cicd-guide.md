@@ -52,6 +52,18 @@ jobs:
 
 内部ツールで CI を入れる場合も同じ構成。ただし多くの場合、Agent のローカル検証（構文チェック・ドライラン）で事足りるため、CI は省略してよい。
 
+### 2.5 PR の自動レビュー
+
+`.github/workflows/claude-review.yml`。`anthropics/claude-code-action@v1` を `pull_request` で回し、規約との突き合わせだけを一周させる。
+
+**書き込みはコメントのみ。** commit・push・ブランチ作成はさせない。実行者がリモートに触れないという分業を CI 側でも崩さないため、`permissions` を `contents: read` / `pull-requests: write` に絞り、`claude_args: --allowed-tools Read,Grep,Glob` で二重に塞ぐ。
+
+プロンプトには**このリポの規約を読ませてから差分を見る**よう書く。一般論のコードレビューは検証手段（構文チェック・test）と重なるだけで、CI に足す意味が無い。指摘は規約違反・壊れ・地の文への機密の混入に絞る。
+
+Dependabot の PR は `if: github.event.pull_request.user.login != 'dependabot[bot]'` で外す。lock 更新に読む差分は無い。
+
+認証は `secrets.ANTHROPIC_API_KEY`。PR ごとに課金されるので、入れるのは PR の流量があるリポだけでよい。
+
 ---
 
 ## 3. デプロイ（Cloudflare）

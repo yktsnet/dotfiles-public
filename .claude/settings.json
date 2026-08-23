@@ -78,6 +78,19 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/static-check.sh",
+            "timeout": 20,
+            "statusMessage": "編集したファイルを構文チェック中"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [
