@@ -47,6 +47,8 @@ PR の `## 検証手順` には Agent 側で完結しない確認（デプロイ
 
 **有効化は正本の `settings.json` に書く。** `claude plugin install` が書くのは配布先の `~/.claude/settings.json` で、そこは `claude.nix` が rebuild のたびに上書きする。`enabledPlugins` を正本側へ写しておかないと次回の switch で消える（プラグイン本体のキャッシュは `~/.claude/plugins/` にあり、こちらは消えない）。
 
+これはプラグインに限った話ではない。**Claude Code が実行時に settings.json へ書き込む設定はすべて同じ穴に落ちる**（`/effort` の `effortLevel`、`/model`、通知トグル等）。配布先で変えた設定は、正本へ写すまで「次の switch までの一時設定」でしかない。消えても静かに消えるので気づきにくい。設定を変えたら正本を見る。
+
 対象は型のある言語を持つリポだけでよい。Nix・zsh には言語サーバの利得が薄く、`flake check` と `zsh -n` で足りる。
 
 ---
