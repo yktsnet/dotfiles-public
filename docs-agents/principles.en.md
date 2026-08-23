@@ -121,11 +121,7 @@ That said, deny alone is enough if all you want is a wall. The gain from a hook 
 
 ### Mechanism
 
-deny only matches string prefixes. When the thing to prohibit is an action rather than a string, a PreToolUse hook interprets the command and decides. Strip quoted contents first, restrict the match to command position, and absorb `sudo` / `env` / path-qualified invocations.
-
-Refusal messages carry both the reason and the alternative procedure. Where possible, assemble the correct edit target mechanically and return it.
-
-attribution is left empty on the position that an Agent is a tool, not a co-author. Mixing non-human names into commit history also degrades the readability of blame.
+When the thing to prohibit is an action rather than a string, a declarative deny cannot reach it. Judging an action takes a hook that interprets the command (implementation in harness-guide.en.md §3.5).
 
 Generation and blocking are separate measures, and both are needed. Even if an index is generated automatically, a write to the wrong location will never appear in it.
 
@@ -147,14 +143,7 @@ Where knowledge goes is determined less by what it says than by when it is read.
 
 ### Mechanism
 
-| Moment it is read | Where it goes |
-|---|---|
-| A short rule that always applies | One line in CLAUDE.md |
-| Anything you can state as "when you do X" | A skill (its description becomes a declaration of the trigger) |
-| Shared dictionaries and guides pointed to from rules | A separate directory, referenced by absolute path |
-| Unorganized thinking | Outside the harness. Never loaded automatically |
-
-Listing the triggers in a skill's description turns tacit knowledge into a declaration. The trigger for migration is the moment you notice "I've handed over this document by hand again"; there is no bulk migration.
+Each moment of loading maps to a place (the correspondence table is in harness-guide.en.md §4). Anything whose trigger cannot be put into words was never a rule to begin with.
 
 Each guide carries a jurisdiction table at the top and does not write about another guide's territory. The urge to quote is a sign that the source needs fixing.
 
@@ -164,7 +153,7 @@ Documents whose readers are not only human are written with English headings and
 
 As a consequence of separating the places, rule files keep multiplying. But no mechanism for detecting contradictions among rules exists inside the rules themselves. The only option is to look from outside, periodically.
 
-The sweep goes through an index and reads closely only the files changed since the last recorded run. A design without an index re-reads every target on every run, and the cost accumulates in proportion to the number of targets. Exclusion lists are not maintained; targets are determined by criteria that can be separated mechanically. Findings are approved one at a time.
+Anything looked at periodically has to be designed so that not everything is read every time. An index sits in between, only what changed since last time is read closely, and the boundary of what counts as a target is drawn by mechanically decidable criteria rather than a fixed list (procedure in harness-guide.en.md §4.6).
 
 ### Completion Condition
 

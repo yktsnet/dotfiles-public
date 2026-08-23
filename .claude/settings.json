@@ -83,12 +83,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/sync-memory-index.sh",
-            "timeout": 10,
-            "statusMessage": "memory インデックスを同期中"
-          },
-          {
-            "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/opus-scope-and-concision.sh",
             "timeout": 10,
             "statusMessage": "Opus向け簡潔性指示を注入中"

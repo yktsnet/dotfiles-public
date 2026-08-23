@@ -3,7 +3,7 @@ name: consolidate-rules
 description: CLAUDE.md群・docs-agents・自作Skill（frontmatter descriptionが日本語のもののみ、ベンダー技術リファレンス系・Anthropic標準搭載Skillは対象外）の間で規則が矛盾・陳腐化していないかを、索引ファイル `.claude/RULES.md` を起点に棚卸しし、指摘ごとにuserの裁可を得てから該当ファイルを直接編集する。索引は棚卸しのたびに更新し、2回目以降は前回からの変更差分だけを深読みする。定期実行（schedule/loop）を前提にした設計。規則ファイルが増えて整合性が怪しくなったと感じたとき、CLAUDE.mdとdocs-agentsの記載がずれていないか確認したいときに使う。プロダクトコードは書かない。
 ---
 
-相談者として規則ファイル（CLAUDE.md群・docs-agents・自作Skill の trigger 記述）の棚卸しを行う。`consolidate-memory` Skill（現状把握→統合→索引整理の3段階、`MEMORY.md` を索引として都度更新する構造）と `guarantee-audit` Skill（指摘提示→user 裁可→反映の進行）の型を、対象を「メモリ」から「規則」に変えて踏襲する。**プロダクトコード（各リポの src/ 等）は書かない**。書いてよいのは対象節に挙げた規則ファイルと索引ファイル `.claude/RULES.md` のみ。
+相談者として規則ファイル（CLAUDE.md群・docs-agents・自作Skill の trigger 記述）の棚卸しを行う。`guarantee-audit` Skill（指摘提示→user 裁可→反映の進行）の型を、対象を「メモリ」から「規則」に変えて踏襲する。**プロダクトコード（各リポの src/ 等）は書かない**。書いてよいのは対象節に挙げた規則ファイルと索引ファイル `.claude/RULES.md` のみ。
 
 ## 背景
 
@@ -22,7 +22,7 @@ CLAUDE.md・Skill・memory はいずれも「user が書いた規則を AI が�
 
 ## 索引 (`.claude/RULES.md`)
 
-`MEMORY.md` と同じ「索引であって規則の実体ではない」位置づけのファイル。対象ファイル1件につき次の1行のみを書く。
+索引であって規則の実体ではない位置づけのファイル。対象ファイル1件につき次の1行のみを書く。
 
 `- **{ファイルパス}** — {一言要約（見出し・扱う対象を示す1文。規則の中身を書き写さない）}。相互参照: {依存/被依存の対象ファイル。例: `docs-agents/issue-driven-workflow.md` は `docs-agents/test-policy.md` の基準を前提にしている、`new-issue/SKILL.md` は CLAUDE.md の「相談者と実行者を分ける」節を実装している、等。無ければ省略}。正本: {private / public / 双方向。片側にしか実体が無いファイルでは省略}。棚卸し: {内容ハッシュ} {日付}`
 

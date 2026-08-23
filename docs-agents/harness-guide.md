@@ -104,7 +104,6 @@ Co-Authored-By を外す。Agent は道具であり共著者ではない、と�
 | `block-live-claude-config-edit.sh` | PreToolUse `Edit\|Write\|Bash` | 生成物である `~/.claude/` への直接編集。生成元のパスへ書き換えて返す。`sed -i` 等のシェル経由の書き込みも見る（読み取りは通す） |
 | `block-new-skill-md.sh` | PreToolUse `Write\|Bash` | 新規 `SKILL.md` の規約違反。frontmatter（`name` / `description` / 明示呼び出し指定）と配置先を検査し、`~/.claude/skills/` への直書きは拒否、repo-local は確認を挟む |
 | `block-project-scoped-memory.sh` | PreToolUse `Edit\|Write` | メモリの置き場違い（後述の 4.5） |
-| `sync-memory-index.sh` | SessionStart | （遮断ではなく生成）`MEMORY.md` の再生成 |
 | `opus-scope-and-concision.sh` | SessionStart | （遮断ではなく注入）Opus 系のときだけ簡潔性とスコープ厳守を足す |
 | `backup-secret-json.sh` | PreToolUse `Edit\|Write` | `secrets/**/*.json.age` の上書き前にバックアップ（遮断ではなく安全網。直近5世代のみ保持） |
 
@@ -207,22 +206,13 @@ skill の更新は自動抽出しない。作業中にズレへ気づいたら�
 
 ### 4.5 永続メモリ
 
-セッションをまたいで残す知識は `~/memory/` に置く。1ファイル1事実で、型ごとにサブディレクトリを分ける。
+セッションをまたいで残す知識は `~/memory/` 直下に置く。1ファイル1事実で、サブディレクトリも索引ファイルも持たない（`ls` が索引になる粒度に保つ）。分類と索引を入れたことがあるが、母数が数十に届かないうちは維持コストだけが残り、索引の生成器・型ごとのディレクトリ・型の判定という三つの決めごとが増えるだけだった。
 
 `~/memory` は実体ではなく、dotfiles 配下（`memory/`）へのシンボリックリンクである。実体をリポの中に置くことで、複数デバイス間の同期と衝突解決を git に任せる。リンクを張るのは `home-manager/modules/memory.nix` の activation script で、`~/memory` が既に実体のディレクトリとして存在するときは壊さず、退避を促すメッセージを出して止まる。フック類は `$HOME/memory` を参照したままでよい（symlink なので参照先の変更が要らない）。
 
-| 型 | 内容 |
-|---|---|
-| `user` | user 自身のこと（役割・専門・好み） |
-| `feedback` | 進め方への指示。理由（**Why**）と適用方法（**How to apply**）を併記する |
-| `project` | コードや git 履歴から導けない進行中の事情・制約。相対日付は絶対日付に直す |
-| `reference` | 外部資源へのポインタ（URL・ダッシュボード・チケット） |
+**memory は最後の置き場である。** skill・`docs-agents/`・リポの `context/` に書き場があるならそちらが正本で、memory へは書かない。二重に持つと必ず片方が腐る。
 
-索引 `~/memory/MEMORY.md` は**生成物であって手書きしない**。SessionStart の `sync-memory-index.sh` が各ファイルの frontmatter（`name` / `description`）から再生成する。差分があるときだけ書き換えるので、無変更セッションでは何も起きない。
-
-ハーネスのシステムプロンプトは置き場として `~/.claude/projects/<project>/memory/` を指示してくることがある。この環境の正本は `~/memory/` なので、そちらへ書かれると索引に載らない重複が溜まる。`block-project-scoped-memory.sh` がプロジェクトスコープへの書き込みを拒否し、ファイル名から正しい配置先を組み立てて返す。
-
-索引を自動生成しても、書き込み先が違えば索引には現れない。**生成（`sync-memory-index.sh`）と遮断（`block-project-scoped-memory.sh`）は別の対策であり、両方要る。**
+ハーネスのシステムプロンプトは置き場として `~/.claude/projects/<project>/memory/` を指示してくることがある。この環境の正本は `~/memory/` なので、そちらへ書かれると誰にも読まれない重複が溜まる。`block-project-scoped-memory.sh` がプロジェクトスコープへの書き込みを拒否し、ファイル名から正しい配置先を組み立てて返す。
 
 ### 4.6 規則の棚卸し
 

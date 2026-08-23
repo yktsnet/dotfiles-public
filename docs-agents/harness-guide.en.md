@@ -104,7 +104,6 @@ The implementations live in `.claude/hooks/`. In the operating fleet, `home-mana
 | `block-live-claude-config-edit.sh` | PreToolUse `Edit\|Write\|Bash` | Direct edits to `~/.claude/`, which is generated output. Rewrites the path to the source and returns it. Also catches shell-side writes such as `sed -i` (reads are let through) |
 | `block-new-skill-md.sh` | PreToolUse `Write\|Bash` | New `SKILL.md` files that break convention. Checks frontmatter (`name` / `description` / explicit-invocation flag) and placement: writing into `~/.claude/skills/` is denied, repo-local placement prompts for confirmation |
 | `block-project-scoped-memory.sh` | PreToolUse `Edit\|Write` | Memory written to the wrong store (Section 4.5) |
-| `sync-memory-index.sh` | SessionStart | (Generates rather than blocks) regenerates `MEMORY.md` |
 | `opus-scope-and-concision.sh` | SessionStart | (Injects rather than blocks) adds concision and scope discipline for Opus models only |
 | `backup-secret-json.sh` | PreToolUse `Edit\|Write` | Backs up `secrets/**/*.json.age` before it gets overwritten (a safety net, not a block; keeps only the last 5 generations) |
 
@@ -209,22 +208,13 @@ Skill updates are not auto-extracted. If a drift is noticed during work, stop at
 
 ### 4.5 Persistent Memory
 
-Knowledge that must survive across sessions goes in `~/memory/`, one fact per file, split into subdirectories by type.
+Knowledge that must survive across sessions goes directly in `~/memory/`, one fact per file, with no subdirectories and no index file (kept at a granularity where `ls` is the index). Classification and an index were tried once; below a few dozen entries only the upkeep remained, and it added three things to decide — the index generator, the per-type directories, and the type judgment itself.
 
 `~/memory` is not the entity itself but a symlink into dotfiles (`memory/`). Keeping the entity inside the repo lets multi-device sync and conflict resolution ride on git. The link is created by the activation script in `home-manager/modules/memory.nix`; if `~/memory` already exists as a real directory, it leaves it untouched and stops with a message asking you to migrate the contents first. Hooks can keep referring to `$HOME/memory` unchanged, since it's a symlink.
 
-| Type | Content |
-|---|---|
-| `user` | Who the user is (role, expertise, preferences) |
-| `feedback` | Guidance on how to work. Record the reason (**Why**) and how to apply it (**How to apply**) |
-| `project` | Ongoing constraints not derivable from the code or git history. Convert relative dates to absolute ones |
-| `reference` | Pointers to external resources (URLs, dashboards, tickets) |
+**Memory is the last resort for placement.** If a skill, `docs-agents/`, or a repository's `context/` can hold it, that is the source of truth and memory gets nothing. Held in two places, one of them always rots.
 
-The index `~/memory/MEMORY.md` is **generated, never hand-written**. The SessionStart hook `sync-memory-index.sh` rebuilds it from each file's frontmatter (`name` / `description`), and rewrites only when the content differs, so a session that changes nothing touches nothing.
-
-The harness system prompt may instruct the agent to store memory in `~/.claude/projects/<project>/memory/`. The source of truth here is `~/memory/`, so anything written there accumulates as duplicates that never appear in the index. `block-project-scoped-memory.sh` denies writes to the project scope and returns the correct destination, assembled from the filename.
-
-Auto-generating the index does nothing if the writes land elsewhere. **Generation (`sync-memory-index.sh`) and blocking (`block-project-scoped-memory.sh`) are separate countermeasures, and both are required.**
+The harness system prompt may instruct the agent to store memory in `~/.claude/projects/<project>/memory/`. The source of truth here is `~/memory/`, so anything written there accumulates as duplicates nobody reads. `block-project-scoped-memory.sh` denies writes to the project scope and returns the correct destination, assembled from the filename.
 
 ### 4.6 Auditing the Rules
 
