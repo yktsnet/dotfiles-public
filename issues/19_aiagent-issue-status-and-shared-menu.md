@@ -2,7 +2,7 @@
 id: 19
 branch-slug: aiagent-issue-status-and-shared-menu
 github_issue:
-status: draft
+status: open
 type: feat
 対象: zsh/functions/menu.sh (新規), zsh/functions/aiagent.sh, zsh/common.nix, zsh/README.md, docs-agents/issue-driven-workflow.md, docs-agents/issue-driven-workflow.en.md
 内容: 公開している Issue 駆動ワークフローには、フローのどの段に球があるかを見る手段が無い。README の Role Separation 節が「実際には複数の worktree と相談者セッションが同時に走る」と書いている一方で、走っている worktree と未マージのブランチを一覧する関数が公開されていない。`issue-status` を足し、あわせて関数ごとに割れている選択 UI と y/N 確認を共通の `_pick` / `_confirm` に寄せる。
