@@ -113,6 +113,14 @@ draft  →（設計完了・user が保証節を裁可）→  open  →（issue-
 
 ## シェル関数
 
+### `issue-status`
+
+フローのどの段に球があるかを見る、読み取り専用の関数。`issues/` にも git にも書き込まない。
+
+1. カレントリポジトリの `issues/` 直下から `status: draft` と `status: open` の件数を数える（`open` は該当ファイル名の一覧つき）。
+2. `claude/*` の worktree をブランチ名・パスつきで一覧する。
+3. main に未マージの `claude/*` ブランチをコミット数つきで一覧する。
+
 ### `issue`
 
 対象Issueを選択し、Agentを起動。Issueの管理はローカルファイル（`issues/`）が唯一の真実。GitHub Issue は記録用ミラーで、`issue-finish` が完了時に「作成→即クローズ」で残す。

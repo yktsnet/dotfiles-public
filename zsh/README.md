@@ -25,7 +25,8 @@ Issue 駆動ワークフロー（[docs-agents/issue-driven-workflow.md](../docs-
 
 | ファイル | 主な関数 |
 |---|---|
-| `functions/aiagent.sh` | `issue` `issue-abort` `issue-finish`（Claude Code 用 Issue 駆動） |
+| `functions/aiagent.sh` | `issue` `issue-abort` `issue-finish` `issue-status`（Claude Code 用 Issue 駆動） |
+| `functions/menu.sh` | `_pick` `_confirm`（選択 UI と y/N 確認の共通実装） |
 | `functions/claude.sh` | `skill`（手動起動 skill を fzf で選んで Claude Code に渡す） |
 | `functions/git.sh` | `gs` `gc` `gca` `gp` `gpl` ほか git ショートカット |
 | `functions/utils.sh` | `list` `dot` `disk` `ssh`（fzf 補完）ほか |
@@ -34,7 +35,7 @@ Issue 駆動ワークフロー（[docs-agents/issue-driven-workflow.md](../docs-
 
 ### 公開範囲
 
-稼働環境の `zsh/` はデバイス別（macOS / Linux）に実装を分け、Issue 駆動のほかにも ops・電源管理・netboot 配信・マイコン書き込み・ドキュメント変換など十数本のモジュールを持つ。ここに収めているのは**そのうち Issue 駆動ワークフローに直接必要な4本**で、フリート固有の接続情報を含む ops 系は公開していない。
+稼働環境の `zsh/` はデバイス別（macOS / Linux）に実装を分け、Issue 駆動のほかにも ops・電源管理・netboot 配信・マイコン書き込み・ドキュメント変換など十数本のモジュールを持つ。ここに収めているのは**そのうち Issue 駆動ワークフローに直接必要な5本**で、フリート固有の接続情報を含む ops 系は公開していない。
 
 デバイス別に分かれている実装をここでは OS 別の2エントリポイントへ畳んでいるため、稼働側と1対1では対応しない。
 

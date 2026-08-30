@@ -49,7 +49,7 @@
 - **`.claude/skills/jp-writing/SKILL.md`** — 日本語の文章規範。冗長の排除・LLM口調の禁止・視点の一貫性・リライト時の一律適用の禁止。相互参照: `readme-i18n` / `repo-readme` が文章を書く際の前提。棚卸し: 937ba036 2026-08-16
 - **`.claude/skills/mermaid-diagram/SKILL.md`** — Mermaid 図の新規作成・監査・修正の手順。相互参照: 基準は `diagram-guide.md`（本 Skill は手順のみで基準を持たない）、README 文脈では `repo-readme` から `readme-guide.md` §8 経由で呼ばれる。棚卸し: b4bd9ce5 2026-08-16
 - **`.claude/skills/module-dev/SKILL.md`** — OSS モジュール型リポの設計標準。型と配布形態・デモ方式を決める。相互参照: 規範の正は `module-guide.md`。棚卸し: b9b3068f 2026-08-16
-- **`.claude/skills/comment-cleanup/SKILL.md`** — WHAT を説明するだけの冗長なコメント・日付入り履歴コメントを検出して削除・圧縮する。行数の機械的な強制はしない。棚卸し: f0fe1091 2026-08-16
+- **`.claude/skills/mvp-docs/SKILL.md`** — MVP 期の駆動文書 PLAN.md / JUDGE.md を対で作り、実装中に育てる。記録する判断の条件と件数の上限を持つ。相互参照: 昇華と削除は `repo-readme/SKILL.md`（基準は `readme-guide.md` §7）、種別判定は `readme-guide.md` §1、ファイル衛生は `repo-guide.md` §1。棚卸し: 09a72b54 2026-08-30
 - **`.claude/skills/skill-dev/SKILL.md`** — 新しい Skill の配置ルール。global とリポ固有の判断、frontmatter の必須項目、既定の `disable-model-invocation: true`。相互参照: `.claude/hooks/block-new-skill-md.sh` が Write 時にこの規約を検査する。棚卸し: 6f29322f 2026-08-16
 - **`.claude/skills/consolidate-rules/SKILL.md`** — 本索引を起点に規則ファイルの矛盾・陳腐化を棚卸しする。相互参照: 索引は本ファイル、対象は CLAUDE.md群・docs-agents・日本語 description の Skill。棚卸し: 9dfa044c 2026-08-16
 

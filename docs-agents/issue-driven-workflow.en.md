@@ -113,6 +113,14 @@ Never reopen the original Issue or send follow-up prompts into the same Agent se
 
 ## Shell Functions
 
+### `issue-status`
+
+A read-only function that shows where the flow currently stands. Writes nothing to `issues/` or git.
+
+1. Counts `status: draft` and `status: open` Issues under the current repository's `issues/` (with the filenames for `open`).
+2. Lists `claude/*` worktrees with their branch names and paths.
+3. Lists `claude/*` branches not yet merged into `main`, with their commit counts.
+
 ### `issue`
 
 Selects the target Issue and launches the Agent. Local files under `issues/` are the single source of truth; the GitHub Issue is a record-only mirror that `issue-finish` leaves behind as "create → close immediately" on completion.

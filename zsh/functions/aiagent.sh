@@ -1,9 +1,4 @@
-_aiagent_confirm() {
-  print -n "$1 [y/N]: "
-  local ans
-  read -r ans
-  [[ "$ans" == [yY]* ]]
-}
+# y/N 確認は menu.sh の _confirm を使う（common.nix で本ファイルより先に読み込まれる）。
 
 # sed -i の in-place 引数は BSD（macOS）と GNU（NixOS）で非互換なため吸収する
 _aiagent_sed_inplace() {
@@ -48,6 +43,11 @@ _aiagent_pull_main() {
   fi
 }
 
+# 00_template.md はひな形であり着手対象ではないため、選択候補にも件数にも混ぜない
+_aiagent_is_template() {
+  [[ "${1:t}" == "00_template.md" ]]
+}
+
 _aiagent_select_issue() {
   local base_dir="$1"
   local _entries=()
@@ -55,6 +55,7 @@ _aiagent_select_issue() {
 
   # カレントリポジトリの issues ディレクトリ直下のみを対象にする
   for _f in "${base_dir}/issues/"*.md(N); do
+    _aiagent_is_template "$_f" && continue
     head -n 15 "$_f" 2>/dev/null | grep -q '^status:[[:space:]]*open$' || continue
     _entries+=("$(basename "$_f")	${_f}")
   done
@@ -77,6 +78,7 @@ _aiagent_select_draft_issue() {
   local _f
 
   for _f in "${base_dir}/issues/"*.md(N); do
+    _aiagent_is_template "$_f" && continue
     head -n 15 "$_f" 2>/dev/null | grep -q '^status:[[:space:]]*draft$' || continue
     _entries+=("$(basename "$_f")	${_f}")
   done
@@ -91,6 +93,36 @@ _aiagent_select_draft_issue() {
           --delimiter=$'\t' \
           --with-nth=1 \
           --preview='cat {2}'
+}
+
+# リポルートの issues/ 直下を走査し、status: が一致するものを数える（00_template.md は除外）。
+# git リポジトリ外では 0 を返す
+_aiagent_count_status() {
+  emulate -L zsh
+  # "status" は zsh の読み取り専用特殊変数（$? の別名）なので使わない
+  local want_status="$1"
+  local base_dir
+  base_dir=$(git rev-parse --show-toplevel 2>/dev/null) || { echo 0; return; }
+
+  local count=0
+  local _f
+  for _f in "${base_dir}/issues/"*.md(N); do
+    _aiagent_is_template "$_f" && continue
+    head -n 15 "$_f" 2>/dev/null | grep -q "^status:[[:space:]]*${want_status}$" || continue
+    (( count++ ))
+  done
+  echo "$count"
+}
+
+_aiagent_count_worktrees() {
+  emulate -L zsh
+  git worktree list --porcelain 2>/dev/null \
+    | awk '$1 == "branch" && $2 ~ /^refs\/heads\/claude\// { c++ } END { print c + 0 }'
+}
+
+_aiagent_count_unmerged() {
+  emulate -L zsh
+  git branch --no-merged main --format='%(refname:short)' 2>/dev/null | grep -c '^claude/'
 }
 
 # git の管理簿に居ない {repo}.wt/ 配下の残骸を消す（.wt は issue() 専用領域なので安全）
@@ -140,7 +172,7 @@ _aiagent_abort() {
   branch=$(echo "$selected" | cut -f1)
   dir=$(echo "$selected" | cut -f2)
 
-  _aiagent_confirm "Abort and delete ${branch} (${dir})?" || return 0
+  _confirm "Abort and delete ${branch} (${dir})?" n || return 0
 
   git worktree remove --force "$dir"
   git branch -D "$branch"
@@ -193,7 +225,7 @@ _aiagent_finish() {
             --preview='git log --oneline main..{}; echo; git diff --stat main...{}')
     if [[ -n "$head_branch" ]]; then
       git log --oneline "main..${head_branch}"
-      _aiagent_confirm "Push, create PR and merge ${head_branch}?" || head_branch=""
+      _confirm "Push, create PR and merge ${head_branch}?" n || head_branch=""
     fi
     if [[ -n "$head_branch" ]]; then
       pr_title=$(git log -1 --format='%s' "$head_branch")
@@ -405,7 +437,7 @@ _aiagent_run() {
     return 1
   fi
 
-  _aiagent_confirm "Run pr-workflow with Claude Code for $(basename "$issue_file")?" || return 0
+  _confirm "Run pr-workflow with Claude Code for $(basename "$issue_file")?" n || return 0
 
   # worktree に隔離して実行（main のチェックアウトを汚さない・並列実行可）
   git worktree add "$wt_dir" -b "$branch_name" || return 1
@@ -527,6 +559,54 @@ _aiagent_import_pr() {
   _aiagent_sed_inplace "s/^status:.*$/status: close/" "$close_file"
 
   echo "Synced PR #$pr_num to $(basename "$done_file")"
+}
+
+# 読み取り専用。issues/ にも git にも書き込まない
+_aiagent_status() {
+  emulate -L zsh
+
+  local base
+  base=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$base" ]]; then
+    echo "Error: Not a git repository." >&2
+    return 1
+  fi
+
+  echo "issue status — $(basename "$base")"
+
+  printf "  %-8s %d\n" "draft" "$(_aiagent_count_status draft)"
+
+  printf "  %-8s %d\n" "open" "$(_aiagent_count_status open)"
+  local _f
+  for _f in "${base}/issues/"*.md(N); do
+    _aiagent_is_template "$_f" && continue
+    head -n 15 "$_f" 2>/dev/null | grep -q '^status:[[:space:]]*open$' || continue
+    printf "           %s\n" "$(basename "$_f")"
+  done
+
+  printf "  %-8s %d\n" "worktree" "$(_aiagent_count_worktrees)"
+  local key val wt_path="" wt_branch=""
+  git worktree list --porcelain 2>/dev/null | while read -r key val; do
+    case "$key" in
+      worktree) wt_path="$val" ;;
+      branch)
+        wt_branch="${val#refs/heads/}"
+        [[ "$wt_branch" == claude/* ]] && printf "           %s  (%s)\n" "$wt_branch" "$wt_path"
+        ;;
+    esac
+  done
+
+  printf "  %-8s %d\n" "unmerged" "$(_aiagent_count_unmerged)"
+  local branch commits
+  git branch --no-merged main --format='%(refname:short)' 2>/dev/null | grep '^claude/' | while read -r branch; do
+    commits=$(git log --oneline "main..${branch}" 2>/dev/null | wc -l | tr -d ' ')
+    printf "           %s  (%s commits)\n" "$branch" "$commits"
+  done
+}
+
+issue-status() {
+  emulate -L zsh
+  _aiagent_status "$@"
 }
 
 issue() {
