@@ -176,8 +176,9 @@ Workflow skills are not copied per repository; they live in the global `~/.claud
 | `pr-workflow` | For the Builder. Implementation → run verification → local commit (the branch and worktree are created by `issue()`; push and PR creation happen in `issue-finish`) |
 | `new-issue` | For the Consultant. Organize requirements → mask secrets → write the Issue into `issues/` |
 | `consolidate-rules` | Audits rule files for contradiction and staleness (Section 4.6) |
+| `mvp-docs` | For the MVP phase. Authoring the driving documents PLAN.md / JUDGE.md, and the granularity of decisions to record |
 
-Both define only the generic flow; repository-specific checks and verification steps (Section 1 above) go in each repository's CLAUDE.md, which the skills reference.
+They define only the generic flow; repository-specific checks and verification steps (Section 1 above) go in each repository's CLAUDE.md, which the skills reference.
 `pr-workflow` is launched via the `claude` command from the `issue()` shell function in `issue-driven-workflow.md`.
 
 ### Knowledge Placement Criteria

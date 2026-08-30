@@ -192,8 +192,9 @@ Agent が読む指示を役割で分ける。
 | `pr-workflow` | 実行者用。実装 → 検証手段の実行 → ローカルコミット（ブランチと worktree は `issue()` が作成。push・PR 作成は `issue-finish` が行う） |
 | `new-issue` | 相談者用。要件整理 → 機密マスク → `issues/` に Issue 書き出し |
 | `consolidate-rules` | 規則ファイル間の矛盾・陳腐化の棚卸し（後述の 4.6） |
+| `mvp-docs` | MVP 期用。駆動文書 PLAN.md / JUDGE.md の作成と、記録する判断の粒度 |
 
-どちらも汎用フローのみを定義し、リポ固有の検証手段・検証手順（上記セクション1）は各リポの CLAUDE.md に書く。スキルはそれを参照する。
+いずれも汎用フローのみを定義し、リポ固有の検証手段・検証手順（上記セクション1）は各リポの CLAUDE.md に書く。スキルはそれを参照する。
 `pr-workflow` は `issue-driven-workflow.md` のシェル関数 `issue()` から `claude` コマンドで起動される。
 
 ### 知識の配置基準
