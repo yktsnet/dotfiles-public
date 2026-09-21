@@ -104,6 +104,7 @@ The implementations live in `.claude/hooks/`. In the operating fleet, `home-mana
 | `block-live-claude-config-edit.sh` | PreToolUse `Edit\|Write\|Bash` | Direct edits to `~/.claude/`, which is generated output. Rewrites the path to the source and returns it. Also catches shell-side writes such as `sed -i` (reads are let through) |
 | `block-new-skill-md.sh` | PreToolUse `Write\|Bash` | New `SKILL.md` files that break convention. Checks frontmatter (`name` / `description` / explicit-invocation flag) and placement: writing into `~/.claude/skills/` is denied, repo-local placement prompts for confirmation |
 | `block-project-scoped-memory.sh` | PreToolUse `Edit\|Write` | Memory written to the wrong store (Section 4.5) |
+| `route-browser-to-crit.sh` | PreToolUse `Bash` | Opening a loopback URL in a raw browser. Routes it through `crit-live` so a review UI is layered on (Section 3.6). Starting a dev server is only advised against, never blocked |
 | `opus-scope-and-concision.sh` | SessionStart | (Injects rather than blocks) adds concision and scope discipline for Opus models only |
 | `backup-secret-json.sh` | PreToolUse `Edit\|Write` | Backs up `secrets/**/*.json.age` before it gets overwritten (a safety net, not a block; keeps only the last 5 generations) |
 
@@ -129,6 +130,18 @@ dotfiles_path="${file_path/#$home\/.claude\//$home/dotfiles/.claude/}"
 ```
 
 If all you need is a wall, `deny` suffices. The payoff of a hook is that it can push the Agent onto the right path at the moment it refuses.
+
+---
+
+### 3.6 Putting "show it to a human" on a review surface
+
+Opening a local page in a browser has exactly one purpose: **showing it to a human**. Hand over a bare URL and what comes back is a spoken impression — the Agent cannot recover which element each remark was about.
+
+`route-browser-to-crit.sh` refuses that launch and routes it to `crit-live <url>` (`home-manager/modules/crit.nix`). With crit's review UI layered on, the user can pin comments to elements on the page, and after Finish Review the Agent reads them as structured feedback via `crit comments --json`.
+
+The distinction is purpose. The Agent's own automated checks (`curl` and the like) pass through untouched, and starting a dev server is advised against rather than blocked. OAuth callbacks are not about showing anything, so they are out of scope. `.claude/hooks/tests/route-browser-to-crit.test.sh` pins the decision as three values: deny / advise / silent.
+
+Diffs are reviewed with `hunk`, running pages with `crit` — the entry point follows the subject.
 
 ---
 

@@ -19,6 +19,7 @@
     ../../home-manager/modules/desktop/gui-bundle.nix
     ../../home-manager/modules/firefox.nix
     ../../home-manager/modules/sioyek.nix
+    ../../home-manager/modules/crit.nix
   ];
 
   home.username = lib.mkForce "yktsnet";

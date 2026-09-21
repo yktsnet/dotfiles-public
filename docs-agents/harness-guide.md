@@ -119,6 +119,7 @@ Co-Authored-By を外す。Agent は道具であり共著者ではない、と�
 | `block-live-claude-config-edit.sh` | PreToolUse `Edit\|Write\|Bash` | 生成物である `~/.claude/` への直接編集。生成元のパスへ書き換えて返す。`sed -i` 等のシェル経由の書き込みも見る（読み取りは通す） |
 | `block-new-skill-md.sh` | PreToolUse `Write\|Bash` | 新規 `SKILL.md` の規約違反。frontmatter（`name` / `description` / 明示呼び出し指定）と配置先を検査し、`~/.claude/skills/` への直書きは拒否、repo-local は確認を挟む |
 | `block-project-scoped-memory.sh` | PreToolUse `Edit\|Write` | メモリの置き場違い（後述の 4.5） |
+| `route-browser-to-crit.sh` | PreToolUse `Bash` | 生のブラウザでの loopback URL 起動。`crit-live` へ回してレビュー UI を被せる（後述の 3.6）。dev server の起動は助言のみで通す |
 | `opus-scope-and-concision.sh` | SessionStart | （遮断ではなく注入）Opus 系のときだけ簡潔性とスコープ厳守を足す |
 | `backup-secret-json.sh` | PreToolUse `Edit\|Write` | `secrets/**/*.json.age` の上書き前にバックアップ（遮断ではなく安全網。直近5世代のみ保持） |
 | `static-check.sh` | PostToolUse `Edit\|Write\|NotebookEdit` | （遮断ではなく検査）編集した1ファイルの構文検査（`.py` は py_compile・`.nix` は nix-instantiate --parse・`.sh` は shebang から選んだ shell の `-n`）。失敗時だけ exit 2 で差し戻す。CLAUDE.md に手段として書いてあっても実行はモデルの裁量なので、忘れても CI まで露見しない穴を塞ぐ |
@@ -145,6 +146,18 @@ dotfiles_path="${file_path/#$home\/.claude\//$home/dotfiles/.claude/}"
 ```
 
 壁を立てるだけなら `deny` で足りる。フックの利得は、拒否と同時に正しい経路へ寄せられる点にある。
+
+---
+
+### 3.6 人に見せる動きをレビュー面に載せる
+
+ローカルページをブラウザで開くのは、**人間に見せる**目的しか無い。そこに URL をそのまま渡すと、返ってくるのは口頭の感想であり、どの要素についての指摘かはエージェント側で復元できない。
+
+`route-browser-to-crit.sh` はその起動を拒否して `crit-live <url>`（`home-manager/modules/crit.nix`）へ誘導する。crit のレビュー UI を被せた状態で渡せば、user はページ上の要素を指してコメントを溜められ、エージェントは Finish Review のあと `crit comments --json` で構造化された指摘として読める。
+
+区別しているのは目的である。エージェント自身の自動確認（`curl` 等）は素通しし、dev server の起動は止めずに助言だけ返す。OAuth のコールバックは見せる目的ではないので対象外。判定は `.claude/hooks/tests/route-browser-to-crit.test.sh` が deny / advise / silent の3値で固定している。
+
+diff のレビューは `hunk`、稼働ページのレビューは `crit` と、対象で入口が分かれる。
 
 ---
 
