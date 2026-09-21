@@ -3,7 +3,7 @@ name: dependabot-triage
 description: 溜まった Dependabot PR（主に major）を横断棚卸しし、github-actions major(CI green)はその場でマージまで実行する。「溜まってる PR 見て」「Dependabot 棚卸しして」と頼まれたときに使う。対象リポは固定リストを保守せず、dotfiles / github-public / github-private 配下を毎回動的に探索する。判断基準の正本は `docs-agents/cicd-guide.md` §6。
 ---
 
-Dependabot の自動マージ運用（`cicd-guide.md` §6）は minor/patch を無条件マージするため、放置してよいのは major だけになる。本 Skill はその major の溜まりを棚卸しする作業を代行する。
+Dependabot の自動マージ運用（`cicd-guide.md` §6）は minor/patch を無条件マージするため、自動マージのあるリポで放置してよいのは major だけになる。本 Skill はその溜まりを棚卸しする作業を代行する。自動マージを持てないリポ（後述の手動棚卸しリポ）では minor/patch も対象に入る。
 
 ## 対象リポの探索（固定リストを持たない）
 
@@ -16,11 +16,14 @@ find ~/github-public ~/github-private -maxdepth 3 -name dependabot.yml -path '*/
 
 `dotfiles` はそれ自体が1リポ(`.github/` は深さ1)なのに対し、`github-public`/`github-private` は配下に個別リポが並ぶ層が1つ多い(`<repo>/.github/` は深さ2)。深さが異なるため探索コマンドを分けている。
 
-ヒットしたリポを次の3種類に分ける。`.github/workflows/dependabot-auto-merge.yml` の有無だけでは判定を誤る（後述の未標準化リポを本当に CI が無いリポと誤認する）ため、`.github/workflows/` 自体の有無も見る。
+ヒットしたリポを次の4種類に分ける。`.github/workflows/dependabot-auto-merge.yml` の有無だけでは判定を誤る（未標準化リポを本当に CI が無いリポと誤認する）ため、`.github/workflows/` 自体の有無と `gh api repos/{owner}/{repo} --jq .visibility` も見る。
 
-- CI あり ＋ auto-merge あり → 「CI ありリポの棚卸し」
-- CI あり ＋ auto-merge なし → 未標準化。`repo-standardize` の4点セット未適用の疑いがあるので、棚卸しより先にその旨を報告する（後述）
-- CI 自体が無い(dotfiles 等) → 「CI なしリポ」
+- public ＋ CI あり ＋ auto-merge あり → 「CI ありリポの棚卸し」
+- public ＋ CI あり ＋ auto-merge なし → 未標準化。`repo-standardize` の4点セット未適用の疑いがあるので、棚卸しより先にその旨を報告する（後述）
+- private ＋ CI あり → 「手動棚卸しリポ」
+- CI 自体が無い → 「CI なしリポ」
+
+private リポは無料プランでブランチ保護 / ruleset が使えず、required status checks を設定できない。`gh pr merge --auto` は待つ対象が無く CI 完了前にマージするため、auto-merge workflow を置いてはいけない。auto-merge が無いことは未標準化ではなく正しい状態である。
 
 ## CI ありリポの棚卸し
 
@@ -42,13 +45,19 @@ find ~/github-public ~/github-private -maxdepth 3 -name dependabot.yml -path '*/
 
 Compatibility score(他リポの CI 統計)は判断材料にしない。自リポ CI > semver 種別 >> score。
 
-## 未標準化リポ（CI はあるが auto-merge workflow が無い）
+## 未標準化リポ（public ＋ CI はあるが auto-merge workflow が無い）
 
 棚卸し判断はしない。「`repo-standardize` の4点セットが未適用と見られる」とだけ報告し、適用するかは user の判断に委ねる。ここを CI なしリポと同じ扱いにしない（CI がある以上、放置すると minor/patch も無条件で溜まり続けるため運用上の意味が異なる）。
 
-## CI なしリポ(dotfiles 等)
+## 手動棚卸しリポ（private ＋ CI あり）
 
-自動マージなし。棚卸しは「グループ PR が来ているか」の確認のみで、マージ判断は求めない。Web でマージされていたら、近いうちに `u` (pull) で取り込むよう user に一言添える。nix input は週1本のグループ PR に集約されるため、rebuild が実質のテストになる。
+自動マージが無いので minor/patch も溜まる。major だけでなく**全ての open PR** を対象にし、「CI ありリポの棚卸し」と同じ手順で判断する。minor/patch は CI green ならマージ提案でよい。
+
+古い PR は base が古く、後から足した workflow が走っていないことがある。その場合は `@dependabot rebase` を投げ、rebase 後の run が揃って green になるまで待ってからマージする。rebase の着地には数十秒かかり、その間は前の run の結果が残るので、head SHA が変わったことを確認してから判定する。
+
+## CI なしリポ
+
+自動マージなし。棚卸しは「グループ PR が来ているか」の確認のみで、マージ判断は求めない。Web でマージされていたら、近いうちに `u` (pull) で取り込むよう user に一言添える。
 
 ## 出力形式
 

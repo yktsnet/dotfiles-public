@@ -127,6 +127,7 @@ Decide by rule, not per PR — don't deliberate over each individual PR.
 | major | Hold. Once several accumulate, review the changelogs and decide in a batch (merge / close / follow-up Issue) |
 | CI red | Don't merge. Treat as a candidate for closing (`@dependabot ignore this major version` for a permanent ignore) |
 | Repo without CI | Auto-merge prohibited. Use grouping for notification only |
+| Private repo | Auto-merge prohibited. The free plan has no branch protection / rulesets, so required status checks cannot be set; `gh pr merge --auto` then has nothing to wait for and merges before CI finishes. Triage minor/patch by hand too |
 
 The setup is three pieces. Templates live in `repo-standardize`'s `reference/`.
 
@@ -135,6 +136,8 @@ The setup is three pieces. Templates live in `repo-standardize`'s `reference/`.
 3. Repo settings — `allow_auto_merge: true` plus a ruleset on main (required status checks list the CI job name; bypass allows Repository admin / always, so the user's direct pushes are not blocked)
 
 Compatibility score is CI statistics from other people's repos — not a decision factor. Your own repo's CI > semver type >> score.
+
+An old PR may sit on a stale base, so workflows added later never ran on it. Send `@dependabot rebase` and judge the runs only after confirming the head SHA changed (the previous runs linger until the rebase lands).
 
 Note: because auto-merge commits originate from `GITHUB_TOKEN`, **push-triggered workflows after the merge (e.g. deploy) do not fire**. This delays dependency updates reaching a demo until the next human push — acceptable. Only switch to a PAT for repos that need immediate reflection.
 

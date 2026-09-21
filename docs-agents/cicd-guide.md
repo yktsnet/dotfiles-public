@@ -139,6 +139,7 @@ Pages を GitHub 連携で運用する場合、この表の Cloudflare 系は不
 | major | 保留。溜まったら changelog を見て一括判断（マージ / close / 追従 Issue 化） |
 | CI レッド | マージしない。close してよい提案として扱う（`@dependabot ignore this major version` で恒久無視可） |
 | CI が無いリポ | 自動マージ禁止。グループ化して通知としてのみ使う |
+| private リポ | 自動マージ禁止。無料プランはブランチ保護 / ruleset を持てず required status checks を設定できないため、`gh pr merge --auto` は待つ対象が無く CI 完了前にマージする。minor/patch も人手で棚卸しする |
 
 構成は3点セット。雛形は `repo-standardize` の `reference/` にある。
 
@@ -147,6 +148,8 @@ Pages を GitHub 連携で運用する場合、この表の Cloudflare 系は不
 3. リポ設定 — `allow_auto_merge: true` ＋ main への ruleset（required status checks に CI のジョブ名、bypass に Repository admin / always。これで user の直 push は塞がない）
 
 Compatibility score は他人のリポの CI 統計であり判断材料にしない。自リポの CI ＞ semver 種別 ＞＞ score。
+
+古い PR は base が古く、後から足した workflow が走っていないことがある。`@dependabot rebase` を投げ、head SHA が変わったことを確認してから run の結果を判定する（rebase の着地までは前の run の結果が残る）。
 
 注意: auto-merge のマージは `GITHUB_TOKEN` 起点のため、**マージ後の push トリガー workflow（deploy 等）は発火しない**。デモの依存反映は次の人手 push まで遅延するが許容する。即時反映が要るリポだけ PAT に切り替える。
 
