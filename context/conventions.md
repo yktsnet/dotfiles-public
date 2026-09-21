@@ -3,7 +3,7 @@
 コードの書き方・編集の共通ルール（どう書くか）。ディレクトリ構成は `structure.md` を参照。
 
 ## 1. 技術スタック
-- **Nix Flakes**: NixOS（GUI・ヘッドレス VPS）を統一管理。macOS（nix-darwin）構成も同居するが、更新は Linux 側が主。
+- **Nix Flakes**: NixOS（GUI・ヘッドレス VPS）と macOS（nix-darwin）を統一管理。
 - **home-manager**: ユーザ環境（TUI ツールチェーン・dotfiles）を宣言的に管理。
 - **Zsh**: Issue 駆動ワークフローのシェルマクロ（`zsh/functions/`）。
 
@@ -11,6 +11,7 @@
 - Nix は `nix fmt`（フォーマッタ）で統一する。属性セットは用途ごとにモジュール分割し、`home-manager/modules/` に配置する。
 - デバイス固有設定は `devices/gui/`・`devices/headless/` に分け、共通モジュールを import して組み立てる。
 - Zsh 関数は1機能1ファイルを基本とし、`zsh/functions/` に置く。
+- OS 差は `zsh/functions/os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）を通す。関数本体に `uname` / `$OSTYPE` / `sed -i` / `xdg-open` を直接書かない。Linux のハードウェア・systemd を直に叩く関数は冒頭で `_linux_only '依存先' || return 1`。
 
 ## 3. ファイル編集戦略
 - **広範囲の書き換え**: 変更箇所が多い場合（目安: 10箇所以上、またはファイルの20%超）、`str_replace` の繰り返しではなく `bash` でファイル全体を一括書き出す（`cat > path << 'EOF'` 等）。

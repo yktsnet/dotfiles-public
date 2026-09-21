@@ -1,14 +1,5 @@
-# y/N 確認は menu.sh の _confirm を使う（common.nix で本ファイルより先に読み込まれる）。
-
-# sed -i の in-place 引数は BSD（macOS）と GNU（NixOS）で非互換なため吸収する
-_aiagent_sed_inplace() {
-  local expr="$1" file="$2"
-  if sed --version >/dev/null 2>&1; then
-    sed -i "$expr" "$file"
-  else
-    sed -i '' "$expr" "$file"
-  fi
-}
+# y/N 確認は menu.sh の _confirm、sed -i の OS 差は os.sh の _sed_i を使う
+# （どちらも common.nix で本ファイルより先に読み込まれる）。
 
 # main を origin/main に追従させる。
 # 前提となる運用: main 上のローカル変更は Issue ドキュメント・settings 等の周辺ファイルのみで、
@@ -192,7 +183,7 @@ _aiagent_open() {
   local target_file
   target_file=$(echo "$selected" | cut -f2)
 
-  _aiagent_sed_inplace "s/^status: draft$/status: open/" "$target_file"
+  _sed_i "s/^status: draft$/status: open/" "$target_file"
   echo "Opened: $(basename "$target_file")"
 
   cd "$base" || return 1
@@ -353,7 +344,7 @@ _aiagent_finish() {
       issue_url=$(gh issue create --title "${rec_type}: [#${rec_id}] ${rec_title}" --body-file "$close_file" 2>/dev/null)
       if [[ -n "$issue_url" ]]; then
         gh_num=$(echo "${issue_url##*/}" | tr -d '\r\n[:space:]')
-        _aiagent_sed_inplace "s/^github_issue:.*$/github_issue: ${gh_num}/" "$close_file"
+        _sed_i "s/^github_issue:.*$/github_issue: ${gh_num}/" "$close_file"
         echo "Record: GitHub Issue #${gh_num}"
       else
         echo "Warning: Failed to create record GitHub Issue. Continuing."
@@ -363,7 +354,7 @@ _aiagent_finish() {
       gh issue close "$gh_num" 2>/dev/null || echo "Warning: Failed to close GitHub Issue #${gh_num}."
     fi
 
-    _aiagent_sed_inplace "s/^status: open$/status: close/" "$close_file"
+    _sed_i "s/^status: open$/status: close/" "$close_file"
 
     # マージされたPRの内容は別ファイルとして issues/done/ に記録する（Issueファイル自体は移動しない）
     local commit_paths=("$close_file")
@@ -556,7 +547,7 @@ _aiagent_import_pr() {
     fi
   } > "$done_file"
 
-  _aiagent_sed_inplace "s/^status:.*$/status: close/" "$close_file"
+  _sed_i "s/^status:.*$/status: close/" "$close_file"
 
   echo "Synced PR #$pr_num to $(basename "$done_file")"
 }

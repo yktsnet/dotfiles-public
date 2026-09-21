@@ -31,7 +31,8 @@
       bindkey '^[[B' history-search-forward
 
       # Issue 駆動ワークフローのシェル関数群を読み込む。
-      # menu.sh の _pick / _confirm は他の関数ファイルから呼ばれる土台なので、先に読み込む。
+      # os.sh のシムと menu.sh の _pick / _confirm は他の関数ファイルから呼ばれる土台なので、先に読み込む。
+      ${builtins.readFile ./functions/os.sh}
       ${builtins.readFile ./functions/menu.sh}
       ${builtins.readFile ./functions/utils.sh}
       ${builtins.readFile ./functions/git.sh}
