@@ -69,7 +69,7 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 | 構成 | OS / 起動 | 役割 |
 |---|---|---|
 | `gui/linux-desktop` | NixOS（disko / SSD） | 主開発機。相談者チャットと `issue()` の起動元。dotfiles の配布元 |
-| `gui/macbook` | macOS（nix-darwin） | macOS 構成。現在は非稼働 |
+| `gui/macbook` | macOS（nix-darwin） | GUI 機の macOS 面。home-manager 層を Linux 機と共有する |
 | `gui/linux-laptop` | NixOS（disko / SSD） | 可搬 GUI 機。netboot の配信元 |
 | `headless/ssd/linux-server-a` | NixOS headless（VPS） | 公開サービス・ops |
 | `headless/ssd/linux-server-b` | NixOS headless | 常駐ジョブ |
@@ -77,7 +77,7 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 
 GUI と headless で共通モジュールを分け、機体固有の差分（`hardware.nix` / `disko.nix` / `monitor.nix` 等）だけを各ディレクトリに置く。ディスクレス機は世代保持を捨てて最新1世代のみを配給する（`.claude/skills/netboot-stateless/`）。
 
-更新は Linux（NixOS）側を主として進む。macOS（nix-darwin）構成は Flake に同居したままだが、稼働機が無い間は追従が遅れる。
+OS の差は、Nix 側では `pkgs.stdenv.isDarwin`、シェル側では `zsh/functions/os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）に閉じ込める。home-manager モジュールと関数ファイルは両 OS が同一のものを読む。
 
 フリート横断の状態確認は `apps/zsh/fleet_monitor.py` が行う。リモートにエージェントを常駐させず、ローカルのスクリプトを SSH の標準入力へ流し込んで実行する。
 

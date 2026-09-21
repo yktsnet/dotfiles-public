@@ -69,7 +69,7 @@ A single Flake binds six configurations that differ in OS and in how they boot. 
 | Configuration | OS / Boot | Role |
 |---|---|---|
 | `gui/linux-desktop` | NixOS (disko / SSD) | Primary dev machine. Where consultant chat and `issue()` are launched; distributes the dotfiles |
-| `gui/macbook` | macOS (nix-darwin) | macOS configuration. Currently inactive |
+| `gui/macbook` | macOS (nix-darwin) | The macOS side of the GUI machines. Shares the home-manager layer with the Linux ones |
 | `gui/linux-laptop` | NixOS (disko / SSD) | Portable GUI machine. Serves netboot images |
 | `headless/ssd/linux-server-a` | NixOS headless (VPS) | Public services and ops |
 | `headless/ssd/linux-server-b` | NixOS headless | Resident jobs |
@@ -77,7 +77,7 @@ A single Flake binds six configurations that differ in OS and in how they boot. 
 
 Common modules are split between GUI and headless, and only per-machine differences (`hardware.nix`, `disko.nix`, `monitor.nix`, and so on) live in each directory. Diskless machines drop NixOS generation retention and serve only the latest one (`.claude/skills/netboot-stateless/`).
 
-Development moves on the Linux (NixOS) side. The macOS (nix-darwin) configuration still lives in the Flake, but it lags while no macOS machine is in service.
+OS differences are confined to `pkgs.stdenv.isDarwin` on the Nix side and to the shims in `zsh/functions/os.sh` (`_is_darwin`, `_sed_i`, `_open`, `_linux_only`) on the shell side. Home Manager modules and function files are read as-is by both operating systems.
 
 Fleet-wide status checks run through `apps/zsh/fleet_monitor.py`, which keeps no agent resident on the remotes: it pipes the local script into SSH's stdin instead.
 
