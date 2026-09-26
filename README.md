@@ -1,28 +1,20 @@
 [🇯🇵 日本語](README.md) | [🇬🇧 English](README.en.md)
 
-# Two-Phase Development Lifecycle for AI-Agent Collaboration
+# AI-Agent Development Environment as Code
 
 [![CI](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml/badge.svg)](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml)
 
 AI エージェントとの開発では、ボトルネックは生成から検証と意図伝達に移る。
-本リポジトリは開発を2フェーズに分け、立ち上げ期は仕様書（PLAN.md / JUDGE.md）、保守期は保証台帳（guarantees.md）とテストという異なる駆動文書で回す。
-このライフサイクルを支える実行環境（Nix・ロール分離・skill 群）ごと、コードとして公開する。
+本リポジトリは、その前提で組んだ個人の開発環境を、Nix 構成・ロール分離の実行機構・skill 群ごとコードとして公開する。
+開発の型は、チームのリポジトリへ取り込める形に切り出して [sdlc-kit](https://github.com/yktsnet/sdlc-kit) で配っている。ここはその型を実際に回している環境である。
 
 ---
 
 ## Development Lifecycle（2つの駆動文書）
 
-開発文書には寿命がある。単一の仕様書を永続させようとせず、フェーズごとに駆動文書を交代させる。フェーズは各リポジトリの CLAUDE.md で宣言する。
+開発を2フェーズに分け、駆動文書を交代させる。立ち上げ期は PLAN.md / JUDGE.md（SDD）、リリース後は保証台帳 `docs/guarantees.md` とテスト（GDD）で回す。フェーズは各リポジトリの CLAUDE.md で宣言する。
 
-### MVP期: Spec-Driven Development (SDD)
-
-方向性と構造が固まっていない立ち上げ期は、PLAN.md（仕様・計画・作業記録）と JUDGE.md（実装中の判断記録）が開発を駆動する。エージェントに両ファイルを更新させながら実装を進め、リリース時に README へ昇華して役目を終える。仕様書はこのフェーズ限りの足場であり、永続を求めない。
-
-### Issueドリブン期: Guarantee-Driven Development (GDD)
-
-リリース後は、仕様書を書くほどではない修正が積み重なり、最初の仕様書は実装から乖離していく。そこで駆動文書を保証台帳（`docs/guarantees.md`）へ交代させる。台帳は「何を約束し、何を約束していないか」だけを記し、各約束は対応するテストが継続検証する。README と違い、破れば落ちるため黙って腐れない。
-
-保証の宣言（何が成り立つべきか）は user が Issue の保証節で裁可し、テストコードの実装はエージェントが書く。人間の仕事はテストを書くことから約束を裁可することへ移る。詳細は [test-policy.md](docs-agents/test-policy.md) を参照。
+考え方は sdlc-kit の [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md) にある。本リポジトリでの運用基準は [test-policy.md](docs-agents/test-policy.md) を参照。
 
 ---
 

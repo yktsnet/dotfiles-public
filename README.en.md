@@ -1,28 +1,20 @@
 [🇯🇵 日本語](README.md) | [🇬🇧 English](README.en.md)
 
-# Two-Phase Development Lifecycle for AI-Agent Collaboration
+# AI-Agent Development Environment as Code
 
 [![CI](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml/badge.svg)](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml)
 
 In development with AI agents, the bottleneck shifts from generation to verification and intent transfer.
-This repository splits development into two phases, each driven by a different document: specifications (PLAN.md / JUDGE.md) during bootstrap, the guarantee ledger (guarantees.md) and its tests during maintenance.
-The execution environment that supports this lifecycle (Nix, role separation, and the skill set) is published as code along with it.
+This repository publishes a personal development environment built on that premise, as code: the Nix configuration, the machinery for role separation, and the skill set.
+The development method itself is packaged for team repositories in [sdlc-kit](https://github.com/yktsnet/sdlc-kit). This repository is the environment where that method actually runs.
 
 ---
 
 ## Development Lifecycle (Two Driving Documents)
 
-Development documents have lifespans. Rather than trying to keep a single specification alive forever, the driving document changes with the phase. Each repository declares its phase in its CLAUDE.md.
+Development is split into two phases, and the driving document changes with the phase: PLAN.md / JUDGE.md (SDD) during bootstrap, and the guarantee ledger `docs/guarantees.md` with its tests (GDD) after release. Each repository declares its phase in its CLAUDE.md.
 
-### MVP Phase: Spec-Driven Development (SDD)
-
-While direction and structure are still unsettled, PLAN.md (spec, plan, and work log) and JUDGE.md (decisions made during implementation) drive development. The agent keeps both files updated as implementation proceeds, and at release they are absorbed into the README and retired. The specification is scaffolding for this phase only; it is not expected to persist.
-
-### Issue-Driven Phase: Guarantee-Driven Development (GDD)
-
-After release, changes too small to deserve a spec accumulate, and the original specification inevitably drifts from the implementation. So the driving document hands over to the guarantee ledger (`docs/guarantees.md`). The ledger records only what is promised and what is not, and every promise is continuously verified by a corresponding test. Unlike a README, it cannot rot silently, because breaking a promise makes a test fail.
-
-The human approves the declaration of guarantees (what should hold) in each Issue's guarantee section, and the agent writes the test code. The human's job shifts from writing tests to approving promises. See [test-policy.md](docs-agents/test-policy.en.md) for details.
+The rationale is in sdlc-kit's [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md). For the operating rules in this repository, see [test-policy.md](docs-agents/test-policy.en.md).
 
 ---
 
