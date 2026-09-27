@@ -1,0 +1,30 @@
+# 索引を置くリポの .github/workflows/ にコピーして使う雛形。
+# 生成物を既定ブランチへ直接コミットするので、そのブランチを保護していないリポに置く。
+name: guarantees-index
+
+on:
+  schedule:
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Generate index
+        env:
+          # GITHUB_TOKEN はこのリポしか読めないので、他リポの台帳を探すには別のトークンが要る
+          GH_TOKEN: ${{ secrets.GUARANTEES_TOKEN }}
+        run: bash .github/scripts/guarantees-index.sh
+      - name: Commit if changed
+        run: |
+          git add guarantees/README.md
+          git diff --cached --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs(guarantees): 索引を更新する"
+          git push
