@@ -8,7 +8,6 @@
     ../../ssh.nix
     ../../../zsh/darwin.nix
     ../../../home-manager/modules/git.nix
-    ../../../home-manager/modules/hunk.nix
     ../../../home-manager/modules/ctx.nix
     ../../../home-manager/modules/crit.nix
   ];

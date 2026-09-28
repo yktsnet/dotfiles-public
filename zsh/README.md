@@ -22,7 +22,7 @@ Issue 駆動ワークフロー（[new-issue](../.claude/skills/new-issue/SKILL.m
 | `functions/menu.sh` | `_pick` `_confirm`（選択 UI と y/N 確認の共通実装） |
 | `functions/os.sh` | `_is_darwin` `_sed_i` `_open` `_linux_only`（OS 差を吸収するシム） |
 
-`aiagent.sh` はワーカーのペインに差分を表示するのに [hunk](https://github.com/modem-dev/hunk) を使う（`home-manager/modules/hunk.nix`）。
+実行者の変更のレビューは、実行者のセッションの中で `pr-workflow` が [crit](https://github.com/tomasz-tomczyk/crit) を開いて済ませる（`home-manager/modules/crit.nix`）。
 
 `functions/` は稼働環境の実装を汎用化したスナップショットであり、稼働側に追従させない。ワークフローの振る舞いの正は [new-issue](../.claude/skills/new-issue/SKILL.md) にある。
 

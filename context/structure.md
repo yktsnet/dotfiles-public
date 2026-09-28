@@ -20,7 +20,7 @@ dotfiles-public/
 │   └── skills/        # ワークフロー用スキル（正本。home-manager が ~/.claude/skills へ配置）
 ├── zsh/
 │   └── functions/     # Issue 駆動ワークフローのシェルマクロ（issue / issue-finish 等）
-├── apps/              # アプリ共通の env 定義（env-context.nix）と運用スクリプト（zsh/）
+├── apps/              # 運用スクリプト（zsh/ の secret 暗号化・guarantees-index の台帳索引）
 ├── docs-agents/       # skill に属さない覚え書き（memo/）
 ├── secrets-agents/    # 機密辞書（実値・公開しない / 読み書き禁止）
 ├── context/           # 本リポの Agent 向けコンテキスト（本ファイル群）

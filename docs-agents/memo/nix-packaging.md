@@ -76,7 +76,6 @@ pkgs.buildNpmPackage rec {
 ## フォールパック — `writeShellScriptBin` で npx ラップ
 
 lockfile が無い／derivation 化が重すぎる時。純粋性は落ちるがバージョン固定の Nix 管理は保てる。
-既存例: `home-manager/modules/hunk.nix`。
 
 ```nix
 pkgs.writeShellScriptBin "<name>" ''
