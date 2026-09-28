@@ -183,8 +183,7 @@ in
       set -g status-interval 15
     '' + lib.optionalString hasClaudeSessionManager ''
 
-      # Claude Codeセッション管理: 起動は c()（今いるペイン）に一本化し、M-uは走っている
-      # Claudeの一覧・移動を担う。popupで起動していないペインもloose行として拾われる。
+      # Claude Codeセッション管理: M-uは走っているClaudeの一覧・移動を担う。popupで起動していないペインもloose行として拾われる。
       bind-key -n M-u run-shell "PATH=\"${lib.makeBinPath [ pkgs.tmux pkgs.fzf pkgs.jq pkgs.coreutils ]}:\$PATH\" ${claudeSessionManager}/share/tmux-plugins/claude-session-manager/scripts/list.sh '#{q:client_name}'"
 
       # session-nudge: 別セッションへの違和感をcross-session messagingで確認・送信する。

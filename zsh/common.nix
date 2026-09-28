@@ -1,15 +1,11 @@
-{ ... }:
+{ config, ... }:
 # 共通 zsh ベース（home-manager モジュール）。
 # OS 非依存の設定とシェル関数のロードをここに集約し、
 # darwin.nix / nixos.nix が OS 固有の差分を上乗せする。
 {
-  imports = [
-    ./ui.nix
-  ];
-
   programs.zsh = {
     enable = true;
-    dotDir = ".config/zsh";
+    dotDir = "${config.xdg.configHome}/zsh";
 
     history = {
       size = 10000;
@@ -26,19 +22,17 @@
     };
 
     initContent = ''
+      unset __HM_ZSH_S_SOURCED
+
       bindkey -e
       bindkey '^[[A' history-search-backward
       bindkey '^[[B' history-search-forward
 
       # Issue 駆動ワークフローのシェル関数群を読み込む。
-      # os.sh のシムと menu.sh の _pick / _confirm は他の関数ファイルから呼ばれる土台なので、先に読み込む。
+      # os.sh のシムと menu.sh の _pick / _confirm は aiagent.sh から呼ばれる土台なので、先に読み込む。
       ${builtins.readFile ./functions/os.sh}
       ${builtins.readFile ./functions/menu.sh}
-      ${builtins.readFile ./functions/utils.sh}
-      ${builtins.readFile ./functions/git.sh}
       ${builtins.readFile ./functions/aiagent.sh}
-      ${builtins.readFile ./functions/claude.sh}
     '';
   };
-  # プロンプトは ui.nix の pure prompt を使用する。
 }

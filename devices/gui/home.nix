@@ -18,11 +18,6 @@
 
 
 
-  programs.zsh = {
-    enable = lib.mkForce true;
-    dotDir = "${config.xdg.configHome}/zsh";
-  };
-
   programs.home-manager.enable = true;
 
   home.packages = with pkgs; [

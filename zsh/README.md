@@ -1,22 +1,15 @@
 # zsh
 
-Issue 駆動ワークフロー（[docs-agents/issue-driven-workflow.md](../docs-agents/issue-driven-workflow.md)）を支えるシェル関数群と、その配線。
-
-## 設計意図
-
-ノードごとに役割が異なり（Mac=開発 / Linux サーバ=運用）、その役割は概ね OS に紐づく。
-そのため共通操作は `functions/` に集約し、役割固有の差分だけを OS 別エントリ
-（`darwin.nix` / `nixos.nix`）で分岐させている。
+Issue 駆動ワークフロー（[docs-agents/issue-driven-workflow.md](../docs-agents/issue-driven-workflow.md)）を実行するシェル関数と、その配線。
 
 ## 構成
 
 | パス | 内容 |
 |---|---|
 | `functions/` | シェル関数の実体（`.sh`）。OS 非依存の唯一の実装。 |
-| `ui.nix` | プロンプト（pure prompt）。ホストごとに色を切り替える。 |
-| `common.nix` | 共通ベース。`functions/*.sh` を読み込み、`ui.nix` を import。 |
-| `darwin.nix` | **Mac (nix-darwin) 用**エントリポイント。`common.nix` + macOS 固有差分。 |
-| `nixos.nix` | **x86 / NixOS（Mac 以外）用**エントリポイント。`common.nix` + Linux 固有差分。 |
+| `common.nix` | 共通ベース。`functions/*.sh` を読み込む。 |
+| `darwin.nix` | **Mac (nix-darwin) 用**エントリポイント。`common.nix` を読み込む。 |
+| `nixos.nix` | **NixOS 用**エントリポイント。`common.nix` + Linux 固有差分（ssh-agent）。 |
 
 シェル関数の実装は 1 箇所（`functions/`）に集約し、2 つの OS 向けエントリポイントが
 同じ実装を読み込む。これにより Mac と NixOS で関数の二重管理を避ける。
@@ -27,21 +20,19 @@ Issue 駆動ワークフロー（[docs-agents/issue-driven-workflow.md](../docs-
 |---|---|
 | `functions/aiagent.sh` | `issue` `issue-abort` `issue-finish` `issue-status`（Claude Code 用 Issue 駆動） |
 | `functions/menu.sh` | `_pick` `_confirm`（選択 UI と y/N 確認の共通実装） |
-| `functions/claude.sh` | `skill`（手動起動 skill を fzf で選んで Claude Code に渡す） |
-| `functions/git.sh` | `gs` `gc` `gca` `gp` `gpl` ほか git ショートカット |
-| `functions/utils.sh` | `list` `dot` `disk` `ssh`（fzf 補完）ほか |
+| `functions/os.sh` | `_is_darwin` `_sed_i` `_open` `_linux_only`（OS 差を吸収するシム） |
 
-`functions/` は稼働環境の実装を汎用化したスナップショットである。ワークフローの振る舞いの正は [issue-driven-workflow.md](../docs-agents/issue-driven-workflow.md) にあり、稼働側の実装が先行している場合がある（例: `issue-finish` の PR 記録ファイル書き出し）。
+`aiagent.sh` はワーカーのペインに差分を表示するのに [hunk](https://github.com/modem-dev/hunk) を使う（`home-manager/modules/hunk.nix`）。
+
+`functions/` は稼働環境の実装を汎用化したスナップショットであり、稼働側に追従させない。ワークフローの振る舞いの正は [issue-driven-workflow.md](../docs-agents/issue-driven-workflow.md) にある。
 
 ### 公開範囲
 
-稼働環境の `zsh/` はデバイス別（macOS / Linux）に実装を分け、Issue 駆動のほかにも ops・電源管理・netboot 配信・マイコン書き込み・ドキュメント変換など十数本のモジュールを持つ。ここに収めているのは**そのうち Issue 駆動ワークフローに直接必要な5本**で、フリート固有の接続情報を含む ops 系は公開していない。
-
-デバイス別に分かれている実装をここでは OS 別の2エントリポイントへ畳んでいるため、稼働側と1対1では対応しない。
+稼働環境の `zsh/` は、Issue 駆動のほかにも git の補助・ops・ドキュメント変換など多数のモジュールを持つ。ここに収めているのは**そのうち Issue 駆動ワークフローの実行に要る3本**だけである。稼働側は台帳として `issues/` のほかに Backlog.md も扱うが、公開側は `issues/` だけを扱う。
 
 ## 配線
 
 | デバイス | import するエントリポイント |
 |---|---|
 | `devices/gui/macbook` | `zsh/darwin.nix` |
-| `devices/gui`（Linux GUI） | `zsh/nixos.nix` |
+| `devices/gui`（Linux） | `zsh/nixos.nix` |
