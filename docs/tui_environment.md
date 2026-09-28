@@ -8,7 +8,7 @@
 
 | ツール | 役割 | 詳細 |
 |---|---|---|
-| [tmux-claude-session-manager](https://github.com/craftzdog/tmux-claude-session-manager) | popup で Claude Code セッションを起動しバックグラウンド常駐・ピッカー復帰 | [§1 tmux](#1-tmux) |
+| [tmux-claude-session-manager](https://github.com/craftzdog/tmux-claude-session-manager) | 走っている Claude Code セッションの一覧と、そのペインへの移動 | [§1 tmux](#1-tmux) |
 | [hunk](https://github.com/modem-dev/hunk) | 差分レビュー用 TUI ビューア | [§2.6 Git](#26-gitgitsignsnvim) |
 | [ctx](https://github.com/ctxrs/ctx) | セッション履歴を SQL でクエリ。Agent（Claude 自身）が `ctx-history-search` skill 経由で使う | [§3 補助 CLI](#3-claude-code-補助-cli) |
 | [claude-history](https://github.com/raine/claude-history) | セッション履歴を fzf 風 TUI で検索・再開。人間が対話的に使う | [§3 補助 CLI](#3-claude-code-補助-cli) |
@@ -24,7 +24,7 @@
 | Nvim 機能層 | `Space`（Leader） | LSP・整形・コピー・UI トグル |
 | 検索層 | `;` | Telescope のクイックアクセス |
 
-`Alt` は Nvim の中にいても常に tmux に効く。例外は分割・クローズ（`Alt+/`・`Alt+-`・`Alt+x`）で、Nvim 内では Nvim の分割ウィンドウに作用する。
+`Alt` は Nvim の中にいても常に tmux に効く。分割・クローズ（`Alt+/`・`Alt+-`・`Alt+x`）も tmux のペインに作用するので、Nvim の中を分割・クローズするには `sv`・`ss`・`sx` を使う。例外は `Alt+j` / `Alt+k` で、Nvim の分割ウィンドウと tmux のペインを続けて巡る。
 
 ---
 
@@ -39,27 +39,28 @@
 | `Alt + /` | 垂直分割（左右） |
 | `Alt + -` | 水平分割（上下） |
 | `Alt + x` | ペイン / ウィンドウを閉じる |
-| `Alt + 矢印` | 上下左右のペインへ移動（Nvim の分割ウィンドウを含む） |
-| `Alt + j` / `Alt + k` | 次 / 前のペインへ巡回移動 |
+| `Alt + j` / `Alt + k` | 次 / 前のペインへ巡回移動（Nvim の分割ウィンドウを含む） |
+| `Alt + z` | ペインのズームをトグル |
 | `Alt + t` | カレントパスを維持して新規ウィンドウ |
 | `Alt + J` / `Alt + K` | 次 / 前のウィンドウへ |
+| `Alt + s` | リポジトリを選び、そのリポ専用のセッションへ切替 |
+| `Alt + d` | デタッチ |
 
 ### ターミナル・その他
 
 | キー | 役割 |
 |---|---|
 | `Alt + p` | スクラッチターミナルを popup でトグル。ディレクトリごとにセッションを使い回すため、閉じても中身が残る |
-| `Alt + v` | コピーモード（vi 操作、`v` で選択開始・`y` でコピー） |
+| `Alt + v` | コピーモード（vi 操作。`v` か `Enter` で選択開始、`y` か `Enter` でコピー、`Ctrl+v` で矩形選択、`u` / `d` で半ページ移動） |
 | `Alt + ;` | コマンドプロンプト（`sp` / `vs` / `q` のエイリアスあり） |
-| `Alt + y` / `Alt + Y` | 新規 Claude Code セッションを popup で起動（Sonnet / Opus）。`macbook` / `linux-desktop` のみ |
-| `Alt + u` | バックグラウンドで走らせた Claude Code セッションのピッカーに切替。`macbook` / `linux-desktop` のみ |
+| `Alt + u` | 走っている Claude Code セッションのピッカーを開き、選んだペインへ移動。`macbook` / `linux-desktop` のみ |
 | `Alt + m` | 走っている別セッションを選び、外から客観視する相談セッションを popup で起動。`macbook` / `linux-desktop` のみ |
 
 ### 設計上のポイント
 
 * **OSC 52 透過型クリップボード同期**: `set-clipboard on` により、SSH 越しのリモート環境やコンテナ内からでも OS 側のクリップボードへ同期する。
 * **Neovim 最適化**: True Color と波線アンダーライン（Undercurls）を有効化し、色彩再現性を担保。Focus events により Nvim の自動保存・外部変更検知が正常に動く。
-* **バックグラウンド常駐の Claude セッション管理**: [tmux-claude-session-manager](https://github.com/craftzdog/tmux-claude-session-manager) を使い、popup で新規 Claude Code セッションを起動したままバックグラウンドへ切り離し、ピッカーから他のセッションへ復帰できる。
+* **Claude セッションの一覧と移動**: 起動はシェルの `c()` で今いるペインに行い、[tmux-claude-session-manager](https://github.com/craftzdog/tmux-claude-session-manager) のピッカー（`Alt + u`）で走っているセッションを一覧して移る。ステータスバーの右端には、各セッションの状態（入力待ち・待機・実行中）をリポ名のチップで並べる。
 
 ---
 
@@ -71,7 +72,7 @@
 
 | キー | 役割 |
 |---|---|
-| `sv` / `ss` | 垂直 / 水平分割 |
+| `sv` / `ss` / `sx` | 垂直分割 / 水平分割 / 閉じる |
 | `sh` `sj` `sk` `sl` | 左 / 下 / 上 / 右のウィンドウへ移動 |
 | `Ctrl+w` + 矢印 | ウィンドウサイズ変更 |
 | `te` | 新規タブ（`:tabedit`） |
@@ -113,7 +114,7 @@
 |---|---|
 | `gd` | 定義元へジャンプ（Telescope 経由・常に新ウィンドウ） |
 | `K` | ホバー情報（型・ドキュメント） |
-| `Ctrl+j` | 次のエラー・警告へジャンプ |
+| `Ctrl+j` / `Ctrl+k` | 次 / 前のエラー・警告へジャンプ |
 | `Space di` | 行内のエラー・警告を浮き枠で表示 |
 | `Space rn` | プレビュー付き一括リネーム（inc-rename.nvim） |
 | `Space ca` | コードアクション（自動修正・インポート追加等） |
@@ -127,14 +128,13 @@
 | キー | 役割 |
 |---|---|
 | `x` / `dw` | 1文字 / 単語を削除（ヤンクレジスタを汚さない） |
-| `Space d` / `Space c` | ブラックホールレジスタへの delete / change |
 | `Space p` / `Space P` | レジスタ0（最後にヤンクしたもの）からペースト |
 | `Space o` / `Space O` | 下 / 上に新行追加（インデントゴミを残さない） |
 | `+`、`Ctrl+a` / `Ctrl+x` | インクリメント / デクリメント（bool・日付・semver 等も対応） |
 | `g Ctrl+a` / `g Ctrl+x` | 連番インクリメント / デクリメント |
-| `gcc` / `gc` | 行 / 選択範囲のコメントアウト切替 |
+| `gcc` / `gc` | 行 / 選択範囲のコメントアウト切替（Neovim 組み込み） |
 
-**レジスタを守る操作体系**が方針の中心にある。削除・変更系をブラックホールレジスタへ送ることで、コピペの途中で誤ってヤンク内容が上書きされる問題を防ぐ。
+**レジスタを守る操作体系**が方針の中心にある。`x` と `dw` の削除をブラックホールレジスタへ送り、`Space p` でレジスタ0から貼ることで、コピペの途中で誤ってヤンク内容が上書きされる問題を防ぐ。
 
 ### 2.6 Git（gitsigns.nvim）
 
@@ -150,11 +150,12 @@
 
 | キー | 役割 |
 |---|---|
-| `Space cp` / `Space cP` | 現在ファイルの相対 / 絶対パスをコピー |
+| `Space cp` / `Space cr` | 現在ファイルの絶対 / 相対パスをコピー |
 | `Space y` | ファイル名ヘッダー付きで内容全体をコピー |
 | `Space bh` / `Space bu` | 非表示 / 名前なしバッファを一括クローズ |
 | `Space z` | Zen Mode のトグル |
 | `Space a` | Aerial（アウトライン）のトグル |
+| `Space M` | Markdown のレンダリング表示（render-markdown.nvim）のトグル |
 | `Space x` | ファイルを実行（`.py` → python3, `.sh` → bash） |
 
 ### 2.8 プラグイン構成の要点
@@ -164,8 +165,8 @@
 * **テーマ（poimandres.nvim）**: ダークブルーとティール基調。tmux のステータスバーと配色を揃えてある。
 * **UI 刷新（noice.nvim + nvim-notify）**: コマンドライン・通知・ポップアップを置き換え、LSP ホバーにボーダーを付ける。フォーカスを失っている間の通知はシステム通知へ転送する。
 * **分割時のファイル名表示（incline.nvim）**: 複数ウィンドウ分割時に各ウィンドウ右上へファイル名をフローティング表示。ステータスラインを1本に保ったまま、どのウィンドウが何かを判別できる。
-* **hjkl 連打の抑止（discipline）**: `hjkl` を連続10回以上押すと警告し、`5j` のようなモーションの使用を促す。
-* **セッション復元**: 引数なしで起動すると、直前に開いていた有効なファイルを最後のカーソル位置から再開する（コミットメッセージや一時ファイルは除外）。既存ファイルを開き直したときのカーソル位置復元も併用。
+* **差分の閲覧（codediff.nvim）**: `:CodeDiff` で差分を Nvim の中で開く。見つけた箇所から `gf` で実ファイルへ抜け、`Space cp` で取ったパスを Claude に渡せる。
+* **カーソル位置の復元**: ファイルを開き直すと、前回カーソルがあった位置に戻る。
 * **キーマップ案内（which-key.nvim）**: `Space` を押して待つと候補が画面下部に出る。上の4層モデルを覚えていなくても辿れる。
 
 ---

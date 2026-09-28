@@ -11,7 +11,7 @@ return {
 
       telescope.setup({
         defaults = {
-          file_ignore_patterns = { ".git/", "node_modules/", "%.lock" },
+          file_ignore_patterns = { ".git/", "node_modules/", "%.lock", "00archive/" },
           vimgrep_arguments = {
             "rg", "--color=never", "--no-heading", "--with-filename",
             "--line-number", "--column", "--smart-case", "--hidden",
@@ -38,7 +38,12 @@ return {
       end
 
 
-      local multi_root = { "~/dotfiles", "~/projects", "~/github-public" }
+      local multi_root = {
+        vim.fn.expand("~/dotfiles"),
+        vim.fn.expand("~/github-public"),
+        vim.fn.expand("~/github-private"),
+        vim.fn.expand("~/github-clone"),
+      }
 
       local function get_project_root()
         local root = vim.fs.root(0, { ".git", "package.json" })
@@ -52,32 +57,33 @@ return {
       end
 
       -- ============================================================
-      -- プロジェクトルート検索（ykts 独自）
+      -- 複数ルート / プロジェクトルート検索（ykts 独自）
       -- ============================================================
 
       vim.keymap.set("n", "<leader>f", function()
+        builtin.find_files({ search_dirs = multi_root, hidden = true })
+      end, { desc = "Find files (multi-root)" })
+
+      vim.keymap.set("n", "<leader>F", function()
         local root = get_project_root()
         builtin.find_files({
           cwd = root,
+          hidden = true,
           prompt_title = "Find Files (" .. vim.fs.basename(root) .. ")",
         })
       end, { desc = "Find files (project root)" })
 
-      vim.keymap.set("n", "<leader>F", function()
-        builtin.find_files({ search_dirs = multi_root })
-      end, { desc = "Find files (multi-root)" })
-
       vim.keymap.set("n", "<leader>g", function()
+        builtin.live_grep({ search_dirs = multi_root })
+      end, { desc = "Live grep (multi-root)" })
+
+      vim.keymap.set("n", "<leader>G", function()
         local root = get_project_root()
         builtin.live_grep({
           cwd = root,
           prompt_title = "Live Grep (" .. vim.fs.basename(root) .. ")",
         })
       end, { desc = "Live grep (project root)" })
-
-      vim.keymap.set("n", "<leader>G", function()
-        builtin.live_grep({ search_dirs = multi_root })
-      end, { desc = "Live grep (multi-root)" })
 
       -- ============================================================
       -- craftzdog 流クイックアクセス（; プレフィックス）

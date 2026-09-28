@@ -1,20 +1,21 @@
 return {
   {
     "christoomey/vim-tmux-navigator",
-    cmd = {
-      "TmuxNavigateLeft",
-      "TmuxNavigateDown",
-      "TmuxNavigateUp",
-      "TmuxNavigateRight",
-    },
     keys = {
-      { "<M-Left>", "<cmd>TmuxNavigateLeft<cr>", desc = "Window Left" },
-      { "<M-Down>", "<cmd>TmuxNavigateDown<cr>", desc = "Window Down" },
-      { "<M-Up>", "<cmd>TmuxNavigateUp<cr>", desc = "Window Up" },
-      { "<M-Right>", "<cmd>TmuxNavigateRight<cr>", desc = "Window Right" },
-      { "<M-/>", "<cmd>vsplit<cr>", desc = "Split Window Vertically" },
-      { "<M-->", "<cmd>split<cr>", desc = "Split Window Horizontally" },
-      { "<M-x>", "<cmd>close<cr>", desc = "Close Split Window" },
+      { "<M-j>", function()
+        if vim.fn.winnr() == vim.fn.winnr("$") then
+          vim.fn.system("tmux select-pane -t :.+")
+        else
+          vim.cmd("wincmd w")
+        end
+      end, desc = "Next Window or Tmux Pane" },
+      { "<M-k>", function()
+        if vim.fn.winnr() == 1 then
+          vim.fn.system("tmux select-pane -t :.-")
+        else
+          vim.cmd("wincmd W")
+        end
+      end, desc = "Previous Window or Tmux Pane" },
     },
   },
 }
