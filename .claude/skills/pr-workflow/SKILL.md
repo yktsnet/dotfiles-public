@@ -30,7 +30,7 @@ disable-model-invocation: true
    {Agent側で完結しない確認（実行・デプロイ・目視）を、リポ CLAUDE.md の検証手順の雛形に従って記載。なければ省略}
    EOF
    ```
-8. `hunk session comment list --repo . --type all` を実行する（`--type`を省略するとagent向けのlive commentしか返らず、ユーザーがTUI上で`c`キー等で残した人間のnoteは出力に含まれない）。何か出力があれば、その内容（ユーザーからの修正依頼・質問）に対応し、必要なら追加コミットする。この確認は1回だけ行い、対応後に再度確認はしない（無限ポーリングを避ける）。ライブセッションが無い場合はそのまま次へ進む
+8. `crit` でレビューを受ける。`crit --base-branch main` を `run_in_background: true` で起動し、出力された URL（`http://localhost:<port>`）を「ブラウザでレビューし、終わったら Finish Review を押してください」と添えてそのまま伝える。ユーザーが Finish Review を押すまでブロックし、**先にレビューファイルを読んだり、ユーザーに何かを入力させたりしない**。完了したら stdout の指示に従って指摘に対応し、必要なら追加コミットする。指摘が無ければそのまま次へ進む（この往復は1周だけ。対応後に再度 crit は開かない）
 9. push・PR作成はせずに終了。以下を出力する:
    ✅ Committed on {branch}: {type}: {タイトル}
    Review: git diff main...{branch}

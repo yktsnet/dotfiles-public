@@ -447,11 +447,6 @@ _aiagent_run() {
     git -C "$wt_dir" commit -m "chore(issues): open $(basename "$issue_file")"
   fi
 
-  # tmux内なら別ペインでBuilderの変更をライブ表示する（working tree・コミット済みを問わずmain比較で追従）
-  if [[ -n "$TMUX" ]]; then
-    tmux split-window -h -c "$wt_app_dir" "hunk diff main --watch"
-  fi
-
   (
     cd "$wt_app_dir" || exit 1
     claude --model claude-sonnet-5 --system-prompt \
@@ -459,12 +454,8 @@ _aiagent_run() {
       "/pr-workflow ${wt_dir}/${issue_file_rel}"
   )
 
-  # tmux外だった場合のみ、実行者の終了後にmain未マージのコミットがあればhunkでレビューを開く
-  # （tmux内は上で開いた別ペインが既にレビュー導線になっているため何もしない。open コミットのみなら開かない）
-  if [[ -z "$TMUX" ]] && [[ -n "$(git log main.."$branch_name" --oneline 2>/dev/null | grep -v 'chore(issues): open')" ]]; then
-    echo "Opening hunk review: ${branch_name} vs main"
-    (cd "$wt_dir" && hunk diff main)
-  fi
+  # レビューは Builder のセッション内で pr-workflow が crit を開いて完結させる。
+  # exit 後に開き直すと、指摘しても同じセッションに戻せない
 }
 
 _aiagent_import_pr() {

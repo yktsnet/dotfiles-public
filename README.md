@@ -10,11 +10,27 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 
 ---
 
+## Principles（導入順序）
+
+通底する前提は**注意し続ける人間を前提にしない**こと。規約は読み手の集中力に依存し、集中力は疲れると落ちる。禁止は文書でなく機構に置き、CI はローカル検証と同じものを二重に回し、壊したことには壊した本人（実行者）が提出前に気づく経路を用意する。
+
+導入は次の順に積む。
+
+1. **作る前に型を決める** — リポの類型・README の種別・モジュールの型を判定し、以降の規定をそこから導く
+2. **禁止を文書でなく仕組みに置く** — `settings.json` の deny と PreToolUse フック
+3. **読まれる場面ごとに知識を置く** — 毎回効く規則は CLAUDE.md、条件を言える手順と基準は skill
+4. **守る保証を先に裁可する** — 保証台帳とテスト（GDD）
+5. **決める人と作る人を分ける** — 相談者・実行者・user の三役
+
+順序には依存がある。型が決まらないと何を遮断すべきかが決まらず、遮断が無いまま知識を増やすと事故の速度だけが上がる。保証が固まる前に分業すると、実行者は何を壊してはいけないか分からないまま走る。**最小構成は 1〜3** で、公開の有無やチーム規模に関わらず要る。4〜5 は公開物を持つとき、または複数セッションで並行し始めたときに足す。
+
+---
+
 ## Development Lifecycle（2つの駆動文書）
 
 開発を2フェーズに分け、駆動文書を交代させる。立ち上げ期は PLAN.md / JUDGE.md（SDD）、リリース後は保証台帳 `docs/guarantees.md` とテスト（GDD）で回す。フェーズは各リポジトリの CLAUDE.md で宣言する。
 
-考え方は sdlc-kit の [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md) にある。本リポジトリでの運用基準は [test-policy.md](docs-agents/test-policy.md) を参照。
+考え方は sdlc-kit の [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md) にある。本リポジトリでの運用基準は [guarantee-audit/SKILL.md](.claude/skills/guarantee-audit/SKILL.md) を参照。
 
 ---
 
@@ -39,7 +55,7 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 
 このロール分離は1本の Issue の流れを説明したものであり、実際には複数の worktree と相談者セッションが同時に走る。同じモデル・同じ規則で動くセッションは、自分が方向を外したことを自分では検出できない。外部の読み手を用意するのが `M-m`（[session-nudge](.claude/skills/session-nudge/SKILL.md)）で、送信は cross-session messaging で行うが、文案は必ず user が承認してから送る。自動で他セッションへ介入はしない。
 
-詳細は [issue-driven-workflow.md](docs-agents/issue-driven-workflow.md) を参照。
+詳細は [new-issue](.claude/skills/new-issue/SKILL.md) を参照。
 
 ---
 
@@ -49,8 +65,8 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 
 * **Nix による環境同一性**: 環境差はエージェントの「コマンド未検出」「実行時エラー」を招く。Nix Flakes と Home Manager で macOS / Linux のツールチェーンをコードとして同一化し、CI（`nix flake check`）で継続検証する。導入経路の逸脱（`brew` / `npm -g` / `pip install`）は `.claude/hooks/block-non-nix-install.sh` が遮断する。
 * **機密情報の分離**: 公開リポジトリ側のコードや Issue ファイルに本番の IP・ポート・実ホスト名を書かない。実値はローカルの `secrets-agents/` に隔離し、地の文では `<PLACEHOLDER>` を用いる。辞書は平文でローカルに置くのではなく暗号化して git 経由で配り、各デバイスが自分の鍵で復号する。1台にしか無いと、別のデバイスでは何を伏せるべきか分からないまま書くことになるため。
-* **暗黙知の skill 化**: 「どのファイルをいつ AI に渡すか」が人間の暗黙知に依存すると、AI 単独で運用を再現できない。「〜するとき」と条件を言える手順は skill 化し、description に起動条件を宣言する。前節のワークフロー自体（`new-issue`・`guarantee-audit` 等）もこの形でコミットされている。詳細は [harness-guide.md](docs-agents/harness-guide.md#知識の配置基準) を参照。
-* **規則の棚卸し**: CLAUDE.md も skill も memory も「人が書いた規則を AI が読む」構造であり、規則同士の矛盾を検出する仕組みを持たない。増え続ける規則を放置すると挙動が不安定になるため、[`consolidate-rules`](.claude/skills/consolidate-rules/SKILL.md) が索引 `.claude/RULES.md` を起点に差分だけを定期監査する。永続メモリは索引を持たせず、`~/memory/` 直下に1ファイル1事実で置く（`ls` が索引になる粒度に保つ）。
+* **暗黙知の skill 化**: 「どのファイルをいつ AI に渡すか」が人間の暗黙知に依存すると、AI 単独で運用を再現できない。「〜するとき」と条件を言える手順は skill 化し、description に起動条件を宣言する。前節のワークフロー自体（`new-issue`・`guarantee-audit` 等）もこの形でコミットされている。置き場の基準は [skill-dev](.claude/skills/skill-dev/SKILL.md) が持つ。
+* **規則の棚卸し**: CLAUDE.md も skill も memory も「人が書いた規則を AI が読む」構造であり、規則同士の矛盾を検出する仕組みを持たない。増え続ける規則を放置すると挙動が不安定になるため、[`consolidate-rules`](.claude/skills/consolidate-rules/SKILL.md) が前回の棚卸し地点（`.claude/RULES.md` のアンカー1行）からの差分だけを定期監査する。永続メモリは索引を持たせず、`~/memory/` 直下に1ファイル1事実で置く（`ls` が索引になる粒度に保つ）。
 
 ---
 
@@ -69,30 +85,22 @@ OS の差は、Nix 側では `pkgs.stdenv.isDarwin`、シェル側では `zsh/fu
 
 ---
 
-## Agent Development Guides
+## Skills
 
-新規リポで AI Agent 協調開発を始めるためのガイド群。`docs-agents/` の9ファイルは、リポごとに答えが変わる**判断層**と、一度決めれば機械的に適用できる**定型層**に分かれ、その上にどちらの前提でもある**原理層**が1本ある。多数のリポを並行して立ち上げる運用では、判断層に払うコストがスループットを左右する。判断層は `repo-readme` / `module-dev` Skill が、定型層は `repo-standardize` / `guarantee-audit` Skill が読む。
+基準と手順は、それを使う skill が持つ。独立したガイドの MD は置かず、skill に寄せきれないもの（複数の skill が読む `repo-standardize/reference/cicd.md`、フックの書き方の `.claude/hooks/README.md`）だけを MD として残す。何を公開するかの基準は [.claude/skills/README.md](.claude/skills/README.md)。
 
-### 原理層
-
-| ガイド | 役割 |
-|---|---|
-| [principles.md](docs-agents/principles.md) | 導入順序と、各段の本質・機構・完了条件。各ガイドが何を前提に書かれているか |
-
-### 判断層
-
-| ガイド | 役割 |
-|---|---|
-| [module-guide.md](docs-agents/module-guide.md) | OSS モジュール型リポの設計規範。型の判断・構造・デモ方式 |
-| [readme-guide.md](docs-agents/readme-guide.md) | README の書き方。構成・言語規則・JUDGE.md 統合 |
-| [diagram-guide.md](docs-agents/diagram-guide.md) | 図を描くかの判断・幅の制約・形と線種・抽象度 |
-
-### 定型層
-
-| ガイド | 役割 |
-|---|---|
-| [repo-guide.md](docs-agents/repo-guide.md) | リポジトリ構成・機密管理・公開前チェックリスト |
-| [issue-driven-workflow.md](docs-agents/issue-driven-workflow.md) | プロセス層。Issue 起点の開発フロー・担当分離・シェル関数 |
-| [harness-guide.md](docs-agents/harness-guide.md) | ハーネス層。`.claude/` 構成・settings.json・指示ファイル・検証手段 |
-| [cicd-guide.md](docs-agents/cicd-guide.md) | CI/CD 層。GitHub Actions・Cloudflare（Pages / Workers）への自動デプロイ・Dependabot |
-| [test-policy.md](docs-agents/test-policy.md) | テスト層。保証の裁可・保証台帳・テストの濃淡 |
+| 領域 | skill | 持つもの |
+|---|---|---|
+| 型の判定 | [repo-standardize](.claude/skills/repo-standardize/SKILL.md) | リポ類型と検証手段・settings.json・CLAUDE.md と context/・ファイル衛生。CI/CD は [reference/cicd.md](.claude/skills/repo-standardize/reference/cicd.md) |
+| | [repo-readme](.claude/skills/repo-readme/SKILL.md) | README の種別判定（Type A / B / C）・下限・コアメッセージ・アウトライン |
+| | [module-dev](.claude/skills/module-dev/SKILL.md) | モジュール型リポの型・境界・デモ |
+| | [mermaid-diagram](.claude/skills/mermaid-diagram/SKILL.md) | 図を描くかの判断・幅の制約・形と線種 |
+| 知識の置き場 | [skill-dev](.claude/skills/skill-dev/SKILL.md) | 置き場の基準・自動発火の絞り方・探索の分け方 |
+| | [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) | 規則同士の矛盾・陳腐化の棚卸し |
+| 保証 | [guarantee-audit](.claude/skills/guarantee-audit/SKILL.md) | テスト方針（GDD）・保証台帳の敷設と棚卸し |
+| | [mvp-docs](.claude/skills/mvp-docs/SKILL.md) | 立ち上げ期の PLAN.md / JUDGE.md |
+| 分業 | [new-issue](.claude/skills/new-issue/SKILL.md) | フェーズ・担当分離・例外の3経路・Issue の設計 |
+| | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | 実行者の実装からローカルコミットまで |
+| | [session-nudge](.claude/skills/session-nudge/SKILL.md) | 別セッションを外から客観視する相談 |
+| 公開 | [readme-i18n](.claude/skills/readme-i18n/SKILL.md)・[repo-publish](.claude/skills/repo-publish/SKILL.md)・[repo-about](.claude/skills/repo-about/SKILL.md) | 英語版 README・公開手続き・About と topics |
+| 前提 | [nix-tool-install](.claude/skills/nix-tool-install/SKILL.md)・[sops-secrets](.claude/skills/sops-secrets/SKILL.md)・[jp-writing](.claude/skills/jp-writing/SKILL.md) | Nix 経由の導入・機密の暗号化・日本語の文章規範 |

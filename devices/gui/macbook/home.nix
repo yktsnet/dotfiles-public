@@ -8,7 +8,6 @@
     ../../ssh.nix
     ../../../zsh/darwin.nix
     ../../../home-manager/modules/git.nix
-    ../../../home-manager/modules/hunk.nix
     ../../../home-manager/modules/ctx.nix
     ../../../home-manager/modules/crit.nix
   ];
@@ -19,7 +18,6 @@
 
   programs.zsh = {
     enable = lib.mkForce true;
-    dotDir = "${config.xdg.configHome}/zsh";
     initContent = lib.mkBefore ''
       export PATH="$HOME/.local/bin:/etc/profiles/per-user/ykts/bin:/run/current-system/sw/bin:$PATH"
     '';
@@ -49,7 +47,6 @@
     docker
     colima
     home-manager
-    pure-prompt
     aerospace
     inputs.claude-history.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];

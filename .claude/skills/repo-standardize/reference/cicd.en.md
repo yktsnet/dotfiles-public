@@ -1,9 +1,9 @@
-[🇯🇵 日本語](cicd-guide.md) | [🇬🇧 English](cicd-guide.en.md)
+[🇯🇵 日本語](cicd.md) | [🇬🇧 English](cicd.en.md)
 
 # CI/CD Guide
 
 CI/CD design guide for repositories. Use this to decide the verification and deployment paths when creating a new repo.
-Corresponds to Layer 3 (public verification) in `harness-guide.md` and connects with the role separation in `issue-driven-workflow.md`.
+Corresponds to Layer 3 (public verification) in `repo-standardize` and connects with the role separation in `new-issue`.
 
 Two design principles: **CI runs the same checks the Agent runs locally** (redundancy catches what the Agent missed before PR). **Deployment is automatic push-style after CI passes** (no manual operations).
 
@@ -18,7 +18,7 @@ New repos fall into two categories, which determine the CI/CD configuration.
 | **Public App** | Web app, portfolio project | GitHub Actions (syntax/type check → test → build) | Auto-deploy to Cloudflare (Pages / Workers) |
 | **Internal Tool** | Data processing scripts, automation, shell commands | Optional (local verification may suffice) | None (local execution or distributed via dotfiles) |
 
-Public apps are externally visible, so they require CI and deployment. Internal tools are personal-use only, so Layer 2 (local verification) from `harness-guide.md` is sufficient.
+Public apps are externally visible, so they require CI and deployment. Internal tools are personal-use only, so Layer 2 (local verification) is sufficient.
 
 **Deployment targets converge on Cloudflare.** Do not build new paths that ship to a self-hosted server (VPS, etc.). Keeping a server alive, patching its OS, and managing its keys are permanent operational costs, so anything that fits on serverless goes on serverless.
 
@@ -26,7 +26,7 @@ Public apps are externally visible, so they require CI and deployment. Internal 
 
 ## 2. CI
 
-`.github/workflows/ci.yml`. Triggered on push / pull_request, runs the same verification defined in `harness-guide.md`.
+`.github/workflows/ci.yml`. Triggered on push / pull_request, runs the same verification chosen in `repo-standardize` §1.
 
 | Category | CI Runs |
 |---|---|
@@ -51,6 +51,18 @@ jobs:
 Repos with no package dependencies do not get an `npm ci` step. The point is to **keep CI identical to the commands actually being run**, not to follow the template.
 
 Internal tools can use the same structure if CI is desired, but in most cases the Agent's local verification (syntax check, dry run) is sufficient and CI can be omitted.
+
+### 2.5 Automated PR Review
+
+`.github/workflows/claude-review.yml`. Runs `anthropics/claude-code-action@v1` on `pull_request` and makes one pass that checks the diff against the repository's conventions.
+
+**It may only write comments.** No commits, pushes, or branch creation. To keep the rule that the Builder never touches the remote, `permissions` are narrowed to `contents: read` / `pull-requests: write`, and `claude_args: --allowed-tools Read,Grep,Glob` blocks it a second time.
+
+The prompt tells it to **read this repository's conventions before looking at the diff**. A generic code review only overlaps with the verification methods (syntax checks, tests) and adds nothing in CI. Findings are limited to convention violations, breakage, and secrets leaking into prose.
+
+Dependabot PRs are excluded with `if: github.event.pull_request.user.login != 'dependabot[bot]'`; a lock update has no diff worth reading.
+
+Authentication is `secrets.ANTHROPIC_API_KEY`. Every PR is billed, so add it only to repositories with real PR traffic.
 
 ---
 
@@ -89,7 +101,7 @@ deploy:
         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 ```
 
-`wrangler` is denied in the Agent's settings.json (the Web category in `harness-guide.md`). Deployment is run by CI or the user, never by the Agent.
+`wrangler` is denied in the Agent's settings.json (the Web category in `repo-standardize` §2). Deployment is run by CI or the user, never by the Agent.
 
 ---
 
@@ -145,7 +157,7 @@ Note: because auto-merge commits originate from `GITHUB_TOKEN`, **push-triggered
 
 ## 7. Connection to Role Separation
 
-For repos with CI auto-deployment, the role table in `issue-driven-workflow.md` changes.
+For repos with CI auto-deployment, the user's role in `new-issue` changes.
 
 | Role | Work at deployment time |
 |---|---|

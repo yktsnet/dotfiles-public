@@ -57,8 +57,6 @@ in
   security.sudo.wheelNeedsPassword = false;
   hardware.uinput.enable = true;
 
-  environment.variables = { HOST_COLOR = "#7aa2f7"; };
-
   powerManagement.cpuFreqGovernor = "powersave";
 
   home-manager.extraSpecialArgs = { inherit inputs; osConfig = config; };

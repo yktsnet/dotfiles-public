@@ -1,9 +1,9 @@
-[🇯🇵 日本語](cicd-guide.md) | [🇬🇧 English](cicd-guide.en.md)
+[🇯🇵 日本語](cicd.md) | [🇬🇧 English](cicd.en.md)
 
 # CI/CD Guide
 
 リポの CI/CD 設計ガイド。新規リポを作るとき、検証とデプロイの経路をここから決める。
-`harness-guide.md` の層3（公開検証）に対応し、`issue-driven-workflow.md` の担当分離と接続する。
+`repo-standardize` の層3（公開検証）に対応し、`new-issue` の担当分離と接続する。
 
 設計意図は2点。**CI は Agent のローカル検証と同じものを回す**（二重化で PR 前の見落としを拾う）。**デプロイは CI 通過後の自動プッシュ型**（手動オペを挟まない）。
 
@@ -18,7 +18,7 @@
 | **公開アプリ** | Web アプリ・ポートフォリオ作品 | GitHub Actions（構文/型チェック → test → build） | Cloudflare（Pages / Workers）へ自動デプロイ |
 | **内部ツール** | データ処理スクリプト・自動化スクリプト・シェルコマンド | 任意（ローカル検証で代替可） | なし（ローカル実行 or dotfiles 経由で配布） |
 
-公開アプリは外から見えるため、CI とデプロイを持つ。内部ツールは自分しか使わないため、`harness-guide.md` の層2（ローカル検証）で十分。
+公開アプリは外から見えるため、CI とデプロイを持つ。内部ツールは自分しか使わないため、層2（ローカル検証）で十分。
 
 **デプロイ先は Cloudflare に寄せる。** 自ホスト（VPS 等）へ配る経路は新規に作らない。サーバーの生存・OS 更新・鍵の管理が運用コストとして残り続けるため、サーバレスで足りるものはサーバレスに置く。
 
@@ -26,7 +26,7 @@
 
 ## 2. CI
 
-`.github/workflows/ci.yml`。push / pull_request をトリガーに、`harness-guide.md` で定めた検証手段と同じものを走らせる。
+`.github/workflows/ci.yml`。push / pull_request をトリガーに、`repo-standardize` §1 で決めた検証手段と同じものを走らせる。
 
 | 類型 | CI で走らせる |
 |---|---|
@@ -101,7 +101,7 @@ deploy:
         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 ```
 
-`wrangler` は Agent の settings.json で deny する（`harness-guide.md` の Web 類型）。デプロイを打つのは CI か user であって、Agent ではない。
+`wrangler` は Agent の settings.json で deny する（`repo-standardize` §2 の Web 類型）。デプロイを打つのは CI か user であって、Agent ではない。
 
 ---
 
@@ -157,7 +157,7 @@ Compatibility score は他人のリポの CI 統計であり判断材料にし�
 
 ## 7. 担当分離との接続
 
-CI 自動デプロイを持つリポでは、`issue-driven-workflow.md` の担当表が変わる。
+CI 自動デプロイを持つリポでは、`new-issue` の「運用の前提」にある user の担当が変わる。
 
 | 担当 | デプロイ時の作業 |
 |---|---|
