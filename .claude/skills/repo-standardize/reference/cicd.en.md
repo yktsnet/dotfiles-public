@@ -1,9 +1,9 @@
-[🇯🇵 日本語](cicd-guide.md) | [🇬🇧 English](cicd-guide.en.md)
+[🇯🇵 日本語](cicd.md) | [🇬🇧 English](cicd.en.md)
 
 # CI/CD Guide
 
 CI/CD design guide for repositories. Use this to decide the verification and deployment paths when creating a new repo.
-Corresponds to Layer 3 (public verification) in `harness-guide.md` and connects with the role separation in `issue-driven-workflow.md`.
+Corresponds to Layer 3 (public verification) in `repo-standardize` and connects with the role separation in `new-issue`.
 
 Two design principles: **CI runs the same checks the Agent runs locally** (redundancy catches what the Agent missed before PR). **Deployment is automatic push-style after CI passes** (no manual operations).
 
@@ -18,7 +18,7 @@ New repos fall into two categories, which determine the CI/CD configuration.
 | **Public App** | Web app, portfolio project | GitHub Actions (syntax/type check → test → build) | Auto-deploy to Cloudflare (Pages / Workers) |
 | **Internal Tool** | Data processing scripts, automation, shell commands | Optional (local verification may suffice) | None (local execution or distributed via dotfiles) |
 
-Public apps are externally visible, so they require CI and deployment. Internal tools are personal-use only, so Layer 2 (local verification) from `harness-guide.md` is sufficient.
+Public apps are externally visible, so they require CI and deployment. Internal tools are personal-use only, so Layer 2 (local verification) is sufficient.
 
 **Deployment targets converge on Cloudflare.** Do not build new paths that ship to a self-hosted server (VPS, etc.). Keeping a server alive, patching its OS, and managing its keys are permanent operational costs, so anything that fits on serverless goes on serverless.
 
@@ -26,7 +26,7 @@ Public apps are externally visible, so they require CI and deployment. Internal 
 
 ## 2. CI
 
-`.github/workflows/ci.yml`. Triggered on push / pull_request, runs the same verification defined in `harness-guide.md`.
+`.github/workflows/ci.yml`. Triggered on push / pull_request, runs the same verification chosen in `repo-standardize` §1.
 
 | Category | CI Runs |
 |---|---|
@@ -89,7 +89,7 @@ deploy:
         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 ```
 
-`wrangler` is denied in the Agent's settings.json (the Web category in `harness-guide.md`). Deployment is run by CI or the user, never by the Agent.
+`wrangler` is denied in the Agent's settings.json (the Web category in `repo-standardize` §2). Deployment is run by CI or the user, never by the Agent.
 
 ---
 
@@ -145,7 +145,7 @@ Note: because auto-merge commits originate from `GITHUB_TOKEN`, **push-triggered
 
 ## 7. Connection to Role Separation
 
-For repos with CI auto-deployment, the role table in `issue-driven-workflow.md` changes.
+For repos with CI auto-deployment, the user's role in `new-issue` changes.
 
 | Role | Work at deployment time |
 |---|---|

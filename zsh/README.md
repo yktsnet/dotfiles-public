@@ -1,6 +1,6 @@
 # zsh
 
-Issue 駆動ワークフロー（[docs-agents/issue-driven-workflow.md](../docs-agents/issue-driven-workflow.md)）を実行するシェル関数と、その配線。
+Issue 駆動ワークフロー（[new-issue](../.claude/skills/new-issue/SKILL.md)）を実行するシェル関数と、その配線。
 
 ## 構成
 
@@ -24,7 +24,7 @@ Issue 駆動ワークフロー（[docs-agents/issue-driven-workflow.md](../docs-
 
 `aiagent.sh` はワーカーのペインに差分を表示するのに [hunk](https://github.com/modem-dev/hunk) を使う（`home-manager/modules/hunk.nix`）。
 
-`functions/` は稼働環境の実装を汎用化したスナップショットであり、稼働側に追従させない。ワークフローの振る舞いの正は [issue-driven-workflow.md](../docs-agents/issue-driven-workflow.md) にある。
+`functions/` は稼働環境の実装を汎用化したスナップショットであり、稼働側に追従させない。ワークフローの振る舞いの正は [new-issue](../.claude/skills/new-issue/SKILL.md) にある。
 
 ### 公開範囲
 
