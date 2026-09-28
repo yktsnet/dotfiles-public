@@ -52,6 +52,18 @@ Repos with no package dependencies do not get an `npm ci` step. The point is to 
 
 Internal tools can use the same structure if CI is desired, but in most cases the Agent's local verification (syntax check, dry run) is sufficient and CI can be omitted.
 
+### 2.5 Automated PR Review
+
+`.github/workflows/claude-review.yml`. Runs `anthropics/claude-code-action@v1` on `pull_request` and makes one pass that checks the diff against the repository's conventions.
+
+**It may only write comments.** No commits, pushes, or branch creation. To keep the rule that the Builder never touches the remote, `permissions` are narrowed to `contents: read` / `pull-requests: write`, and `claude_args: --allowed-tools Read,Grep,Glob` blocks it a second time.
+
+The prompt tells it to **read this repository's conventions before looking at the diff**. A generic code review only overlaps with the verification methods (syntax checks, tests) and adds nothing in CI. Findings are limited to convention violations, breakage, and secrets leaking into prose.
+
+Dependabot PRs are excluded with `if: github.event.pull_request.user.login != 'dependabot[bot]'`; a lock update has no diff worth reading.
+
+Authentication is `secrets.ANTHROPIC_API_KEY`. Every PR is billed, so add it only to repositories with real PR traffic.
+
 ---
 
 ## 3. Deployment (Cloudflare)
