@@ -1,16 +1,12 @@
 { pkgs, lib, config, osConfig, inputs, ... }:
 {
   imports = [
-    ../../../home-manager/modules/btop.nix
     ../../../home-manager/modules/tmux.nix
     ../../../home-manager/modules/claude.nix
     ../../../home-manager/modules/memory.nix
     ../../../home-manager/modules/secrets-agents.nix
     ../../ssh.nix
     ../../../zsh/darwin.nix
-    ../../../home-manager/modules/glow.nix
-    ../../../home-manager/modules/vscode.nix
-    ../../../home-manager/modules/alacritty.nix
     ../../../home-manager/modules/git.nix
     ../../../home-manager/modules/hunk.nix
     ../../../home-manager/modules/ctx.nix
@@ -57,9 +53,4 @@
     aerospace
     inputs.claude-history.packages.${pkgs.stdenv.hostPlatform.system}.default
   ];
-
-  xdg.configFile."nvim" = {
-    source = ../../../home-manager/config/nvim;
-    recursive = true;
-  };
 }

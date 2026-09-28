@@ -76,7 +76,7 @@ pkgs.buildNpmPackage rec {
 ## フォールパック — `writeShellScriptBin` で npx ラップ
 
 lockfile が無い／derivation 化が重すぎる時。純粋性は落ちるがバージョン固定の Nix 管理は保てる。
-既存例: `home-manager/modules/waybar.nix`・`desktop/swww-random.nix`。
+既存例: `home-manager/modules/hunk.nix`。
 
 ```nix
 pkgs.writeShellScriptBin "<name>" ''
@@ -90,7 +90,7 @@ pkgs.writeShellScriptBin "<name>" ''
 
 - 単独ツールは `home-manager/modules/<name>.nix` を新規作成し、その中で derivation 定義 + `home.packages = [ pkg ];`。
 - それを必要なデバイスに import する。経路は2つ:
-  - GUI 共通: `home-manager/modules/desktop/gui-bundle.nix` の `imports`。
+  - Linux 共通: `devices/gui/home.nix` の `imports`。
   - デバイス個別: `devices/gui/<host>/home.nix` の `imports` か `home.packages` 直書き。
 - どのホストで使うかを決めてから配線する（全ホストに撒かない）。
 

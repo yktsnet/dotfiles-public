@@ -45,4 +45,3 @@ Issue 駆動ワークフロー（[docs-agents/issue-driven-workflow.md](../docs-
 |---|---|
 | `devices/gui/macbook` | `zsh/darwin.nix` |
 | `devices/gui`（Linux GUI） | `zsh/nixos.nix` |
-| `devices/headless`（Linux サーバ） | `zsh/nixos.nix` |

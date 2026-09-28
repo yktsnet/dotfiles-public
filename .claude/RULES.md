@@ -14,7 +14,7 @@
 - **`docs-agents/repo-guide.md`**（定型層） — ファイル衛生・`.gitignore` の基準・repo 面のシークレット・公開前チェックリスト。相互参照: `repo-standardize/SKILL.md` が基準として読む、`repo-publish/SKILL.md` の公開前スキャンが §3・§4 を前提にしている。正本: 双方向。棚卸し: 1930d55a 2026-08-16
 - **`docs-agents/harness-guide.md`**（定型層） — リポ類型と検証手段・`.claude/` の層構成（層1 settings.json とフック / 層2 指示ファイル）・新規リポのチェックリスト。相互参照: `repo-standardize/SKILL.md` が基準として読む、リポ直下 `CLAUDE.md` はこの層2の実装例。正本: public（§3.5・§4.5・§4.6 は公開側が先行）。棚卸し: 767f154d 2026-08-16
 - **`docs-agents/issue-driven-workflow.md`**（定型層） — フェーズ（MVP期 / Issueドリブン期）・担当分離・Issue フォーマット・シェル関数。相互参照: `new-issue/SKILL.md` が Issue フォーマットと担当分離を実装、`pr-workflow/SKILL.md` が実行者側の手順を担う、`docs-agents/test-policy.md` の保証節を Issue フォーマットに組み込んでいる。正本: private。棚卸し: ae793eed 2026-08-16
-- **`docs-agents/cicd-guide.md`**（定型層） — 2つのリポパターン・CI・デプロイ・デモ公開・Secrets・Dependabot・担当分離との接続。相互参照: `dependabot-triage/SKILL.md` の判断基準の正本は §6、`cf-private-deploy/SKILL.md` が §3・§4 の具体化、`readme-guide.md` §8 の Deploy 節が本ガイドへ委譲。正本: private。棚卸し: db9bd6ed 2026-08-16
+- **`docs-agents/cicd-guide.md`**（定型層） — 2つのリポパターン・CI・デプロイ・デモ公開・Secrets・Dependabot・担当分離との接続。相互参照: `readme-guide.md` §8 の Deploy 節が本ガイドへ委譲。正本: private。棚卸し: db9bd6ed 2026-08-16
 - **`docs-agents/test-policy.md`**（定型層） — テストの位置づけ・Guarantee-Driven Development・濃淡のリスクベース判断・保証台帳 `docs/guarantees.md` の構成と敷設・追従。相互参照: `guarantee-audit/SKILL.md` が台帳の敷設と棚卸しを実装、`issue-driven-workflow.md` の Issue 保証節と対応。正本: public（台帳集約の節は公開側が先行）。棚卸し: 49f53c0a 2026-08-16
 - **`docs-agents/readme-guide.md`**（判断層） — README の種別判定（Type A/B/C）・下限・コアメッセージとターゲット・アウトラインの組み立て・`docs/` 分離。相互参照: `repo-readme/SKILL.md` が基準として読む、`repo-standardize/SKILL.md` は §1・§3 のみ使う、§8 の図は `diagram-guide.md` へ委譲。正本: private。棚卸し: 7460c05a 2026-08-16
 - **`docs-agents/module-guide.md`**（判断層） — リポの型の判定手順（組み込み型 / ツールキット型 / 研究型）・モジュール境界の切り方・デモ・既存リポへの追加。相互参照: `module-dev/SKILL.md` が規範として読む、§1 が `readme-guide.md` §1 の Type A/B/C との対応と優先順位を規定（参照は片方向）。正本: public。棚卸し: 9e0a8baa 2026-08-16
@@ -42,7 +42,6 @@
 - **`.claude/skills/session-nudge/SKILL.md`** — 別の稼働中セッションについて相談し、必要なら人間の裁可を経て送る。棚卸し: ec5d4b79 2026-08-16
 - **`.claude/skills/hunk-comments/SKILL.md`** — 稼働中の Hunk に user が行単位で残したレビューコメントを取り込んで対応する。棚卸し: d14ad028 2026-08-16
 - **`.claude/skills/ctx-history-search/SKILL.md`** — 過去の相談者セッションを ctx で検索する。棚卸し: da5a5de3 2026-08-16
-- **`.claude/skills/dependabot-triage/SKILL.md`** — 溜まった Dependabot PR を横断棚卸しし、条件を満たすものはマージまで行う。相互参照: 判断基準の正本は `cicd-guide.md` §6。棚卸し: 39a39d34 2026-08-16
 
 ### 執筆・設計
 
@@ -57,8 +56,6 @@
 
 - **`.claude/skills/sops-secrets/SKILL.md`** — sops / age による secret の暗号化・復号・追加・再暗号化。カテゴリと format の対応、新デバイスの鍵登録。相互参照: `devices/secrets.nix` の `legacyBinaryCategories` 機構が format 判定の実体、OS 別手順は `references/{linux,macos}.md`。棚卸し: d8b01e25 2026-08-16
 - **`.claude/skills/nix-tool-install/SKILL.md`** — 新しい CLI ツールの導入手順。Nix 外のパッケージマネージャを禁止する。棚卸し: 98b30473 2026-08-16
-- **`.claude/skills/netboot-stateless/SKILL.md`** — ディスクレス機を netboot で配信・起動する運用手順と、netboot 系エラーの対処。棚卸し: 2e90dbd3 2026-08-16
-- **`.claude/skills/cf-private-deploy/SKILL.md`** — Cloudflare Pages + Access で自分だけに閉じたアプリを配信する。GUI を排し REST API で通す。相互参照: `cicd-guide.md` §3・§4 の具体化。棚卸し: 55b6d6f5 2026-08-16
 
 ## 裁可済みの差分（再検討しない）
 
@@ -66,5 +63,5 @@
 - **`docs-agents/*.en.md`** — 本リポにのみ存在する英語版。非公開側へ戻さない。2026-08-16
 - **`context/conventions.md`・`context/structure.md`** — 本リポ自身の構成・規約を記述する別文書であり、非公開側との同期対象にしない。2026-08-16
 - **`docs-agents/diagram-guide.md`** — 適用先の列挙から非公開側にある個別の記事・文書名を落としてある。2026-08-16
-- **`.claude/skills/{nix-tool-install,netboot-stateless,ctx-history-search,cf-private-deploy,sops-secrets,mermaid-diagram,consolidate-rules}/`** — 実デバイス名を役割名へ、非公開側の絶対パスをリポ相対パスへ置換済み。2026-08-16
+- **`.claude/skills/{nix-tool-install,ctx-history-search,sops-secrets,mermaid-diagram,consolidate-rules}/`** — 実デバイス名を役割名へ、非公開側の絶対パスをリポ相対パスへ置換済み。2026-08-16
 - **`.claude/skills/{nix-tool-install,sops-secrets}/`** — 本リポは macOS（nix-darwin）手順を保持する。フリート表が macbook を凍結保持しているためで、非公開側（Linux のみ）とは揃えない。2026-08-16

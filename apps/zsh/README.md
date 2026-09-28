@@ -2,29 +2,11 @@
 
 Zsh 関数の実体になる Python スクリプト。シェル関数側は薄いラッパーに留め、分岐やパースが要るものはこちらに置く。
 
-稼働環境では十数本あり、ここにはフリート運用の骨格になる3本を収めている。
+稼働環境では十数本あり、ここには機密の分離を支える1本を収めている。
 
 | ファイル | 役割 |
 |---|---|
-| `system_monitor.py` | 単一ホストの load / メモリ / ディスク / IO wait / NTP オフセットを取り、パイプ区切り1行で出す |
-| `fleet_monitor.py` | 複数ホストへ `system_monitor.py` を配って回り、結果を1つの表にまとめる |
 | `inject.py` | 生ファイルを sops（age）で暗号化して `secrets/<category>/` へ配置し、元の平文を消す |
-
-## リモートへ配らない
-
-`fleet_monitor.py` はリモートに何もインストールしない。ローカルのスクリプトを標準入力から remote python へ流し込んで実行する。
-
-```python
-cmd = f"timeout 5 ssh {user}@{host} 'python3 -u -' < {script_path}"
-```
-
-エージェントの常駐も、リモート側のバージョン管理も要らなくなる。監視対象に必要なのは python3 と SSH だけで、スクリプトを直せば次の実行から全ホストに反映される。`timeout` を必ず噛ませ、応答しないホストは `DOWN` として表示する。
-
-監視対象は環境変数 `FLEET` で渡す（実ホスト名と SSH ユーザを公開リポに直書きしないため）。
-
-```bash
-FLEET=linux-laptop:ops,linux-server-a:ops python3 apps/zsh/fleet_monitor.py
-```
 
 ## inject.py
 

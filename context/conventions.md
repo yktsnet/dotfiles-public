@@ -9,7 +9,7 @@
 
 ## 2. コードスタイル
 - Nix は `nix fmt`（フォーマッタ）で統一する。属性セットは用途ごとにモジュール分割し、`home-manager/modules/` に配置する。
-- デバイス固有設定は `devices/gui/`・`devices/headless/` に分け、共通モジュールを import して組み立てる。
+- デバイス固有設定は `devices/gui/<device>/` に置き、共通モジュールを import して組み立てる。
 - Zsh 関数は1機能1ファイルを基本とし、`zsh/functions/` に置く。
 - OS 差は `zsh/functions/os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）を通す。関数本体に `uname` / `$OSTYPE` / `sed -i` / `xdg-open` を直接書かない。Linux のハードウェア・systemd を直に叩く関数は冒頭で `_linux_only '依存先' || return 1`。
 

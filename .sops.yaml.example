@@ -7,16 +7,10 @@
 
 keys:
   - &macbook age1<PLACEHOLDER_AGE_PUBLIC_KEY>
-  - &linux-laptop age1<PLACEHOLDER_AGE_PUBLIC_KEY>
   - &linux-desktop age1<PLACEHOLDER_AGE_PUBLIC_KEY>
-  - &linux-server-a age1<PLACEHOLDER_AGE_PUBLIC_KEY>
-  - &linux-server-b age1<PLACEHOLDER_AGE_PUBLIC_KEY>
 creation_rules:
   - path_regex: secrets/.*$
     key_groups:
       - age:
           - *macbook
-          - *linux-laptop
           - *linux-desktop
-          - *linux-server-a
-          - *linux-server-b

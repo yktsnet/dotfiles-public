@@ -18,7 +18,6 @@ description: 新しい CLI ツール・パッケージをインストールし�
 | 今この場で1回きり（以後使う見込みなし） | `nix run nixpkgs#<pkg> -- <args>` または `nix shell nixpkgs#<pkg>`（設定変更なし） |
 | **繰り返し使う開発ツール（既定はこれ）** | `devices/gui/<device>/home.nix` の `home.packages` |
 | GUI 全デバイスで常用 | `devices/gui/home.nix` の `home.packages` |
-| headless 全デバイスで常用 | `devices/headless/home.nix` |
 | リポ固有のランタイム依存（clone した他人にも必要なもの） | そのリポの `shell.nix`（または flake devShell） |
 
 対象デバイスは `hostname -s` で確認する。
