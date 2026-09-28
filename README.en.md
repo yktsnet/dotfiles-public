@@ -37,7 +37,7 @@ Hand-offs between roles are performed by Zsh macros:
 
 Exceptions keep the separation from becoming rigid: real-time ops such as incident response, one-off exceptions the user declares explicitly, and a lightweight route that lets small, logic-free changes through without an Issue.
 
-This role separation describes the flow of a single Issue; in practice, multiple worktrees and consultant sessions run in parallel. A session running on the same model and the same rules cannot detect on its own that it has drifted off course. `M-m` ([session-nudge](.claude/skills/session-nudge/SKILL.md), [keybindings](docs/tui_environment.md)) provides that external reader: it sends via cross-session messaging, but only after the user approves the draft message. It never intervenes in another session automatically.
+This role separation describes the flow of a single Issue; in practice, multiple worktrees and consultant sessions run in parallel. A session running on the same model and the same rules cannot detect on its own that it has drifted off course. `M-m` ([session-nudge](.claude/skills/session-nudge/SKILL.md)) provides that external reader: it sends via cross-session messaging, but only after the user approves the draft message. It never intervenes in another session automatically.
 
 See [issue-driven-workflow.md](docs-agents/issue-driven-workflow.en.md) for details.
 
@@ -54,35 +54,18 @@ Autonomous agent execution only works once three things are structurally in plac
 
 ---
 
-## Device Fleet
+## Devices
 
-A single Flake binds six configurations that differ in OS and in how they boot. Device names are replaced with role-based generics for publication.
+A single Flake binds the macOS and Linux development machines. Device names are replaced with role-based generics for publication.
 
-| Configuration | OS / Boot | Role |
+| Configuration | OS | Role |
 |---|---|---|
-| `gui/linux-desktop` | NixOS (disko / SSD) | Primary dev machine. Where consultant chat and `issue()` are launched; distributes the dotfiles |
-| `gui/macbook` | macOS (nix-darwin) | The macOS side of the GUI machines. Shares the home-manager layer with the Linux ones |
-| `gui/linux-laptop` | NixOS (disko / SSD) | Portable GUI machine. Serves netboot images |
-| `headless/ssd/linux-server-a` | NixOS headless (VPS) | Public services and ops |
-| `headless/ssd/linux-server-b` | NixOS headless | Resident jobs |
-| `headless/diskless/linux-netboot` | NixOS netboot (tmpfs root) | Stateless machine. No storage; receives over PXE |
-
-Common modules are split between GUI and headless, and only per-machine differences (`hardware.nix`, `disko.nix`, `monitor.nix`, and so on) live in each directory. Diskless machines drop NixOS generation retention and serve only the latest one (`.claude/skills/netboot-stateless/`).
+| `gui/linux-desktop` | NixOS (disko / SSD) | Primary dev machine. Where consultant chat and `issue()` are launched |
+| `gui/macbook` | macOS (nix-darwin) | Shares the home-manager layer with the Linux machine |
 
 OS differences are confined to `pkgs.stdenv.isDarwin` on the Nix side and to the shims in `zsh/functions/os.sh` (`_is_darwin`, `_sed_i`, `_open`, `_linux_only`) on the shell side. Home Manager modules and function files are read as-is by both operating systems.
 
-Fleet-wide status checks run through `apps/zsh/fleet_monitor.py`, which keeps no agent resident on the remotes: it pipes the local script into SSH's stdin instead.
-
----
-
-## TUI Toolchain & Development Environment
-
-A Nix-unified TUI environment for both agents and humans to work in the same environment.
-
-* **Neovim**: An integrated development environment based on `lazy.nvim`. LSP completion, static type checking, auto-formatting (conform.nvim), and automatic session restoration. File operations go through oil.nvim, which edits directories as ordinary text buffers.
-* **Tmux**: Prefix-key-free pane operations, OSC 52 clipboard sync, True Color support. Operable with the same shortcuts as Neovim's split windows.
-
-For detailed keybindings and configuration, see [TUI Environment (docs/tui_environment.md)](docs/tui_environment.md).
+What is published is limited to the layers involved in developing with agents (Claude Code, memory, secrets, review, tmux session management). Editor and desktop settings and server configurations are not included.
 
 ---
 

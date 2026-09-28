@@ -37,7 +37,7 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 
 分離を硬直させないための例外も定義している。障害対応などのリアルタイム ops、user が明示宣言する単発例外、そしてロジックに触れない小規模変更を Issue 化なしで通す軽量経路の3経路である。
 
-このロール分離は1本の Issue の流れを説明したものであり、実際には複数の worktree と相談者セッションが同時に走る。同じモデル・同じ規則で動くセッションは、自分が方向を外したことを自分では検出できない。外部の読み手を用意するのが `M-m`（[session-nudge](.claude/skills/session-nudge/SKILL.md)、[キーバインド](docs/tui_environment.md)）で、送信は cross-session messaging で行うが、文案は必ず user が承認してから送る。自動で他セッションへ介入はしない。
+このロール分離は1本の Issue の流れを説明したものであり、実際には複数の worktree と相談者セッションが同時に走る。同じモデル・同じ規則で動くセッションは、自分が方向を外したことを自分では検出できない。外部の読み手を用意するのが `M-m`（[session-nudge](.claude/skills/session-nudge/SKILL.md)）で、送信は cross-session messaging で行うが、文案は必ず user が承認してから送る。自動で他セッションへ介入はしない。
 
 詳細は [issue-driven-workflow.md](docs-agents/issue-driven-workflow.md) を参照。
 
@@ -54,35 +54,18 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 
 ---
 
-## Device Fleet（管理対象）
+## Devices（管理対象）
 
-単一の Flake が、OS も起動方式も異なる6構成を束ねる。デバイス名は公開にあたり役割ベースの総称に置き換えている。
+単一の Flake が macOS と Linux の開発機を束ねる。デバイス名は公開にあたり役割ベースの総称に置き換えている。
 
-| 構成 | OS / 起動 | 役割 |
+| 構成 | OS | 役割 |
 |---|---|---|
-| `gui/linux-desktop` | NixOS（disko / SSD） | 主開発機。相談者チャットと `issue()` の起動元。dotfiles の配布元 |
-| `gui/macbook` | macOS（nix-darwin） | GUI 機の macOS 面。home-manager 層を Linux 機と共有する |
-| `gui/linux-laptop` | NixOS（disko / SSD） | 可搬 GUI 機。netboot の配信元 |
-| `headless/ssd/linux-server-a` | NixOS headless（VPS） | 公開サービス・ops |
-| `headless/ssd/linux-server-b` | NixOS headless | 常駐ジョブ |
-| `headless/diskless/linux-netboot` | NixOS netboot（tmpfs root） | 無状態機。ストレージを持たず PXE で受信する |
-
-GUI と headless で共通モジュールを分け、機体固有の差分（`hardware.nix` / `disko.nix` / `monitor.nix` 等）だけを各ディレクトリに置く。ディスクレス機は世代保持を捨てて最新1世代のみを配給する（`.claude/skills/netboot-stateless/`）。
+| `gui/linux-desktop` | NixOS（disko / SSD） | 主開発機。相談者チャットと `issue()` の起動元 |
+| `gui/macbook` | macOS（nix-darwin） | home-manager 層を Linux 機と共有する |
 
 OS の差は、Nix 側では `pkgs.stdenv.isDarwin`、シェル側では `zsh/functions/os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）に閉じ込める。home-manager モジュールと関数ファイルは両 OS が同一のものを読む。
 
-フリート横断の状態確認は `apps/zsh/fleet_monitor.py` が行う。リモートにエージェントを常駐させず、ローカルのスクリプトを SSH の標準入力へ流し込んで実行する。
-
----
-
-## TUI Toolchain & Development Environment
-
-エージェントと人間が同一環境で作業を行うための、Nixで一元化されたTUI環境。
-
-* **Neovim**: `lazy.nvim` ベースの統合開発環境。LSP 補完・静的型チェック・自動整形（conform.nvim）・自動セッション復元。ファイル操作は oil.nvim で、ディレクトリを通常のテキストバッファとして編集する。
-* **Tmux**: プレフィックスキー不要のペイン操作、OSC 52 クリップボード同期、True Color 対応。Neovim の分割ウィンドウと同一ショートカットで操作できる。
-
-詳細なキーバインドや構成は [TUI Environment (docs/tui_environment.md)](docs/tui_environment.md) を参照。
+公開しているのは、エージェントとの開発に関わる層（Claude Code・メモリ・機密・レビュー・tmux のセッション管理）に限る。エディタやデスクトップの設定、サーバー類の構成は含めていない。
 
 ---
 
