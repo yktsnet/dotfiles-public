@@ -10,6 +10,7 @@ vim.opt.ignorecase = true
 vim.opt.smartcase = true
 vim.opt.wrap = true -- Wrap lines
 vim.opt.scrolloff = 10
+vim.opt.conceallevel = 2 -- render-markdown などのインライン装飾・マークダウンレンダリング用
 
 -- Undercurl support
 vim.cmd([[let &t_Cs = "\e[4:3m"]])
@@ -27,14 +28,15 @@ vim.opt.backupskip = { "/tmp/*", "/private/tmp/*" }
 -- ブロックコメント中の * 自動挿入
 vim.opt.formatoptions:append({ "r" })
 
--- nvim 0.8+ ではコマンド未入力時にコマンドラインを非表示
-if vim.fn.has("nvim-0.8") == 1 then
-  vim.opt.cmdheight = 0
-end
+-- コマンド未入力時にコマンドラインを非表示
+vim.opt.cmdheight = 0
+
+local augroup = vim.api.nvim_create_augroup("CustomAutoCmds", { clear = true })
 
 -- Save last visited directory to a file on exit for shell auto-cd
 local last_valid_dir = vim.fn.getcwd()
 vim.api.nvim_create_autocmd("BufEnter", {
+  group = augroup,
   callback = function()
     local dir = vim.fn.expand("%:p:h")
     if vim.fn.isdirectory(dir) == 1 then
@@ -44,6 +46,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
 })
 
 vim.api.nvim_create_autocmd("VimLeave", {
+  group = augroup,
   callback = function()
     local cwd_file = os.getenv("NVIM_CWD_FILE")
     if cwd_file and cwd_file ~= "" then
@@ -58,36 +61,17 @@ vim.api.nvim_create_autocmd("VimLeave", {
 
 -- Force zsh filetype for scripts under zsh/functions/ to enable Aerial and Treesitter
 vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
+  group = augroup,
   pattern = "*/zsh/functions/*.sh",
   callback = function()
     vim.bo.filetype = "zsh"
   end,
 })
 
--- 最後に開いていたファイルを自動的に開く（引数なしで起動した場合のみ）
-vim.api.nvim_create_autocmd("VimEnter", {
-  callback = function()
-    if vim.fn.argc() == 0 then
-      for _, file in ipairs(vim.v.oldfiles) do
-        if vim.fn.filereadable(file) == 1 then
-          local lower_file = file:lower()
-          -- 除外したい一時ファイルや特殊ファイルをフィルタリング
-          if not lower_file:match("commit_editmsg") and
-             not lower_file:match("git%-rebase%-todo") and
-             not lower_file:match("/tmp/") and
-             not lower_file:match("/private/tmp/") and
-             not lower_file:match("%.git/") then
-            vim.cmd("edit " .. vim.fn.fnameescape(file))
-            break
-          end
-        end
-      end
-    end
-  end,
-})
 
 -- 再起動時に最後にカーソルがあった位置に戻る
 vim.api.nvim_create_autocmd("BufReadPost", {
+  group = augroup,
   callback = function()
     local mark = vim.api.nvim_buf_get_mark(0, '"')
     local lcount = vim.api.nvim_buf_line_count(0)
@@ -96,5 +80,6 @@ vim.api.nvim_create_autocmd("BufReadPost", {
     end
   end,
 })
+
 
 

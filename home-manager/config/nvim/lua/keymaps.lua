@@ -1,8 +1,5 @@
-local discipline = require("discipline")
-discipline.cowboy()
-
 local keymap = vim.keymap.set
-local opts = { noremap = true, silent = true }
+local opts = { silent = true }
 
 -- ============================================================
 -- レジスタを汚さない系 (craftzdog)
@@ -16,17 +13,6 @@ keymap("n", "<Leader>p", '"0p')
 keymap("n", "<Leader>P", '"0P')
 keymap("v", "<Leader>p", '"0p')
 
--- ブラックホールレジスタへの change（ペーストバッファを保護）
-keymap("n", "<Leader>c", '"_c')
-keymap("n", "<Leader>C", '"_C')
-keymap("v", "<Leader>c", '"_c')
-keymap("v", "<Leader>C", '"_C')
-
--- ブラックホールレジスタへの delete（ペーストバッファを保護）
-keymap("n", "<Leader>d", '"_d')
-keymap("n", "<Leader>D", '"_D')
-keymap("v", "<Leader>d", '"_d')
-keymap("v", "<Leader>D", '"_D')
 
 -- ============================================================
 -- 数値・インクリメント (craftzdog)
@@ -48,6 +34,15 @@ keymap("n", "<Leader>o", "o<Esc>^Da", opts)
 keymap("n", "<Leader>O", "O<Esc>^Da", opts)
 
 -- ============================================================
+-- カーソル移動
+-- ============================================================
+
+-- 表示行での移動（折り返し行でも自然に移動）。ただし、10j のようにカウントを指定した場合は論理行移動を維持
+keymap({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
+keymap({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
+
+-- ============================================================
+
 -- タブ操作 (craftzdog)
 -- ============================================================
 
@@ -59,15 +54,16 @@ keymap("n", "<s-tab>", ":tabprev<Return>", opts)
 -- ウィンドウ分割・移動 (craftzdog)
 -- ============================================================
 
--- 分割
-keymap("n", "ss", ":split<Return>", opts)
-keymap("n", "sv", ":vsplit<Return>", opts)
-
 -- 移動（Alt+矢印は vim-tmux-navigator に委譲）
 keymap("n", "sh", "<C-w>h")
 keymap("n", "sk", "<C-w>k")
 keymap("n", "sj", "<C-w>j")
 keymap("n", "sl", "<C-w>l")
+
+-- 分割・クローズ（Nvim 内側の層。tmux 側は Alt キー）
+keymap("n", "sv", "<cmd>vsplit<cr>", opts)
+keymap("n", "ss", "<cmd>split<cr>", opts)
+keymap("n", "sx", "<cmd>close<cr>", opts)
 
 -- リサイズ
 keymap("n", "<C-w><left>",  "<C-w><")
@@ -79,9 +75,13 @@ keymap("n", "<C-w><down>",  "<C-w>-")
 -- Diagnostics (craftzdog)
 -- ============================================================
 
--- 次のエラー・警告へジャンプ
+-- 次・前のエラー・警告へジャンプ
 keymap("n", "<C-j>", function()
-  vim.diagnostic.goto_next()
+  vim.diagnostic.jump({ count = 1 })
+end, opts)
+
+keymap("n", "<C-k>", function()
+  vim.diagnostic.jump({ count = -1 })
 end, opts)
 
 -- エラー詳細フローティング表示（旧 <leader>d を移動）
@@ -93,22 +93,24 @@ keymap("n", "<leader>di", vim.diagnostic.open_float, { desc = "Diagnostic float"
 
 -- Inlay Hints のトグル（LSP 接続時のみ有効）
 keymap("n", "<leader>i", function()
-  vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+  local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = 0 })
+  vim.lsp.inlay_hint.enable(not enabled, { bufnr = 0 })
 end, { desc = "Toggle Inlay Hints" })
 
--- ============================================================
--- ファイルパス・内容コピー (ykts 独自 / キー移動)
--- ============================================================
 
--- <leader>cp = 相対パスをクリップボードにコピー（旧 <leader>p）
+-- <leader>cp = 絶対パスをクリップボードにコピー
 keymap("n", "<leader>cp", function()
-  vim.fn.setreg("+", vim.fn.expand("%:."))
-end, { desc = "Copy relative path" })
-
--- <leader>cP = 絶対パスをクリップボードにコピー（旧 <leader>P）
-keymap("n", "<leader>cP", function()
-  vim.fn.setreg("+", vim.fn.expand("%:p"))
+  local filepath = vim.fn.expand("%:p")
+  vim.fn.setreg("+", filepath)
+  vim.notify("Copied absolute path: " .. filepath)
 end, { desc = "Copy absolute path" })
+
+-- <leader>cr = 相対パスをクリップボードにコピー
+keymap("n", "<leader>cr", function()
+  local filepath = vim.fn.expand("%:.")
+  vim.fn.setreg("+", filepath)
+  vim.notify("Copied relative path: " .. filepath)
+end, { desc = "Copy relative path" })
 
 -- <leader>y = ファイル内容をヘッダ付きでコピー（変更なし）
 keymap("n", "<leader>y", function()

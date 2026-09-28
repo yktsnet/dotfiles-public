@@ -42,6 +42,26 @@ return {
     },
     config = function(_, opts)
       require("oil").setup(opts)
+
+      -- oil の recursive_delete は 1ディレクトリあたり 10000 エントリのバッファを確保しつつ
+      -- 子を無制限に並行再帰するため、大きなツリーで luv の dirents 解放が壊れ nvim ごと abort する。
+      -- 削除だけ外部コマンドに委ねて回避する。
+      local fs = require("oil.fs")
+      fs.recursive_delete = function(entry_type, path, cb)
+        if entry_type ~= "directory" then
+          return vim.uv.fs_unlink(path, cb)
+        end
+        vim.system({ "rm", "-rf", "--", path }, { text = true }, function(res)
+          vim.schedule(function()
+            if res.code == 0 then
+              cb()
+            else
+              cb("rm -rf failed: " .. (res.stderr or ""))
+            end
+          end)
+        end)
+      end
+
       vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
       vim.keymap.set("n", "<leader>e", "<CMD>Oil<CR>", { desc = "Oil (current file dir)" })
       vim.keymap.set("n", "<leader>E", function()

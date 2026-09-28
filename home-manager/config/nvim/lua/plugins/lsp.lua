@@ -10,6 +10,7 @@ return {
       "hrsh7th/cmp-path",
       "hrsh7th/cmp-cmdline",
       "L3MON4D3/LuaSnip",
+      "saadparwaiz1/cmp_luasnip",
     },
     config = function()
       require("mason").setup()
@@ -43,6 +44,8 @@ return {
           end,
         },
         mapping = cmp.mapping.preset.insert({
+          ["<C-n>"] = cmp.mapping.select_next_item(),
+          ["<C-p>"] = cmp.mapping.select_prev_item(),
           ["<C-Space>"] = cmp.mapping.complete(),
           ["<CR>"] = cmp.mapping.confirm({ select = true }),
         }),
