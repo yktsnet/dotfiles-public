@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml/badge.svg)](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml)
 
-A personal development environment for handing development to AI agents, published as a Nix configuration together with the rules it enforces.
+This repository is a personal development environment for handing development to AI agents, published with its full configuration as a working example of placing the rules to be followed in the environment (Nix, Claude Code deny rules and hooks, skills) rather than in documents.
 The parts that carry over to team repositories are packaged separately in [sdlc-kit](https://github.com/yktsnet/sdlc-kit); this is the environment where those practices actually run.
 
 ---
@@ -52,7 +52,23 @@ When the same model both decides and builds, it cannot notice on its own that it
 - **Executor**: takes an Issue and carries it through implementation, tests, and a local commit. Never touches the remote ([pr-workflow](.claude/skills/pr-workflow/SKILL.md))
 - **User**: approves the Issue's guarantee section, reviews the commits, and publishes them
 
-Hand-offs go through zsh functions. `issue` creates a worktree and launches the executor, `issue-finish` takes a reviewed branch from push through PR, merge, and cleanup, and `issue-abort` discards the worktree along with its branch. Each worktree is isolated, so several Issues can run in parallel. The executor's changes are reviewed line by line in [crit](https://github.com/tomasz-tomczyk/crit).
+```mermaid
+flowchart TD
+    U([User]) -->|approve| I[Issue in issues/]
+    C([Consultant]) -->|design| I
+    subgraph local [Local worktree]
+        I -->|issue| E([Executor])
+        E --> L[Local commit]
+    end
+    L -->|review in crit| R{{User decides}}
+    R -->|issue-abort| X[Discard with branch]
+    subgraph remote [GitHub]
+        P[PR and merge]
+    end
+    R -->|issue-finish| P
+```
+
+The executor stops at a local commit, and the only way out to the remote is the user's `issue-finish`. `issue` creates a worktree and launches the executor, so several Issues can run in parallel. The executor's changes are reviewed line by line in [crit](https://github.com/tomasz-tomczyk/crit).
 
 [session-nudge](.claude/skills/session-nudge/SKILL.md) provides a reader standing outside the parallel sessions; it sends advice to another session only after the user approves the draft. Real-time work such as incident response, one-off exceptions the user declares, and small changes that do not touch logic go through without an Issue.
 
@@ -61,6 +77,21 @@ Hand-offs go through zsh functions. `issue` creates a worktree and launches the 
 Issues, PRs, and commit messages use `<PLACEHOLDER>` instead of IPs, ports, and real hostnames. The mapping between real values and placeholders lives in `secrets-agents/`, which agents are not allowed to read or write.
 
 If the mapping existed on only one machine, writing on any other machine would mean not knowing what to mask. The mapping is encrypted with sops (age) and distributed through git, and each machine decrypts it with its own key ([sops-secrets](.claude/skills/sops-secrets/SKILL.md)).
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Reason |
+|---|---|---|
+| Configuration | Nix Flakes, home-manager | Builds every machine's tools and settings from one declaration, so agents do not stall on machine differences |
+| macOS | nix-darwin | Lets macOS share the home-manager layer with the Linux machine |
+| Disk | disko | Puts the partition layout in the declaration too, so rebuilding the primary machine does not depend on a runbook |
+| Secrets | sops-nix, age | Ships ciphertext through git and lets each machine decrypt with its own key; plaintext never travels between machines |
+| Agent | Claude Code | Its `settings.json` deny rules and PreToolUse hooks let prohibitions live as mechanisms rather than documents |
+| Review | crit | Comments line by line on the executor's diff or a local page and gets it fixed in place |
+| Hand-off | zsh | Turns each role boundary, from creating a worktree to publishing, into one command |
+| Sessions | tmux, tmux-claude-session-manager | Moves between parallel Claude Code sessions |
 
 ---
 
@@ -76,7 +107,7 @@ Unifying tools through Nix, distributing `~/.claude`, decrypting the mapping, an
 
 Only the layers involved in developing with agents (Claude Code, memory, secrets, review, and tmux session management) are extracted from the working dotfiles. Editor and desktop settings and server configurations are not included. This is an extract, not a mirror, so some things in the working environment are absent here. The criteria for what gets published are in [.claude/skills/README.md](.claude/skills/README.md).
 
-The repository is not meant to be cloned and applied to your own machines. The device configurations assume the actual hardware and keys, and the encrypted contents of `secrets/` are not included. CI's `nix flake check` confirms that the published configuration still evaluates.
+The repository is not meant to be cloned and applied to your own machines, so no setup steps are given. The device configurations assume the actual hardware and keys, and the encrypted contents of `secrets/` are not included. CI's `nix flake check` confirms that the published configuration still evaluates.
 
 ---
 
