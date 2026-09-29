@@ -7,7 +7,7 @@
     ../../home-manager/modules/memory.nix
     ../../home-manager/modules/secrets-agents.nix
     ../ssh.nix
-    ../../zsh/nixos.nix
+    ../../home-manager/modules/zsh/nixos.nix
     ../../home-manager/modules/git.nix
     ../../home-manager/modules/crit.nix
   ];
@@ -40,7 +40,7 @@
 
 
   home.file = {
-    "dotfiles-hub/current-host-system".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/devices/gui/${osConfig.networking.hostName}/system.nix";
-    "dotfiles-hub/current-host-home".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/devices/gui/${osConfig.networking.hostName}/home.nix";
+    "dotfiles-hub/current-host-system".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/devices/${osConfig.networking.hostName}/system.nix";
+    "dotfiles-hub/current-host-home".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/dotfiles/devices/${osConfig.networking.hostName}/home.nix";
   };
 }

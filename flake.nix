@@ -58,7 +58,7 @@
           inputs.home-manager.darwinModules.home-manager
           inputs.sops-nix.darwinModules.sops
           { home-manager.sharedModules = [ inputs.sops-nix.homeManagerModules.sops ]; }
-          ./devices/gui/macbook/system.nix
+          ./devices/macbook/system.nix
         ];
       };
     };

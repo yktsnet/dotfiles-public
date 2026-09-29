@@ -16,8 +16,8 @@ description: 新しい CLI ツール・パッケージをインストールし�
 | 用途 | 導入先 |
 |---|---|
 | 今この場で1回きり（以後使う見込みなし） | `nix run nixpkgs#<pkg> -- <args>` または `nix shell nixpkgs#<pkg>`（設定変更なし） |
-| **繰り返し使う開発ツール（既定はこれ）** | `devices/gui/<device>/home.nix` の `home.packages` |
-| GUI 全デバイスで常用 | `devices/gui/home.nix` の `home.packages` |
+| **繰り返し使う開発ツール（既定はこれ）** | `devices/<device>/home.nix` の `home.packages` |
+| GUI 全デバイスで常用 | `devices/common/home.nix` の `home.packages` |
 | リポ固有のランタイム依存（clone した他人にも必要なもの） | そのリポの `shell.nix`（または flake devShell） |
 
 対象デバイスは `hostname -s` で確認する。
@@ -31,6 +31,7 @@ nix search nixpkgs <tool> 2>/dev/null | head
 ```
 
 nixpkgs に無い場合はその旨を user に報告して指示を仰ぐ（flake input 追加・overlay はここで勝手にやらない）。
+derivation を書いて載せると決まったら、言語別の書き方と配線は [reference/nix-packaging.md](reference/nix-packaging.md) を使う。
 
 ### 3. 反映する
 

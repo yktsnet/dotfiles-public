@@ -23,7 +23,7 @@ mount -t hfs "$RAMDISK" /Volumes/ramdisk
 hx /Volumes/ramdisk/filename.env
 
 # 2. 暗号化してdotfilesに配置
-python3 ~/dotfiles/apps/zsh/inject.py /Volumes/ramdisk/filename.env <カテゴリ名>
+python3 ~/.claude/skills/sops-secrets/scripts/inject.py /Volumes/ramdisk/filename.env <カテゴリ名>
 # → secrets/<カテゴリ名>/filename.env.age が生成される
 
 # 3. RAMディスク解放

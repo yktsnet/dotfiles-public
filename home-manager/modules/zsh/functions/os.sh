@@ -1,7 +1,7 @@
 # OS 差の吸収。関数の中からだけ呼ぶ（initContent の連結順に依存させない）。
 # NixOS と macOS で実質的に割れるのは BSD/GNU の sed -i 書式、既定アプリでの開き方、
 # そして Linux のハードウェア・systemd を直に叩く関数だけである。その差をここに閉じ込め、
-# zsh/functions/ の他のファイルは両 OS が同一のものを読む。
+# functions/ の他のファイルは両 OS が同一のものを読む。
 _is_darwin() {
   [[ "$OSTYPE" == darwin* ]]
 }

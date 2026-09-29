@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ../system.nix
+    ../common/system.nix
     ./hardware.nix
     ./disko.nix
   ];

@@ -35,7 +35,7 @@ pkgs.python3Packages.buildPythonApplication rec {
 
 ## Rust ツール — `buildRustPackage`
 
-手本 `home-manager/modules/ctx.nix`。
+手本はリポ直下の `home-manager/modules/ctx.nix`。
 
 ```nix
 pkgs.rustPlatform.buildRustPackage rec {
@@ -89,8 +89,8 @@ pkgs.writeShellScriptBin "<name>" ''
 
 - 単独ツールは `home-manager/modules/<name>.nix` を新規作成し、その中で derivation 定義 + `home.packages = [ pkg ];`。
 - それを必要なデバイスに import する。経路は2つ:
-  - Linux 共通: `devices/gui/home.nix` の `imports`。
-  - デバイス個別: `devices/gui/<host>/home.nix` の `imports` か `home.packages` 直書き。
+  - Linux 共通: `devices/common/home.nix` の `imports`。
+  - デバイス個別: `devices/<host>/home.nix` の `imports` か `home.packages` 直書き。
 - どのホストで使うかを決めてから配線する（全ホストに撒かない）。
 
 ## アップデート追随

@@ -31,13 +31,13 @@ case "$file_path" in
       || fail "nix-instantiate --parse が失敗（$file_path）" "$out"
     ;;
   *.sh)
-    # zsh 用と bash 用で通る構文が違う。shebang が無い場合は dotfiles/zsh 配下のみ
+    # zsh 用と bash 用で通る構文が違う。shebang が無い場合は home-manager/modules/zsh 配下のみ
     # zsh とみなし、判断できないものは検査しない（誤検出で偽の修正を誘発しないため）
     shebang=$(head -n 1 "$file_path")
     case "$shebang:$file_path" in
       *zsh*:*) shell=zsh ;;
       *bash*:*) shell=bash ;;
-      *:*/dotfiles/zsh/*) shell=zsh ;;
+      *:*/home-manager/modules/zsh/*) shell=zsh ;;
       *) exit 0 ;;
     esac
     command -v "$shell" >/dev/null 2>&1 || exit 0

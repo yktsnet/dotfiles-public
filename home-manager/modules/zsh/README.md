@@ -1,6 +1,6 @@
 # zsh
 
-Issue 駆動ワークフロー（[new-issue](../.claude/skills/new-issue/SKILL.md)）を実行するシェル関数と、その配線。
+Issue 駆動ワークフロー（[new-issue](../../../.claude/skills/new-issue/SKILL.md)）を実行するシェル関数と、その配線。
 
 ## 構成
 
@@ -24,15 +24,15 @@ Issue 駆動ワークフロー（[new-issue](../.claude/skills/new-issue/SKILL.m
 
 実行者の変更のレビューは、実行者のセッションの中で `pr-workflow` が [crit](https://github.com/tomasz-tomczyk/crit) を開いて済ませる（`home-manager/modules/crit.nix`）。
 
-`functions/` は稼働環境の実装を汎用化したスナップショットであり、稼働側に追従させない。ワークフローの振る舞いの正は [new-issue](../.claude/skills/new-issue/SKILL.md) にある。
+`functions/` は稼働環境の実装を汎用化したスナップショットであり、稼働側に追従させない。ワークフローの振る舞いの正は [new-issue](../../../.claude/skills/new-issue/SKILL.md) にある。
 
 ### 公開範囲
 
-稼働環境の `zsh/` は、Issue 駆動のほかにも git の補助・ops・ドキュメント変換など多数のモジュールを持つ。ここに収めているのは**そのうち Issue 駆動ワークフローの実行に要る3本**だけである。稼働側は台帳として `issues/` のほかに Backlog.md も扱うが、公開側は `issues/` だけを扱う。
+稼働環境のシェル関数は、Issue 駆動のほかにも git の補助・ops・ドキュメント変換など多数のモジュールを持つ。ここに収めているのは**そのうち Issue 駆動ワークフローの実行に要る3本**だけである。稼働側は台帳として `issues/` のほかに Backlog.md も扱うが、公開側は `issues/` だけを扱う。
 
 ## 配線
 
 | デバイス | import するエントリポイント |
 |---|---|
-| `devices/gui/macbook` | `zsh/darwin.nix` |
-| `devices/gui`（Linux） | `zsh/nixos.nix` |
+| `devices/macbook` | `darwin.nix` |
+| `devices/common`（Linux） | `nixos.nix` |
