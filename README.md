@@ -9,7 +9,7 @@
 
 ---
 
-## Verification over Generation
+## Why
 
 AI がコードを書くようになって、時間がかかるのは書くことではなく、書かれたものを信じられるか確かめることに変わった。エージェントは自信を持ったまま静かに間違え、放っておけば破壊的な操作や機密の漏洩をそのまま本番へ通す。人が気をつけるという約束は、いずれ形骸化する。
 
@@ -17,7 +17,7 @@ AI がコードを書くようになって、時間がかかるのは書くこ�
 
 ---
 
-## Rules Live in the Environment
+## Design
 
 規則は置き場で分けている。毎回守らせる規則は CLAUDE.md、「〜するとき」と条件を言える手順と基準は skill、外れてはいけないものは `settings.json` の deny とフックに置く。そのうえで、どのリポジトリ、どの端末で開いても同じものが効くよう、全部を Nix で配る。
 
@@ -95,7 +95,7 @@ Issue・PR・コミットの地の文には、IP・ポート・実ホスト名�
 
 ---
 
-## What Ships to sdlc-kit
+## sdlc-kit
 
 ここで回している型のうち、チームのリポジトリへ持ち込めるものを [sdlc-kit](https://github.com/yktsnet/sdlc-kit) に切り出している。持ち込むのは、人の判断を省かせない、セッションを超えて残す、担当者が替わっても揃う、のどれかに当たるものだけで、作業フロー、立ち上げ期の PLAN.md / JUDGE.md、リリース後の保証台帳、main を守るガードがこれにあたる。開発を2つの駆動文書で回す考え方は sdlc-kit の [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md) にある。
 
@@ -103,7 +103,7 @@ Nix による道具の統一、`~/.claude` の配布、対応表の復号、永�
 
 ---
 
-## What Is Not Here
+## Scope
 
 稼働中の dotfiles から、エージェントとの開発に関わる層（Claude Code・メモリ・機密・レビュー・tmux のセッション管理）だけを抜き出している。エディタやデスクトップの設定、サーバー類の構成は含めていない。抜き出しであって写しではないので、稼働側にあってここに無いものがある。何を公開するかの基準は [.claude/skills/README.md](.claude/skills/README.md) に置いた。
 
@@ -118,6 +118,6 @@ clone して各自の端末へ適用することは想定しておらず、動�
 | `flake.nix`・`devices/` | 開発機の NixOS / nix-darwin 構成。共通部分は `devices/common/` | 全端末で道具を揃える |
 | `home-manager/modules/` | Claude Code の配布・メモリ・機密・tmux・crit。`zsh/` に Issue 駆動の関数 | 規則を1か所から全セッションへ配る・決める役と作る役を分ける |
 | `.claude/settings.json`・`.claude/hooks/` | deny とフック | 禁止は頼まず仕組みに置く |
-| `.claude/skills/` | 手順と基準。一覧は [.claude/skills/README.md](.claude/skills/README.md) | Rules Live in the Environment 全体 |
+| `.claude/skills/` | 手順と基準。一覧は [.claude/skills/README.md](.claude/skills/README.md) | Design 全体 |
 | `secrets-agents/` | 対応表の復号先（`example.md` はサンプル） | 機密を地の文に出さない |
 | `issues/` | このリポジトリ自身の Issue と PR の控え | 決める役と作る役を分ける |
