@@ -9,7 +9,7 @@ The parts that carry over to team repositories are packaged separately in [sdlc-
 
 ---
 
-## Verification over Generation
+## Why
 
 Now that AI writes the code, the time goes not into writing but into confirming that what was written can be trusted. Agents are confidently and quietly wrong, and left alone they carry destructive operations and secret leaks straight into production. A promise that people will be careful eventually becomes an empty formality.
 
@@ -17,7 +17,7 @@ So removing environment differences, blocking destructive commands, and isolatin
 
 ---
 
-## Rules Live in the Environment
+## Design
 
 Rules are sorted by where they live. Rules that apply every time go in CLAUDE.md, procedures and criteria whose trigger can be stated as "when doing X" go in skills, and anything that must not be crossed goes in the `settings.json` deny list and hooks. All of it is then distributed through Nix, so the same rules apply in any repository on any machine.
 
@@ -95,7 +95,7 @@ If the mapping existed on only one machine, writing on any other machine would m
 
 ---
 
-## What Ships to sdlc-kit
+## sdlc-kit
 
 Of the practices running here, the ones that carry over to team repositories are packaged in [sdlc-kit](https://github.com/yktsnet/sdlc-kit). Only practices that meet at least one of three conditions go in: they keep a human decision from being skipped, they have to survive across sessions, or they have to come out the same when the person changes. That covers the task flows, PLAN.md / JUDGE.md for the launch phase, the guarantee ledger after release, and the guards that protect main. The idea of running development on two driving documents is in sdlc-kit's [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md).
 
@@ -103,7 +103,7 @@ Unifying tools through Nix, distributing `~/.claude`, decrypting the mapping, an
 
 ---
 
-## What Is Not Here
+## Scope
 
 Only the layers involved in developing with agents (Claude Code, memory, secrets, review, and tmux session management) are extracted from the working dotfiles. Editor and desktop settings and server configurations are not included. This is an extract, not a mirror, so some things in the working environment are absent here. The criteria for what gets published are in [.claude/skills/README.md](.claude/skills/README.md).
 
