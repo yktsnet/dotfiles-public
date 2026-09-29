@@ -4,103 +4,89 @@
 
 [![CI](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml/badge.svg)](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml)
 
-AI エージェントとの開発では、ボトルネックは生成から検証と意図伝達に移る。
-本リポジトリは、その前提で組んだ個人の開発環境を、Nix 構成・ロール分離の実行機構・skill 群ごとコードとして公開する。
-開発の型は、チームのリポジトリへ取り込める形に切り出して [sdlc-kit](https://github.com/yktsnet/sdlc-kit) で配っている。ここはその型を実際に回している環境である。
+AI エージェントに開発を任せる個人の開発環境を、守らせたい規則ごと Nix 構成として公開したものです。
+チームのリポジトリへ持ち込める分は [sdlc-kit](https://github.com/yktsnet/sdlc-kit) に切り出していて、ここはその型を実際に回している環境にあたります。
 
 ---
 
-## Principles（導入順序）
+## From Writing to Checking
 
-通底する前提は**注意し続ける人間を前提にしない**こと。規約は読み手の集中力に依存し、集中力は疲れると落ちる。禁止は文書でなく機構に置き、CI はローカル検証と同じものを二重に回し、壊したことには壊した本人（実行者）が提出前に気づく経路を用意する。
+エージェントに書かせる量が増えるにつれて、自分の仕事は書くことから確かめることへ移っていった。確かめるものが増えると、確かめ方が日によって揺れる。疲れた日は見落とし、急ぐ日は手順を飛ばす。エージェントも同じで、前のセッションで守れた規則を次のセッションでは読み落とす。
 
-導入は次の順に積む。
-
-1. **作る前に型を決める** — リポの類型・README の種別・モジュールの型を判定し、以降の規定をそこから導く
-2. **禁止を文書でなく仕組みに置く** — `settings.json` の deny と PreToolUse フック
-3. **読まれる場面ごとに知識を置く** — 毎回効く規則は CLAUDE.md、条件を言える手順と基準は skill
-4. **守る保証を先に裁可する** — 保証台帳とテスト（GDD）
-5. **決める人と作る人を分ける** — 相談者・実行者・user の三役
-
-順序には依存がある。型が決まらないと何を遮断すべきかが決まらず、遮断が無いまま知識を増やすと事故の速度だけが上がる。保証が固まる前に分業すると、実行者は何を壊してはいけないか分からないまま走る。**最小構成は 1〜3** で、公開の有無やチーム規模に関わらず要る。4〜5 は公開物を持つとき、または複数セッションで並行し始めたときに足す。
+そこで、守らせたいことを、頼んで守ってもらう文書から、外れようのない環境の側へ少しずつ移してきた。人にもエージェントにも、覚えていることを求めない。
 
 ---
 
-## Development Lifecycle（2つの駆動文書）
+## Rules Live in the Environment
 
-開発を2フェーズに分け、駆動文書を交代させる。立ち上げ期は PLAN.md / JUDGE.md（SDD）、リリース後は保証台帳 `docs/guarantees.md` とテスト（GDD）で回す。フェーズは各リポジトリの CLAUDE.md で宣言する。
+規則は置き場で分けています。毎回守らせる規則は CLAUDE.md、「〜するとき」と条件を言える手順と基準は skill、外れてはいけないものは `settings.json` の deny とフックに置きます。そのうえで、どのリポジトリ、どの端末で開いても同じものが効くように、全部を Nix で配ります。
 
-考え方は sdlc-kit の [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md) にある。本リポジトリでの運用基準は [guarantee-audit/SKILL.md](.claude/skills/guarantee-audit/SKILL.md) を参照。
+### One Toolchain on Every Machine
 
----
-
-## Role Separation（ロールの分離）
-
-上記2ワークフローの実行機構。人間、対話型AI、自律型AIエージェントの担当範囲を厳格に定義し、エージェントの編集がレビューを経ないままメインブランチや本番に及ばないようにする。
-
-* **WebChat（設計・対話型AI）**:
-  ユーザーと対話しながら、MVP期は仕様策定と設計ファイルの作成を、Issueドリブン期は調査と Issue 設計を行う。実装はしない。
-* **AI Agent（実装・自律型AI）**:
-  Issue ファイルをインプットとしてコード編集・テスト実装・静的エラー確認・ローカルコミットまでを自律実行し、リモートには触れない。手順は [pr-workflow](.claude/skills/pr-workflow/SKILL.md) に固定してある。`rebuild` 等の破壊的コマンドや機密へのアクセスは `.claude/settings.json` の deny で遮断し、前方一致では判定できないもの（パス付き実行のパッケージ導入、生成物への直接編集）は [`.claude/hooks/`](.claude/hooks/) の PreToolUse フックが受け持つ。
-* **User（裁可・検証・人間）**:
-  Issue の保証節を裁可し、エージェントのコミットをローカルでレビュー・動作確認し、`issue-finish` で公開（push・PR作成・マージ）を実行する。レビューを通った変更だけがリモートに残る。
-
-ロール間の受け渡しは Zsh マクロで行う:
-
-* **`issue`**: 対象 Issue を選択し、worktree を隔離作成してエージェントを起動。main を汚さず複数 Issue を並列実行できる。
-* **`issue-abort`**: 進行中の worktree を作業ブランチごと破棄。
-* **`issue-finish`**: レビュー済みブランチの push → PR 作成 → マージ → 後片付けを一括実行。
-
-分離を硬直させないための例外も定義している。障害対応などのリアルタイム ops、user が明示宣言する単発例外、そしてロジックに触れない小規模変更を Issue 化なしで通す軽量経路の3経路である。
-
-このロール分離は1本の Issue の流れを説明したものであり、実際には複数の worktree と相談者セッションが同時に走る。同じモデル・同じ規則で動くセッションは、自分が方向を外したことを自分では検出できない。外部の読み手を用意するのが `M-m`（[session-nudge](.claude/skills/session-nudge/SKILL.md)）で、送信は cross-session messaging で行うが、文案は必ず user が承認してから送る。自動で他セッションへ介入はしない。
-
-詳細は [new-issue](.claude/skills/new-issue/SKILL.md) を参照。
-
----
-
-## Foundation（自律実行の前提条件）
-
-エージェントの自律実行は、環境・機密・知識の3点を構造的に整えてはじめて成立する。
-
-* **Nix による環境同一性**: 環境差はエージェントの「コマンド未検出」「実行時エラー」を招く。Nix Flakes と Home Manager で macOS / Linux のツールチェーンをコードとして同一化し、CI（`nix flake check`）で継続検証する。導入経路の逸脱（`brew` / `npm -g` / `pip install`）は `.claude/hooks/block-non-nix-install.sh` が遮断する。
-* **機密情報の分離**: 公開リポジトリ側のコードや Issue ファイルに本番の IP・ポート・実ホスト名を書かない。実値はローカルの `secrets-agents/` に隔離し、地の文では `<PLACEHOLDER>` を用いる。辞書は平文でローカルに置くのではなく暗号化して git 経由で配り、各デバイスが自分の鍵で復号する。1台にしか無いと、別のデバイスでは何を伏せるべきか分からないまま書くことになるため。
-* **暗黙知の skill 化**: 「どのファイルをいつ AI に渡すか」が人間の暗黙知に依存すると、AI 単独で運用を再現できない。「〜するとき」と条件を言える手順は skill 化し、description に起動条件を宣言する。前節のワークフロー自体（`new-issue`・`guarantee-audit` 等）もこの形でコミットされている。置き場の基準は [skill-dev](.claude/skills/skill-dev/SKILL.md) が持つ。
-* **規則の棚卸し**: CLAUDE.md も skill も memory も「人が書いた規則を AI が読む」構造であり、規則同士の矛盾を検出する仕組みを持たない。増え続ける規則を放置すると挙動が不安定になるため、[`consolidate-rules`](.claude/skills/consolidate-rules/SKILL.md) が前回の棚卸し地点（`.claude/RULES.md` のアンカー1行）からの差分だけを定期監査する。永続メモリは索引を持たせず、`~/memory/` 直下に1ファイル1事実で置く（`ls` が索引になる粒度に保つ）。
-
----
-
-## Devices（管理対象）
-
-単一の Flake が macOS と Linux の開発機を束ねる。デバイス名は公開にあたり役割ベースの総称に置き換えている。
+macOS と Linux の開発機を1つの Flake で管理しています。端末ごとに道具の有無や版が違うと、エージェントは「コマンドが無い」「動きが違う」で止まり、止まった理由の調査に人の時間を取られます。
 
 | 構成 | OS | 役割 |
 |---|---|---|
-| `linux-desktop` | NixOS（disko / SSD） | 主開発機。相談者チャットと `issue()` の起動元 |
+| `linux-desktop` | NixOS（disko / SSD） | 主開発機。相談者チャットと `issue` の起動元 |
 | `macbook` | macOS（nix-darwin） | home-manager 層を Linux 機と共有する |
 
-OS の差は、Nix 側では `pkgs.stdenv.isDarwin`、シェル側では `home-manager/modules/zsh/functions/os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）に閉じ込める。home-manager モジュールと関数ファイルは両 OS が同一のものを読む。
+OS の差は、Nix 側では `pkgs.stdenv.isDarwin`、シェル側では `os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）に閉じ込め、それ以外は両 OS が同じファイルを読みます。エージェントが `brew` や `npm -g` に手を伸ばすと `block-non-nix-install.sh` が止め、Nix で入れる手順（[nix-tool-install](.claude/skills/nix-tool-install/SKILL.md)）へ案内します。
 
-公開しているのは、エージェントとの開発に関わる層（Claude Code・メモリ・機密・レビュー・tmux のセッション管理）に限る。エディタやデスクトップの設定、サーバー類の構成は含めていない。
+### Blocks Are Mechanisms, Not Requests
+
+`rebuild` 系・`flake.lock` の編集・`ssh`・機密の対応表の読み書きは deny で塞いでいます。deny は文字列の前方一致しか見ないので、`/tmp/venv/bin/pip install` のようなパス付きの実行や、`~/.claude` を `sed -i` で書き換えるような、行為として判定が要るものは [PreToolUse フック](.claude/hooks/)で扱います。
+
+フックの拒否文には、止めた理由と正しい経路を両方書きます。エージェントは拒否されると別の手を試すので、拒否文に書いた経路へそのまま進みます。編集直後に1ファイルだけ構文検査する `static-check.sh` も同じ考えで、忘れても誰も気づかない確認を、モデルの裁量から外しています。
+
+### One Source for Every Session
+
+`.claude/` の settings・hooks・skills と `home-manager/config/claude/common.md` が正本で、`home-manager/modules/claude.nix` が rebuild のたびに `~/.claude` へ実体コピーします。`~/.claude` 側は生成物になるので、そこを直接編集しようとすると `block-live-claude-config-edit.sh` が止め、正本のパスを返します。
+
+規則が増えると、規則同士が食い違い始めます。[consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) が前回の棚卸し地点（`.claude/RULES.md` のアンカー1行）からの差分だけを監査します。永続メモリは `~/memory/` 直下に1ファイル1事実で置き、`memory.nix` で git の経路に乗せて端末間で揃えます。
+
+### Deciding and Building Are Separate
+
+同じモデルが決めて作ると、方向を外したことに自分では気づけません。役割を3つに分けています。
+
+- **相談者**: user と対話して仕様と Issue を設計する。実装はしない（[new-issue](.claude/skills/new-issue/SKILL.md)）
+- **実行者**: Issue を入力に、実装・テスト・ローカルコミットまでを進める。リモートには触れない（[pr-workflow](.claude/skills/pr-workflow/SKILL.md)）
+- **user**: Issue の保証節を裁可し、コミットをレビューして公開する
+
+受け渡しは zsh の関数で行います。`issue` が worktree を切って実行者を起動し、`issue-finish` がレビュー済みのブランチを push から PR・マージ・後片付けまで進め、`issue-abort` は worktree をブランチごと捨てます。worktree ごとに隔離されるので、複数の Issue を並行して走らせられます。実行者の変更は [crit](https://github.com/tomasz-tomczyk/crit) で行単位にレビューします。
+
+並行するセッションの外に立つ読み手として [session-nudge](.claude/skills/session-nudge/SKILL.md) があり、別セッションへの助言を、文案を user が承認してから送ります。障害対応のような即時の作業、user が明示した単発の例外、ロジックに触れない小さな変更は、Issue を立てずに通します。
+
+### Secrets Stay Out of the Prose
+
+Issue・PR・コミットの地の文には、IP・ポート・実ホスト名を書かずに `<PLACEHOLDER>` を使います。実値とプレースホルダの対応表は `secrets-agents/` に置き、エージェントからは読み書きさせません。
+
+対応表が1台にしか無いと、別の端末では何を伏せるべきか分からないまま書くことになります。対応表は sops（age）で暗号化して git で配り、各端末が自分の鍵で復号します（[sops-secrets](.claude/skills/sops-secrets/SKILL.md)）。
 
 ---
 
-## Skills
+## What Ships to sdlc-kit
 
-基準と手順は、それを使う skill が持つ。独立したガイドの MD は置かず、skill に寄せきれないもの（複数の skill が読む `repo-standardize/reference/cicd.md`、フックの書き方の `.claude/hooks/README.md`）だけを MD として残す。何を公開するかの基準は [.claude/skills/README.md](.claude/skills/README.md)。
+ここで回している型のうち、チームのリポジトリへ持ち込めるものを [sdlc-kit](https://github.com/yktsnet/sdlc-kit) に切り出しています。持ち込むのは、人の判断を省かせない、セッションを超えて残す、担当者が替わっても揃う、のどれかに当たるものだけです。作業フロー、立ち上げ期の PLAN.md / JUDGE.md、リリース後の保証台帳、main を守るガードがこれにあたります。開発を2つの駆動文書で回す考え方は sdlc-kit の [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md) にあります。
 
-| 領域 | skill | 持つもの |
+Nix による道具の統一、`~/.claude` の配布、対応表の復号、永続メモリは端末に紐づくので、チームのリポジトリからは効かせられません。これらはこのリポジトリに残ります。
+
+---
+
+## What Is Not Here
+
+稼働中の dotfiles から、エージェントとの開発に関わる層（Claude Code・メモリ・機密・レビュー・tmux のセッション管理）だけを抜き出しています。エディタやデスクトップの設定、サーバー類の構成は含めていません。抜き出しであって写しではないので、稼働側にあってここに無いものがあります。何を公開するかの基準は [.claude/skills/README.md](.claude/skills/README.md) にあります。
+
+clone して各自の端末へ適用することは想定していません。デバイス構成は実機のハードウェアと鍵を前提にしていて、`secrets/` の暗号文も含めていません。CI の `nix flake check` は、公開している構成が評価できる状態にあることを確かめています。
+
+---
+
+## Repository Map
+
+| パス | 中身 | 対応する節 |
 |---|---|---|
-| 型の判定 | [repo-standardize](.claude/skills/repo-standardize/SKILL.md) | リポ類型と検証手段・settings.json・CLAUDE.md と context/・ファイル衛生。CI/CD は [reference/cicd.md](.claude/skills/repo-standardize/reference/cicd.md) |
-| | [repo-readme](.claude/skills/repo-readme/SKILL.md) | README の種別判定（Type A / B / C）・下限・コアメッセージ・アウトライン |
-| | [module-dev](.claude/skills/module-dev/SKILL.md) | モジュール型リポの型・境界・デモ |
-| | [mermaid-diagram](.claude/skills/mermaid-diagram/SKILL.md) | 図を描くかの判断・幅の制約・形と線種 |
-| 知識の置き場 | [skill-dev](.claude/skills/skill-dev/SKILL.md) | 置き場の基準・自動発火の絞り方・探索の分け方 |
-| | [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) | 規則同士の矛盾・陳腐化の棚卸し |
-| 保証 | [guarantee-audit](.claude/skills/guarantee-audit/SKILL.md) | テスト方針（GDD）・保証台帳の敷設と棚卸し |
-| | [mvp-docs](.claude/skills/mvp-docs/SKILL.md) | 立ち上げ期の PLAN.md / JUDGE.md |
-| 分業 | [new-issue](.claude/skills/new-issue/SKILL.md) | フェーズ・担当分離・例外の3経路・Issue の設計 |
-| | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | 実行者の実装からローカルコミットまで |
-| | [session-nudge](.claude/skills/session-nudge/SKILL.md) | 別セッションを外から客観視する相談 |
-| 公開 | [readme-i18n](.claude/skills/readme-i18n/SKILL.md)・[repo-publish](.claude/skills/repo-publish/SKILL.md)・[repo-about](.claude/skills/repo-about/SKILL.md) | 英語版 README・公開手続き・About と topics |
-| 前提 | [nix-tool-install](.claude/skills/nix-tool-install/SKILL.md)・[sops-secrets](.claude/skills/sops-secrets/SKILL.md)・[jp-writing](.claude/skills/jp-writing/SKILL.md) | Nix 経由の導入・機密の暗号化・日本語の文章規範 |
+| `flake.nix`・`devices/` | 開発機の NixOS / nix-darwin 構成。共通部分は `devices/common/` | One Toolchain |
+| `home-manager/modules/` | Claude Code の配布・メモリ・機密・tmux・crit。`zsh/` に Issue 駆動の関数 | One Source・Deciding and Building |
+| `.claude/settings.json`・`.claude/hooks/` | deny とフック | Blocks Are Mechanisms |
+| `.claude/skills/` | 手順と基準。一覧は [.claude/skills/README.md](.claude/skills/README.md) | 全節 |
+| `secrets-agents/` | 対応表の復号先（`example.md` はサンプル） | Secrets |
+| `issues/` | このリポジトリ自身の Issue と PR の控え | Deciding and Building |

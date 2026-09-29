@@ -4,103 +4,89 @@
 
 [![CI](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml/badge.svg)](https://github.com/yktsnet/dotfiles-public/actions/workflows/ci.yml)
 
-In development with AI agents, the bottleneck shifts from generation to verification and intent transfer.
-This repository publishes a personal development environment built on that premise, as code: the Nix configuration, the machinery for role separation, and the skill set.
-The development method itself is packaged for team repositories in [sdlc-kit](https://github.com/yktsnet/sdlc-kit). This repository is the environment where that method actually runs.
+A personal development environment for handing development to AI agents, published as a Nix configuration together with the rules it enforces.
+The parts that carry over to team repositories are packaged separately in [sdlc-kit](https://github.com/yktsnet/sdlc-kit); this is the environment where those practices actually run.
 
 ---
 
-## Principles (Order of Adoption)
+## From Writing to Checking
 
-The premise underneath everything is **not relying on a human who stays attentive**. Rules depend on the reader's concentration, and concentration drops with fatigue. Prohibitions live in mechanisms rather than documents, CI reruns the same checks as local verification, and the person who broke something (the Builder) gets a path to notice before submitting.
+As agents wrote more of the code, my own work moved from writing to checking. The more there was to check, the more the way I checked drifted from day to day. On tired days I missed things; on rushed days I skipped steps. The agents were no different: a rule followed in one session got overlooked in the next.
 
-Adoption is stacked in this order:
-
-1. **Decide the type before building** — classify the repo, the README, and the module, and derive every later rule from that
-2. **Put prohibitions in mechanisms, not documents** — `settings.json` deny rules and PreToolUse hooks
-3. **Place knowledge where it gets read** — rules that always apply in CLAUDE.md; procedures and criteria with a statable trigger in skills
-4. **Approve the guarantees first** — the guarantee ledger and its tests (GDD)
-5. **Separate the one who decides from the one who builds** — the three roles: Consultant, Builder, and user
-
-The order has dependencies. Without a type, you cannot decide what to block; adding knowledge before blocking only speeds up accidents. Splitting roles before the guarantees are fixed sends the Builder off without knowing what it must not break. **The minimal setup is steps 1–3**, needed regardless of publication or team size. Steps 4–5 are added once there are published artifacts or several sessions running in parallel.
+So, bit by bit, I moved what I wanted followed out of documents that ask for compliance and into an environment that leaves no way around it. Neither the people nor the agents are expected to remember.
 
 ---
 
-## Development Lifecycle (Two Driving Documents)
+## Rules Live in the Environment
 
-Development is split into two phases, and the driving document changes with the phase: PLAN.md / JUDGE.md (SDD) during bootstrap, and the guarantee ledger `docs/guarantees.md` with its tests (GDD) after release. Each repository declares its phase in its CLAUDE.md.
+Rules are sorted by where they live. Rules that apply every time go in CLAUDE.md, procedures and criteria whose trigger can be stated as "when doing X" go in skills, and anything that must not be crossed goes in the `settings.json` deny list and hooks. All of it is then distributed through Nix, so the same rules apply in any repository on any machine.
 
-The rationale is in sdlc-kit's [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md). For the operating rules in this repository, see [guarantee-audit](.claude/skills/guarantee-audit/SKILL.md).
+### One Toolchain on Every Machine
 
----
-
-## Role Separation
-
-The execution machinery for the two workflows above. Responsibilities are strictly defined across humans, conversational AI, and autonomous AI agents, so that no agent edit reaches the main branch or production without review.
-
-* **WebChat (Design / Conversational AI)**:
-  In dialogue with the user, formulates specifications and design files during the MVP phase, and performs investigation and Issue design during the Issue-driven phase. Never implements.
-* **AI Agent (Implementation / Autonomous AI)**:
-  Autonomously executes code editing, test implementation, static error checking, and local commits using Issue files as input; it never touches the remote. The procedure is fixed in [pr-workflow](.claude/skills/pr-workflow/SKILL.md). Destructive commands such as `rebuild` and access to secrets are blocked by the deny list in `.claude/settings.json`, and whatever a string prefix cannot decide (path-qualified package installs, edits to generated output) is handled by the PreToolUse hooks in [`.claude/hooks/`](.claude/hooks/).
-* **User (Approval, Verification / Human)**:
-  Approves the guarantee sections of Issues, reviews and verifies the agent's commits locally, then publishes them (push, PR creation, merge) via `issue-finish`. Only reviewed changes ever reach the remote.
-
-Hand-offs between roles are performed by Zsh macros:
-
-* **`issue`**: Selects the target Issue, creates an isolated worktree, and launches the agent inside it. The main checkout stays clean, and multiple Issues can run in parallel.
-* **`issue-abort`**: Discards an in-progress worktree together with its work branch.
-* **`issue-finish`**: Runs push → PR creation → merge → cleanup for a reviewed branch in one pass.
-
-Exceptions keep the separation from becoming rigid: real-time ops such as incident response, one-off exceptions the user declares explicitly, and a lightweight route that lets small, logic-free changes through without an Issue.
-
-This role separation describes the flow of a single Issue; in practice, multiple worktrees and consultant sessions run in parallel. A session running on the same model and the same rules cannot detect on its own that it has drifted off course. `M-m` ([session-nudge](.claude/skills/session-nudge/SKILL.md)) provides that external reader: it sends via cross-session messaging, but only after the user approves the draft message. It never intervenes in another session automatically.
-
-See [new-issue](.claude/skills/new-issue/SKILL.md) for details.
-
----
-
-## Foundation (Prerequisites for Autonomous Execution)
-
-Autonomous agent execution only works once three things are structurally in place: environment, secrets, and knowledge.
-
-* **Environment consistency via Nix**: Environment differences cause "command not found" and runtime errors for agents. Nix Flakes and Home Manager unify the macOS / Linux toolchain as code, continuously verified by CI (`nix flake check`). Installs that bypass this route (`brew`, `npm -g`, and the like) are blocked by `.claude/hooks/block-non-nix-install.sh`.
-* **Secrets isolation**: Production IPs, ports, and real hostnames never appear in code or Issue files on the public repository. Actual values are isolated in the local `secrets-agents/` directory, and prose uses `<PLACEHOLDER>` instead. The dictionary itself isn't kept as local plaintext — it's encrypted and distributed via git, and each device decrypts it with its own key. Without that, a device other than the one holding the plaintext copy would have no way to know what to mask.
-* **Making tacit knowledge explicit as skills**: When "which file to hand the AI and when" depends on human tacit knowledge, the AI cannot reproduce operations alone. Any procedure statable as "when doing X" becomes a skill with its trigger condition declared in the description. The workflows in the previous section (`new-issue`, `guarantee-audit`, etc.) are committed in this form. The placement criteria live in [skill-dev](.claude/skills/skill-dev/SKILL.md).
-* **Auditing the rules**: CLAUDE.md, skills, and memory all share one structure — rules a human wrote, read by an AI — and none of them detects contradictions between rules. Left alone, an ever-growing rule set destabilizes behavior, so [`consolidate-rules`](.claude/skills/consolidate-rules/SKILL.md) audits on a schedule only the diff since the last audit point (a single anchor line in `.claude/RULES.md`). Persistent memory carries no index at all: one fact per file, directly under `~/memory/`, kept at a granularity where `ls` is the index.
-
----
-
-## Devices
-
-A single Flake binds the macOS and Linux development machines. Device names are replaced with role-based generics for publication.
+One flake manages the macOS and Linux development machines. When tools or versions differ between machines, agents stall on "command not found" or "behaves differently", and a person ends up spending time finding out why.
 
 | Configuration | OS | Role |
 |---|---|---|
-| `linux-desktop` | NixOS (disko / SSD) | Primary dev machine. Where consultant chat and `issue()` are launched |
+| `linux-desktop` | NixOS (disko / SSD) | Primary dev machine. Where consultant chat and `issue` are launched |
 | `macbook` | macOS (nix-darwin) | Shares the home-manager layer with the Linux machine |
 
-OS differences are confined to `pkgs.stdenv.isDarwin` on the Nix side and to the shims in `home-manager/modules/zsh/functions/os.sh` (`_is_darwin`, `_sed_i`, `_open`, `_linux_only`) on the shell side. Home Manager modules and function files are read as-is by both operating systems.
+OS differences are confined to `pkgs.stdenv.isDarwin` on the Nix side and to the shims in `os.sh` (`_is_darwin`, `_sed_i`, `_open`, `_linux_only`) on the shell side; everything else is the same file on both. When an agent reaches for `brew` or `npm -g`, `block-non-nix-install.sh` stops it and points to the Nix procedure ([nix-tool-install](.claude/skills/nix-tool-install/SKILL.md)).
 
-What is published is limited to the layers involved in developing with agents (Claude Code, memory, secrets, review, tmux session management). Editor and desktop settings and server configurations are not included.
+### Blocks Are Mechanisms, Not Requests
+
+`rebuild` commands, edits to `flake.lock`, `ssh`, and reading or writing the secrets mapping are closed off by deny rules. Deny rules only match string prefixes, so anything that has to be judged as an action, such as a path-qualified `/tmp/venv/bin/pip install` or rewriting `~/.claude` through `sed -i`, is handled by [PreToolUse hooks](.claude/hooks/).
+
+Each hook's rejection message states both why it stopped and the correct route. A rejected agent tries something else, and what it tries comes from the message, so it takes the route written there. `static-check.sh`, which syntax-checks the single file right after each edit, follows the same idea: it takes a check that nobody would notice being skipped out of the model's discretion.
+
+### One Source for Every Session
+
+The settings, hooks, and skills in `.claude/`, together with `home-manager/config/claude/common.md`, are the source of truth. `home-manager/modules/claude.nix` copies them into `~/.claude` on every rebuild. Since `~/.claude` is a generated artifact, `block-live-claude-config-edit.sh` rejects direct edits there and returns the source path instead.
+
+As rules accumulate, they start to contradict each other. [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) audits only what changed since the last inventory point (a one-line anchor in `.claude/RULES.md`). Persistent memory lives directly under `~/memory/`, one fact per file, and `memory.nix` puts it on the git path so every machine sees the same set.
+
+### Deciding and Building Are Separate
+
+When the same model both decides and builds, it cannot notice on its own that it has gone off course. The work is split into three roles.
+
+- **Consultant**: designs the spec and the Issue in dialogue with the user. Does not implement ([new-issue](.claude/skills/new-issue/SKILL.md))
+- **Executor**: takes an Issue and carries it through implementation, tests, and a local commit. Never touches the remote ([pr-workflow](.claude/skills/pr-workflow/SKILL.md))
+- **User**: approves the Issue's guarantee section, reviews the commits, and publishes them
+
+Hand-offs go through zsh functions. `issue` creates a worktree and launches the executor, `issue-finish` takes a reviewed branch from push through PR, merge, and cleanup, and `issue-abort` discards the worktree along with its branch. Each worktree is isolated, so several Issues can run in parallel. The executor's changes are reviewed line by line in [crit](https://github.com/tomasz-tomczyk/crit).
+
+[session-nudge](.claude/skills/session-nudge/SKILL.md) provides a reader standing outside the parallel sessions; it sends advice to another session only after the user approves the draft. Real-time work such as incident response, one-off exceptions the user declares, and small changes that do not touch logic go through without an Issue.
+
+### Secrets Stay Out of the Prose
+
+Issues, PRs, and commit messages use `<PLACEHOLDER>` instead of IPs, ports, and real hostnames. The mapping between real values and placeholders lives in `secrets-agents/`, which agents are not allowed to read or write.
+
+If the mapping existed on only one machine, writing on any other machine would mean not knowing what to mask. The mapping is encrypted with sops (age) and distributed through git, and each machine decrypts it with its own key ([sops-secrets](.claude/skills/sops-secrets/SKILL.md)).
 
 ---
 
-## Skills
+## What Ships to sdlc-kit
 
-Criteria and procedures are held by the skill that uses them. There are no standalone guide documents; only what cannot be folded into a skill stays as a separate file (`repo-standardize/reference/cicd.md`, read by several skills, and `.claude/hooks/README.md` on how to write hooks). The criteria for what gets published are in [.claude/skills/README.md](.claude/skills/README.md). Skills are written in Japanese.
+Of the practices running here, the ones that carry over to team repositories are packaged in [sdlc-kit](https://github.com/yktsnet/sdlc-kit). Only practices that meet at least one of three conditions go in: they keep a human decision from being skipped, they have to survive across sessions, or they have to come out the same when the person changes. That covers the task flows, PLAN.md / JUDGE.md for the launch phase, the guarantee ledger after release, and the guards that protect main. The idea of running development on two driving documents is in sdlc-kit's [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md).
 
-| Area | Skill | What it holds |
+Unifying tools through Nix, distributing `~/.claude`, decrypting the mapping, and persistent memory are tied to the machine, so a team repository cannot enforce them. They stay in this repository.
+
+---
+
+## What Is Not Here
+
+Only the layers involved in developing with agents (Claude Code, memory, secrets, review, and tmux session management) are extracted from the working dotfiles. Editor and desktop settings and server configurations are not included. This is an extract, not a mirror, so some things in the working environment are absent here. The criteria for what gets published are in [.claude/skills/README.md](.claude/skills/README.md).
+
+The repository is not meant to be cloned and applied to your own machines. The device configurations assume the actual hardware and keys, and the encrypted contents of `secrets/` are not included. CI's `nix flake check` confirms that the published configuration still evaluates.
+
+---
+
+## Repository Map
+
+| Path | Contents | Section |
 |---|---|---|
-| Deciding the type | [repo-standardize](.claude/skills/repo-standardize/SKILL.md) | Repo categories and verification, settings.json, CLAUDE.md and context/, file hygiene. CI/CD in [reference/cicd.en.md](.claude/skills/repo-standardize/reference/cicd.en.md) |
-| | [repo-readme](.claude/skills/repo-readme/SKILL.md) | README type (A / B / C), floor, core message, outline |
-| | [module-dev](.claude/skills/module-dev/SKILL.md) | Module-repo types, boundaries, demos |
-| | [mermaid-diagram](.claude/skills/mermaid-diagram/SKILL.md) | Whether to draw, width limits, shapes and line types |
-| Placing knowledge | [skill-dev](.claude/skills/skill-dev/SKILL.md) | Placement criteria, narrowing auto-invocation, splitting out exploration |
-| | [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) | Auditing rules for contradictions and staleness |
-| Guarantees | [guarantee-audit](.claude/skills/guarantee-audit/SKILL.md) | Test policy (GDD), laying and auditing the guarantee ledger |
-| | [mvp-docs](.claude/skills/mvp-docs/SKILL.md) | PLAN.md / JUDGE.md during bootstrap |
-| Role separation | [new-issue](.claude/skills/new-issue/SKILL.md) | Phases, role separation, the three exception routes, Issue design |
-| | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | The Builder's flow from implementation to local commit |
-| | [session-nudge](.claude/skills/session-nudge/SKILL.md) | Consulting on another session from the outside |
-| Publishing | [readme-i18n](.claude/skills/readme-i18n/SKILL.md), [repo-publish](.claude/skills/repo-publish/SKILL.md), [repo-about](.claude/skills/repo-about/SKILL.md) | English README, going public, About and topics |
-| Prerequisites | [nix-tool-install](.claude/skills/nix-tool-install/SKILL.md), [sops-secrets](.claude/skills/sops-secrets/SKILL.md), [jp-writing](.claude/skills/jp-writing/SKILL.md) | Installing via Nix, encrypting secrets, Japanese writing rules |
+| `flake.nix`, `devices/` | NixOS / nix-darwin configurations for the dev machines. Shared parts in `devices/common/` | One Toolchain |
+| `home-manager/modules/` | Claude Code distribution, memory, secrets, tmux, crit. Issue-driven functions in `zsh/` | One Source, Deciding and Building |
+| `.claude/settings.json`, `.claude/hooks/` | Deny rules and hooks | Blocks Are Mechanisms |
+| `.claude/skills/` | Procedures and criteria. Index in [.claude/skills/README.md](.claude/skills/README.md) | All sections |
+| `secrets-agents/` | Where the mapping is decrypted (`example.md` is a sample) | Secrets |
+| `issues/` | This repository's own Issues and PR records | Deciding and Building |
