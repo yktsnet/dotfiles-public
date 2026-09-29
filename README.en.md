@@ -24,7 +24,7 @@ So this platform **does not assume a human who stays attentive**. Removing envir
 
 ## Principles
 
-The machinery is stacked in the following order. The Design sections below follow the same order.
+The machinery is stacked in the following order. Each Design section carries the matching number.
 
 1. **Decide the type before building** — classify the repository, the kind of README, and the module type, and derive every later rule from that
 2. **Put prohibitions in mechanisms, not requests** — `settings.json` deny rules and PreToolUse hooks
@@ -42,19 +42,19 @@ Beneath the five steps lies the Foundation: the same tools and rules apply on ev
 
 ## Design
 
-### Decide the Type Before Building
+### 1. Decide the Type Before Building
 
 A new repository is classified before anything is written. [repo-standardize](.claude/skills/repo-standardize/SKILL.md) decides the repository type and its verification means, `settings.json`, and the CLAUDE.md skeleton; [repo-readme](.claude/skills/repo-readme/SKILL.md) decides the kind of README (a demonstration to show, an experiment to measure, or a tool to use); [module-dev](.claude/skills/module-dev/SKILL.md) decides the boundaries and demo approach of a module-type repository.
 
 The type comes first so that later rules can be derived from it. Once the verification means are fixed, the contents of CI and the deny list follow; once the kind of README is fixed, the minimum set of sections follows.
 
-### Blocks Are Mechanisms, Not Requests
+### 2. Put Prohibitions in Mechanisms, Not Requests
 
 `rebuild` commands, edits to `flake.lock`, `ssh`, and reading or writing the secrets mapping are closed off by deny rules. Deny rules only match string prefixes, so anything that has to be judged as an action, such as a path-qualified `/tmp/venv/bin/pip install` or rewriting `~/.claude` through `sed -i`, is handled by [PreToolUse hooks](.claude/hooks/).
 
 Each hook's rejection message states both why it stopped and the correct route. A rejected agent tries something else, and what it tries comes from the message, so it takes the route written there. `static-check.sh`, which syntax-checks the single file right after each edit, follows the same idea: it takes a check that nobody would notice being skipped out of the model's discretion.
 
-### Knowledge Lives Where It Is Read
+### 3. Place Knowledge Where It Is Read
 
 Rules are placed according to when they are read. Rules that apply every time go in CLAUDE.md, procedures and criteria whose trigger can be stated as "when doing X" go in skills, and anything that must not be crossed goes in deny rules and hooks. If "which file to give the AI, and when" stays as someone's tacit knowledge, the AI cannot reproduce the operation on its own. So procedures become skills, each declaring its trigger in its description. The workflows covered in the following sections (`new-issue`, `guarantee-audit`, and others) are committed in this same form. The placement criteria live in [skill-dev](.claude/skills/skill-dev/SKILL.md).
 
@@ -62,7 +62,7 @@ Skills split into those that carry **judgment**, whose answer changes per reposi
 
 As rules accumulate, they start to contradict each other. CLAUDE.md, skills, and persistent memory are all "rules written by people and read by AI," with no way to detect their own contradictions. [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) periodically audits only what changed since the last inventory point (a one-line anchor in `.claude/RULES.md`), and when the model generation changes it also checks for model-specific rules that have gone stale. Persistent memory has no index; it lives directly under `~/memory/`, one fact per file (kept at a granularity where `ls` is the index).
 
-### Approve the Promises First
+### 4. Approve the Promises First
 
 Tests are the device by which the executor notices on its own that it broke something. What must not break (the guarantees) is approved by a human in the Issue's guarantee section, and the tests that turn it into something executable are written by the executor. This division of labor is called **Guarantee-Driven Development (GDD)**. If TDD is the discipline of writing tests first, GDD is the discipline of approving the promises first.
 
@@ -75,7 +75,7 @@ Approved guarantees accumulate in each repository's guarantee ledger, `docs/guar
 
 Development runs in two phases, handing over the driving documents. In the launch phase, before the direction is settled, work is implemented directly while PLAN.md (remaining work) and JUDGE.md (design decisions) grow alongside it ([mvp-docs](.claude/skills/mvp-docs/SKILL.md)). Once the guarantee ledger goes into formal use, the repository moves to the Issue-driven phase and is run on the ledger and tests from then on. Each repository declares its phase in its CLAUDE.md. The full idea is in sdlc-kit's [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md).
 
-### Deciding and Building Are Separate
+### 5. Separate Deciding from Building
 
 When the same model both decides and builds, it cannot notice on its own that it has gone off course. The work is split into three roles.
 
@@ -178,17 +178,9 @@ Step 2 (putting prohibitions in mechanisms) is owned not by a skill but by `.cla
 
 ---
 
-## sdlc-kit
-
-Of the practices running here, the ones that carry over to team repositories are packaged in [sdlc-kit](https://github.com/yktsnet/sdlc-kit). Only practices that meet at least one of three conditions go in: they keep a human decision from being skipped, they have to survive across sessions, or they have to come out the same when the person changes. That covers the task flows, PLAN.md / JUDGE.md for the launch phase, the guarantee ledger after release, and the guards that protect main.
-
-Unifying tools through Nix, distributing `~/.claude`, decrypting the mapping, and persistent memory are tied to the machine, so a team repository cannot enforce them. They stay in this repository.
-
----
-
 ## Scope
 
-Only the layers involved in developing with agents (Claude Code, memory, secrets, review, and tmux session management) are extracted from the working dotfiles. Besides the two machines shown here, the working flake also covers headless servers and WSL, and holds editor and desktop settings and fleet status checks; none of those are included. This is an extract, not a mirror, so some things in the working environment are absent here.
+Only the layers involved in developing with agents (Claude Code, memory, secrets, review, and tmux session management) are extracted from the working dotfiles. Besides the two machines shown here, the working flake also covers headless servers and WSL, and holds editor and desktop settings and fleet status checks; none of those are included. This is an extract, not a mirror, so some things in the working environment are absent here. Unifying tools through Nix, distributing `~/.claude`, decrypting the mapping, and persistent memory are tied to the machine and cannot be enforced from a team repository, so they are kept here rather than in sdlc-kit.
 
 The repository is not meant to be cloned and applied to your own machines, so no setup steps are given. The device configurations assume the actual hardware and keys, and the encrypted contents of `secrets/` are not included. CI's `nix flake check` confirms that the published configuration still evaluates.
 
@@ -199,8 +191,8 @@ The repository is not meant to be cloned and applied to your own machines, so no
 | Path | Contents | Section |
 |---|---|---|
 | `.claude/skills/` | Procedures and criteria. Index in [Skills](#skills) | All of Design |
-| `.claude/settings.json`, `.claude/hooks/` | Deny rules and hooks | Blocks Are Mechanisms |
-| `home-manager/modules/` | Claude Code distribution, memory, secrets, tmux, crit. Issue-driven functions in `zsh/` | Deciding and Building, One Source |
-| `issues/` | This repository's own Issues and PR records | Deciding and Building |
+| `.claude/settings.json`, `.claude/hooks/` | Deny rules and hooks | 2. Prohibitions in Mechanisms |
+| `home-manager/modules/` | Claude Code distribution, memory, secrets, tmux, crit. Issue-driven functions in `zsh/` | 5. Separate Deciding from Building, One Source |
+| `issues/` | This repository's own Issues and PR records | 5. Separate Deciding from Building |
 | `flake.nix`, `devices/` | NixOS / nix-darwin configurations for the dev machines. Shared parts in `devices/common/` | One Toolchain |
 | `secrets-agents/` | Where the mapping is decrypted (`example.md` is a sample) | Secrets |
