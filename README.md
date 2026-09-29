@@ -9,11 +9,11 @@
 
 ---
 
-## From Writing to Checking
+## Verification over Generation
 
-エージェントに書かせる量が増えるにつれて、自分の仕事は書くことから確かめることへ移っていった。確かめるものが増えると、確かめ方が日によって揺れる。疲れた日は見落とし、急ぐ日は手順を飛ばす。エージェントも同じで、前のセッションで守れた規則を次のセッションでは読み落とす。
+AI がコードを書くようになって、時間がかかるのは書くことではなく、書かれたものを信じられるか確かめることに変わった。エージェントは自信を持ったまま静かに間違え、放っておけば破壊的な操作や機密の漏洩をそのまま本番へ通す。人が気をつけるという約束は、いずれ形骸化する。
 
-そこで、守らせたいことを、頼んで守ってもらう文書から、外れようのない環境の側へ少しずつ移してきた。人にもエージェントにも、覚えていることを求めない。
+そのため、環境差の排除・破壊的なコマンドの遮断・機密の隔離はコードと設定で固定し、人間のマージを最後の関門に置いた。「何が壊れてはいけないか」だけは人間が決めて文書で承認し、実装とテストはエージェントに任せる。約束が破られれば機械が検知して止まるので、張り付いて見張らずに済む。
 
 ---
 
@@ -21,9 +21,9 @@
 
 規則は置き場で分けている。毎回守らせる規則は CLAUDE.md、「〜するとき」と条件を言える手順と基準は skill、外れてはいけないものは `settings.json` の deny とフックに置く。そのうえで、どのリポジトリ、どの端末で開いても同じものが効くよう、全部を Nix で配る。
 
-### One Toolchain on Every Machine
+### 全端末で道具を揃える
 
-macOS と Linux の開発機を1つの Flake で管理する。端末ごとに道具の有無や版が違うと、エージェントは「コマンドが無い」「動きが違う」で止まり、止まった理由の調査に人の時間が取られる。
+macOS と Linux の開発機を1つの Flake で管理する。端末ごとに道具の有無や版が違うと、エージェントはコマンドが見つからない、実行時に失敗する、といった形で止まる。
 
 | 構成 | OS | 役割 |
 |---|---|---|
@@ -32,19 +32,19 @@ macOS と Linux の開発機を1つの Flake で管理する。端末ごとに�
 
 OS の差は、Nix 側では `pkgs.stdenv.isDarwin`、シェル側では `os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）に閉じ込め、それ以外は両 OS が同じファイルを読む。エージェントが `brew` や `npm -g` に手を伸ばすと `block-non-nix-install.sh` が止め、Nix で入れる手順（[nix-tool-install](.claude/skills/nix-tool-install/SKILL.md)）へ案内する。
 
-### Blocks Are Mechanisms, Not Requests
+### 禁止は頼まず仕組みに置く
 
 `rebuild` 系・`flake.lock` の編集・`ssh`・機密の対応表の読み書きは deny で塞ぐ。deny は文字列の前方一致しか見ないので、`/tmp/venv/bin/pip install` のようなパス付きの実行や、`~/.claude` を `sed -i` で書き換えるような、行為として判定が要るものは [PreToolUse フック](.claude/hooks/)が受け持つ。
 
 フックの拒否文には、止めた理由と正しい経路を両方書く。エージェントは拒否されると別の手を試し、何を試すかは拒否文で決まるので、書いた経路へそのまま進む。編集直後に1ファイルだけ構文検査する `static-check.sh` も同じ考えで作った。忘れても誰も気づかない確認を、モデルの裁量から外している。
 
-### One Source for Every Session
+### 規則を1か所から全セッションへ配る
 
 `.claude/` の settings・hooks・skills と `home-manager/config/claude/common.md` が正本で、`home-manager/modules/claude.nix` が rebuild のたびに `~/.claude` へ実体コピーする。`~/.claude` 側は生成物になるので、そこを直接編集しようとすると `block-live-claude-config-edit.sh` が止め、正本のパスを返す。
 
 規則が増えると、規則同士が食い違い始める。[consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) が、前回の棚卸し地点（`.claude/RULES.md` のアンカー1行）からの差分だけを監査する。永続メモリは `~/memory/` 直下に1ファイル1事実で置き、`memory.nix` で git の経路に乗せて端末間で揃える。
 
-### Deciding and Building Are Separate
+### 決める役と作る役を分ける
 
 同じモデルが決めて作ると、方向を外したことに自分では気づけない。そのため役割を3つに分ける。
 
@@ -72,7 +72,7 @@ flowchart TD
 
 並行するセッションの外に立つ読み手として [session-nudge](.claude/skills/session-nudge/SKILL.md) があり、別セッションへの助言は、文案を user が承認してから送る。障害対応のような即時の作業、user が明示した単発の例外、ロジックに触れない小さな変更は、Issue を立てずに通す。
 
-### Secrets Stay Out of the Prose
+### 機密を地の文に出さない
 
 Issue・PR・コミットの地の文には、IP・ポート・実ホスト名を書かずに `<PLACEHOLDER>` を使う。実値とプレースホルダの対応表は `secrets-agents/` に置き、エージェントからは読み書きさせない。
 
@@ -86,10 +86,10 @@ Issue・PR・コミットの地の文には、IP・ポート・実ホスト名�
 |---|---|---|
 | 構成管理 | Nix Flakes・home-manager | 全端末の道具と設定を1つの宣言から作れる。エージェントが端末差で止まらない |
 | macOS | nix-darwin | macOS でも home-manager 層を Linux 機と共有できる |
-| ディスク | disko | パーティション構成も宣言に含め、主開発機の作り直しを手順書に頼らない |
+| ディスク | disko | パーティション構成まで Nix の宣言に含められる |
 | 機密 | sops-nix・age | 暗号文のまま git で配り、各端末が自分の鍵で復号できる。平文を端末間で運ばない |
 | エージェント | Claude Code | `settings.json` の deny と PreToolUse フックで、禁止を文書ではなく機構として置ける |
-| レビュー | crit | 実行者の差分やローカルのページに行単位でコメントし、そのまま直させられる |
+| レビュー | crit | 実行者の差分とローカルのページを、user とエージェントが同じ入口からレビューできる |
 | 受け渡し | zsh | worktree の作成から公開までを、役割の境目ごとに1コマンドにできる |
 | セッション | tmux・tmux-claude-session-manager | 並行する Claude Code のセッションを渡り歩ける |
 
@@ -115,9 +115,9 @@ clone して各自の端末へ適用することは想定しておらず、動�
 
 | パス | 中身 | 対応する節 |
 |---|---|---|
-| `flake.nix`・`devices/` | 開発機の NixOS / nix-darwin 構成。共通部分は `devices/common/` | One Toolchain |
-| `home-manager/modules/` | Claude Code の配布・メモリ・機密・tmux・crit。`zsh/` に Issue 駆動の関数 | One Source・Deciding and Building |
-| `.claude/settings.json`・`.claude/hooks/` | deny とフック | Blocks Are Mechanisms |
-| `.claude/skills/` | 手順と基準。一覧は [.claude/skills/README.md](.claude/skills/README.md) | 全節 |
-| `secrets-agents/` | 対応表の復号先（`example.md` はサンプル） | Secrets |
-| `issues/` | このリポジトリ自身の Issue と PR の控え | Deciding and Building |
+| `flake.nix`・`devices/` | 開発機の NixOS / nix-darwin 構成。共通部分は `devices/common/` | 全端末で道具を揃える |
+| `home-manager/modules/` | Claude Code の配布・メモリ・機密・tmux・crit。`zsh/` に Issue 駆動の関数 | 規則を1か所から全セッションへ配る・決める役と作る役を分ける |
+| `.claude/settings.json`・`.claude/hooks/` | deny とフック | 禁止は頼まず仕組みに置く |
+| `.claude/skills/` | 手順と基準。一覧は [.claude/skills/README.md](.claude/skills/README.md) | Rules Live in the Environment 全体 |
+| `secrets-agents/` | 対応表の復号先（`example.md` はサンプル） | 機密を地の文に出さない |
+| `issues/` | このリポジトリ自身の Issue と PR の控え | 決める役と作る役を分ける |
