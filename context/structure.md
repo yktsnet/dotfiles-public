@@ -21,7 +21,7 @@ dotfiles-public/
 ├── zsh/
 │   └── functions/     # Issue 駆動ワークフローのシェルマクロ（issue / issue-finish 等）
 ├── apps/              # 運用スクリプト（zsh/ の secret 暗号化・guarantees-index の台帳索引）
-├── docs-agents/       # skill に属さない覚え書き（memo/）
+├── docs/              # skill に属さない覚え書き（nix-packaging 等）
 ├── secrets-agents/    # 機密辞書（実値・公開しない / 読み書き禁止）
 ├── context/           # 本リポの Agent 向けコンテキスト（本ファイル群）
 └── issues/            # ローカル Issue 管理（done/ に完了分と PR 控え）

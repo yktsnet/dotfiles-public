@@ -1,6 +1,6 @@
 ---
 name: consolidate-rules
-description: CLAUDE.md群・基準のガイド（docs-agents と skill の reference/）・自作Skill（frontmatter descriptionが日本語のもののみ、ベンダー技術リファレンス系・Anthropic標準搭載Skillは対象外）・層1（settings.json と hooks）の間で規則が矛盾・陳腐化していないかを、`.claude/RULES.md` のアンカー（前回の棚卸し地点）からの変更差分だけを読んで棚卸しし、指摘ごとにuserの裁可を得てから該当ファイルを直接編集する。モデルが世代交代したときはモデル特化の規則が陳腐化していないかも見る。定期実行（schedule/loop）を前提にした設計。規則ファイルが増えて整合性が怪しくなったと感じたとき、CLAUDE.mdと基準のガイドの記載がずれていないか確認したいときに使う。プロダクトコードは書かない。
+description: CLAUDE.md群・基準のガイド（docs/ と skill の reference/）・自作Skill（frontmatter descriptionが日本語のもののみ、ベンダー技術リファレンス系・Anthropic標準搭載Skillは対象外）・層1（settings.json と hooks）の間で規則が矛盾・陳腐化していないかを、`.claude/RULES.md` のアンカー（前回の棚卸し地点）からの変更差分だけを読んで棚卸しし、指摘ごとにuserの裁可を得てから該当ファイルを直接編集する。モデルが世代交代したときはモデル特化の規則が陳腐化していないかも見る。定期実行（schedule/loop）を前提にした設計。規則ファイルが増えて整合性が怪しくなったと感じたとき、CLAUDE.mdと基準のガイドの記載がずれていないか確認したいときに使う。プロダクトコードは書かない。
 ---
 
 相談者として規則ファイル（CLAUDE.md群・基準のガイド・自作Skill の trigger 記述）の棚卸しを行う。`guarantee-audit` Skill（指摘提示→user 裁可→反映の進行）の型を、対象を「メモリ」から「規則」に変えて踏襲する。**プロダクトコード（各リポの src/ 等）は書かない**。書いてよいのは対象節に挙げた規則ファイルと、アンカーを持つ `.claude/RULES.md` のみ。
@@ -13,7 +13,7 @@ CLAUDE.md・Skill・memory はいずれも「user が書いた規則を AI が�
 
 - `~/.claude/CLAUDE.md`（グローバル）
 - 各リポの `CLAUDE.md`（呼び出し元リポ、または user が指定したリポ）
-- `docs-agents/*.md` と `.claude/skills/*/reference/*.md`（基準の実体）
+- `docs/*.md` と `.claude/skills/*/reference/*.md`（基準の実体）
 - `.claude/skills/*/SKILL.md` のうち、frontmatter `description` が**日本語で書かれているもの**
 - `.claude/settings.json` と `.claude/hooks/`（`*.sh` と `README.md`。層1）
 
@@ -23,7 +23,7 @@ CLAUDE.md・Skill・memory はいずれも「user が書いた規則を AI が�
 
 最後の条件により、Cloudflare 等ベンダー技術リファレンス系Skill（`cloudflare` / `wrangler` / `agents-sdk` / `durable-objects` / `sandbox-sdk` / `web-perf` / `workers-best-practices` 等、description が英語）と Anthropic 標準搭載Skill（`anthropic-skills:*` prefix、`docx` / `pdf` / `pptx` / `xlsx` / `schedule` / `morning` / `setup-cowork` / `skill-creator` / `consolidate-memory` 等）を除外する。これらは user 自身が書いた「規則」ではなく外部ドキュメントの写しか Claude Code 標準機能であり、CLAUDE.md との矛盾を検出する対象にする意味がない。**この判定は実行時に frontmatter を機械的に見て行い、固定の除外リストは保守しない**（Skill の増減に自動で追従させるため）。
 
-**基準の実体は、それを使う skill が持つ。**1本の skill しか読まない基準は `SKILL.md` 本体に、複数の skill が読むものや長いものはその skill の `reference/` に置く。skill に寄せきれないもの（`hooks/README.md` のような仕組みの説明や、`docs-agents/` の個別の覚え書き）だけを MD として残す。棚卸しで基準を独立した MD へ切り出す提案はしない。
+**基準の実体は、それを使う skill が持つ。**1本の skill しか読まない基準は `SKILL.md` 本体に、複数の skill が読むものや長いものはその skill の `reference/` に置く。skill に寄せきれないもの（`hooks/README.md` のような仕組みの説明や、`docs/` の個別の覚え書き）だけを MD として残す。棚卸しで基準を独立した MD へ切り出す提案はしない。
 
 ## 起点 (`.claude/RULES.md`)
 
