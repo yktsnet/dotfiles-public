@@ -6,7 +6,7 @@
     specialArgs = { inherit inputs; };
     modules = [
       inputs.disko.nixosModules.disko
-      ./gui/linux-desktop/system.nix
+      ./linux-desktop/system.nix
       inputs.home-manager.nixosModules.home-manager
     ];
   };

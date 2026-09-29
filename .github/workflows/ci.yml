@@ -41,6 +41,6 @@ jobs:
 
       - name: Check Zsh Syntax
         run: |
-          for f in zsh/functions/*.sh; do
+          for f in home-manager/modules/zsh/functions/*.sh; do
             zsh -n "$f"
           done

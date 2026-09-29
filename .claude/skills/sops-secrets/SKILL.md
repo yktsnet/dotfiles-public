@@ -1,14 +1,14 @@
 ---
 name: sops-secrets
 description: sops / age による secret の暗号化・復号・追加・再暗号化の運用手順。secret を暗号化する・inject する・`secrets/` 配下を触る・`.sops.yaml` や `devices/secrets.nix` を変更する・新デバイスの鍵を登録するとき、および sops 関連エラー（cannot parse dotenv / unexpected end of JSON input 等）の対処時に必ず使用する。
-allowed-tools: Bash(python3 ~/dotfiles/apps/zsh/inject.py *)
+allowed-tools: Bash(python3 ~/.claude/skills/sops-secrets/scripts/inject.py *)
 ---
 
 # sops-secrets
 
 フリートの secret 運用。`secrets/` 配下はすべて sops（age 鍵）で暗号化してコミットし、`inject` コマンドで暗号化・配置を一括処理する。`devices/secrets.nix` がディレクトリを自動スキャンして全 secret を登録する。
 
-**Agent が実行するときの注意**: Claude Code の Bash ツールは zsh の関数を読み込まないシェルで動くため、Agent は常に実体である `python3 ~/dotfiles/apps/zsh/inject.py <file> <category>` を直接呼ぶこと（下記コマンド例もすべてこの形にしてある）。
+**Agent が実行するときの注意**: Claude Code の Bash ツールは zsh の関数を読み込まないシェルで動くため、Agent は常に実体である `python3 ~/.claude/skills/sops-secrets/scripts/inject.py <file> <category>` を直接呼ぶこと（下記コマンド例もすべてこの形にしてある）。
 
 ## 安全規則
 
@@ -30,9 +30,9 @@ newfs_hfs -v ramdisk "$RAMDISK" && mkdir -p /Volumes/ramdisk
 mount -t hfs "$RAMDISK" /Volumes/ramdisk
 hx /Volumes/ramdisk/filename.env
 
-# 2. 暗号化してdotfilesに配置（.age 拡張子が自動で付く）
+# 2. 暗号化してdotfilesに配置（.age 拡張子が自動で付く。format は拡張子で決まる: .env → dotenv、.json → json、その他 → binary）
 # Agent は実体を直接呼ぶ（上記「Agentが実行するときの注意」）
-python3 ~/dotfiles/apps/zsh/inject.py <生ファイルパス> <カテゴリ名>
+python3 ~/.claude/skills/sops-secrets/scripts/inject.py <生ファイルパス> <カテゴリ名>
 # → secrets/<カテゴリ名>/filename.env.age が生成される
 
 # 3. 生成確認（.age が存在すること。macOS は RAM ディスクを解放:
@@ -49,11 +49,11 @@ cd ~/dotfiles && git add -A && git commit -m "..."
 
 **Agentは`sops --decrypt`で既存secretを読み出そうとしてはいけない**。`secrets/`の復号はJSON/binary/dotenv問わずAgentには許可されておらず（`inject`による新規書き込みだけが許可されている）、分類器に必ずブロックされる。値が必要になった時点で詰むので、**最初から復号が絶対に要らない順序**で進めること。
 
-**この順序は「念のため」ではなく必須**: `inject.py`は暗号化に成功すると`src.unlink()`で元の平文ファイルを自分で削除する（`apps/zsh/inject.py`）。つまり`inject`を先に実行した時点で、その回に使った平文はAgentの手元から完全に消え、後から取り戻す唯一の手段（`sops --decrypt`）はAgentには許可されていない。だから同期先への配布は必ずinjectより前に終わらせる。
+**この順序は「念のため」ではなく必須**: `inject.py`は暗号化に成功すると`src.unlink()`で元の平文ファイルを自分で削除する（`scripts/inject.py`）。つまり`inject`を先に実行した時点で、その回に使った平文はAgentの手元から完全に消え、後から取り戻す唯一の手段（`sops --decrypt`）はAgentには許可されていない。だから同期先への配布は必ずinjectより前に終わらせる。
 
 1. RAMディスク上で新しい値を生成する（既存値を読みに行かない。値ごと作り直す）
 2. **平文がまだ自分の手元にある間に**、同期先すべてに反映する（例: `gh api -X PATCH .../hooks/{id} -f config[secret]=@<RAMディスク上のファイル>` でGitHub webhook secretを更新）。`-f config[secret]=<値>`のように値をコマンド文字列に直接埋め込まず、`@<ファイルパス>`でファイル参照にすること（値がBashコマンドの引数として露出すると、それ自体が別途分類器にブロックされ得る）
-3. 全ての同期先への反映が完了してから、最後に `python3 ~/dotfiles/apps/zsh/inject.py <RAMディスク上のファイル> <カテゴリ名>` で暗号化してdotfilesに配置する（成功時に元ファイルは自動で消える。手動削除は不要）
+3. 全ての同期先への反映が完了してから、最後に `python3 ~/.claude/skills/sops-secrets/scripts/inject.py <RAMディスク上のファイル> <カテゴリ名>` で暗号化してdotfilesに配置する（成功時に元ファイルは自動で消える。手動削除は不要）
 4. `inject`が何らかの理由で失敗した場合は、RAMディスク上のファイルはまだ残っているので再実行できる。失敗を`sops --decrypt`で復旧しようとしない
 
 途中で失敗して`sops --decrypt`に頼りたくなった場合は、そこで止めて user に値の受け渡しを依頼する（回避しようとしない）。

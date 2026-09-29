@@ -1,19 +1,6 @@
 { pkgs, lib, inputs, config, ... }:
 
-let
-  appsRoot = ../../apps;
-  appDirs = builtins.attrNames (
-    lib.filterAttrs (name: type: type == "directory") (builtins.readDir appsRoot)
-  );
-  toServicePath = name: appsRoot + "/${name}/${name}-service.nix";
-  autoApps = builtins.filter (path: builtins.pathExists path) (map toServicePath appDirs);
-in
 {
-  imports = [
-  ] ++ autoApps;
-
-
-
   environment.shellAliases = {
     toggle-audio = ''
       wpctl status | grep -q "\*.*USB Audio Device" && \

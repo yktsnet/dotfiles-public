@@ -76,10 +76,10 @@ AI エージェントとの開発では、ボトルネックは生成から検�
 
 | 構成 | OS | 役割 |
 |---|---|---|
-| `gui/linux-desktop` | NixOS（disko / SSD） | 主開発機。相談者チャットと `issue()` の起動元 |
-| `gui/macbook` | macOS（nix-darwin） | home-manager 層を Linux 機と共有する |
+| `linux-desktop` | NixOS（disko / SSD） | 主開発機。相談者チャットと `issue()` の起動元 |
+| `macbook` | macOS（nix-darwin） | home-manager 層を Linux 機と共有する |
 
-OS の差は、Nix 側では `pkgs.stdenv.isDarwin`、シェル側では `zsh/functions/os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）に閉じ込める。home-manager モジュールと関数ファイルは両 OS が同一のものを読む。
+OS の差は、Nix 側では `pkgs.stdenv.isDarwin`、シェル側では `home-manager/modules/zsh/functions/os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）に閉じ込める。home-manager モジュールと関数ファイルは両 OS が同一のものを読む。
 
 公開しているのは、エージェントとの開発に関わる層（Claude Code・メモリ・機密・レビュー・tmux のセッション管理）に限る。エディタやデスクトップの設定、サーバー類の構成は含めていない。
 

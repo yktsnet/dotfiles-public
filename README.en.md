@@ -76,10 +76,10 @@ A single Flake binds the macOS and Linux development machines. Device names are 
 
 | Configuration | OS | Role |
 |---|---|---|
-| `gui/linux-desktop` | NixOS (disko / SSD) | Primary dev machine. Where consultant chat and `issue()` are launched |
-| `gui/macbook` | macOS (nix-darwin) | Shares the home-manager layer with the Linux machine |
+| `linux-desktop` | NixOS (disko / SSD) | Primary dev machine. Where consultant chat and `issue()` are launched |
+| `macbook` | macOS (nix-darwin) | Shares the home-manager layer with the Linux machine |
 
-OS differences are confined to `pkgs.stdenv.isDarwin` on the Nix side and to the shims in `zsh/functions/os.sh` (`_is_darwin`, `_sed_i`, `_open`, `_linux_only`) on the shell side. Home Manager modules and function files are read as-is by both operating systems.
+OS differences are confined to `pkgs.stdenv.isDarwin` on the Nix side and to the shims in `home-manager/modules/zsh/functions/os.sh` (`_is_darwin`, `_sed_i`, `_open`, `_linux_only`) on the shell side. Home Manager modules and function files are read as-is by both operating systems.
 
 What is published is limited to the layers involved in developing with agents (Claude Code, memory, secrets, review, tmux session management). Editor and desktop settings and server configurations are not included.
 

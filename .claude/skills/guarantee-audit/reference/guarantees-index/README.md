@@ -1,4 +1,4 @@
-# apps/guarantees-index
+# guarantees-index
 
 フリート横断で保証台帳（`docs/guarantees.md`）の索引を作る道具の置き場。
 
@@ -21,5 +21,5 @@
 ローカルでは `gh` にログインした状態で直接実行できる。
 
 ```bash
-bash apps/guarantees-index/guarantees-index.sh
+bash .claude/skills/guarantee-audit/reference/guarantees-index/guarantees-index.sh
 ```

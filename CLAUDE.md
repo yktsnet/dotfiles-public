@@ -14,12 +14,12 @@ Claude Code は本ファイルを最優先の指示として実行すること�
 ## コマンド
 - Flake 評価チェック: `nix flake check`
 - フォーマット: `nix fmt`
-- Zsh 構文チェック: `zsh -n zsh/functions/<file>.zsh`
+- Zsh 構文チェック: `zsh -n home-manager/modules/zsh/functions/<file>.sh`
 
 ## アーキテクチャの要点
-- Nix Flakes で macOS（nix-darwin）と Linux（NixOS）の開発機を一元管理する。OS 差は Nix 側で `pkgs.stdenv.isDarwin`、シェル側で `zsh/functions/os.sh` のシムに閉じ込める。
-- デバイス定義は `devices/gui/`、ユーザ環境は `home-manager/`（`config/` と `modules/`）。
-- Issue 駆動の役割分離ワークフローを支える Zsh マクロは `zsh/functions/`。
+- Nix Flakes で macOS（nix-darwin）と Linux（NixOS）の開発機を一元管理する。OS 差は Nix 側で `pkgs.stdenv.isDarwin`、シェル側で `home-manager/modules/zsh/functions/os.sh` のシムに閉じ込める。
+- デバイス定義は `devices/`（共通は `common/`、デバイス別は `<device>/`）、ユーザ環境は `home-manager/`（`config/` と `modules/`）。
+- Issue 駆動の役割分離ワークフローを支える Zsh マクロは `home-manager/modules/zsh/functions/`。
 - 機密の実値は `secrets-agents/` に分離し、公開リポには載せない（読み書き禁止）。
 
 ## 検証手段

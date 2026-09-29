@@ -17,7 +17,7 @@
 hx /dev/shm/filename.env   # または .json / その他
 
 # 2. 暗号化してdotfilesに配置（.age拡張子が自動で付く）
-python3 ~/dotfiles/apps/zsh/inject.py /dev/shm/filename.env <カテゴリ名>
+python3 ~/.claude/skills/sops-secrets/scripts/inject.py /dev/shm/filename.env <カテゴリ名>
 # → secrets/<カテゴリ名>/filename.env.age が生成される
 
 # 3. 生成確認

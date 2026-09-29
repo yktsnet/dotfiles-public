@@ -5,13 +5,13 @@
 ## 1. 技術スタック
 - **Nix Flakes**: NixOS（GUI・ヘッドレス VPS）と macOS（nix-darwin）を統一管理。
 - **home-manager**: ユーザ環境（TUI ツールチェーン・dotfiles）を宣言的に管理。
-- **Zsh**: Issue 駆動ワークフローのシェルマクロ（`zsh/functions/`）。
+- **Zsh**: Issue 駆動ワークフローのシェルマクロ（`home-manager/modules/zsh/functions/`）。
 
 ## 2. コードスタイル
 - Nix は `nix fmt`（フォーマッタ）で統一する。属性セットは用途ごとにモジュール分割し、`home-manager/modules/` に配置する。
-- デバイス固有設定は `devices/gui/<device>/` に置き、共通モジュールを import して組み立てる。
-- Zsh 関数は1機能1ファイルを基本とし、`zsh/functions/` に置く。
-- OS 差は `zsh/functions/os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）を通す。関数本体に `uname` / `$OSTYPE` / `sed -i` / `xdg-open` を直接書かない。Linux のハードウェア・systemd を直に叩く関数は冒頭で `_linux_only '依存先' || return 1`。
+- デバイス固有設定は `devices/<device>/` に置き、共通モジュールを import して組み立てる。
+- Zsh 関数は1機能1ファイルを基本とし、`home-manager/modules/zsh/functions/` に置く。
+- OS 差は `home-manager/modules/zsh/functions/os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）を通す。関数本体に `uname` / `$OSTYPE` / `sed -i` / `xdg-open` を直接書かない。Linux のハードウェア・systemd を直に叩く関数は冒頭で `_linux_only '依存先' || return 1`。
 
 ## 3. ファイル編集戦略
 - **広範囲の書き換え**: 変更箇所が多い場合（目安: 10箇所以上、またはファイルの20%超）、`str_replace` の繰り返しではなく `bash` でファイル全体を一括書き出す（`cat > path << 'EOF'` 等）。

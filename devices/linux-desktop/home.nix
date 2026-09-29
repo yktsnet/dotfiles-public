@@ -2,8 +2,8 @@
 
 {
   imports = [
-    ../home.nix
-    ../../../home-manager/modules/ctx.nix
+    ../common/home.nix
+    ../../home-manager/modules/ctx.nix
   ];
 
   home.packages = [

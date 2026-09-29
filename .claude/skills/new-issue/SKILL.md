@@ -54,4 +54,4 @@ MVP期からIssueドリブン期へ上げるには、保証台帳の正式運用
 - **単発例外**: user が明示的に「今回は例外で直接編集してほしい」と宣言した場合、対象ファイルと理由を一言添えて直接編集してよい。常用化しない（頻発するならフェーズを MVP 期に戻すよう user に促す）
 - **軽量経路**: 手順0の3条件を全て満たす場合
 
-`issues/` のローカルファイルが唯一の真実で、GitHub Issue は `issue-finish` が完了時に残す記録用ミラー。`issue()` / `issue-abort` / `issue-finish` の挙動は `zsh/functions/aiagent.sh` が正本。
+`issues/` のローカルファイルが唯一の真実で、GitHub Issue は `issue-finish` が完了時に残す記録用ミラー。`issue()` / `issue-abort` / `issue-finish` の挙動は `home-manager/modules/zsh/functions/aiagent.sh` が正本。
