@@ -24,19 +24,17 @@ So this platform **does not assume a human who stays attentive**. Removing envir
 
 ## Principles
 
-The machinery is stacked in the following order. Each Design section carries the matching number.
+The machinery is stacked in the following order.
 
-1. **Decide the type before building** — classify the repository, the kind of README, and the module type, and derive every later rule from that
-2. **Put prohibitions in mechanisms, not requests** — `settings.json` deny rules and PreToolUse hooks
-3. **Place knowledge where it is read** — rules that apply every time go in CLAUDE.md; procedures and criteria with a statable trigger go in skills
-4. **Approve the promises first** — the guarantee ledger and tests (GDD)
-5. **Separate deciding from building** — three roles: consultant, executor, and user
+1. **Decide the type before building**
+2. **Put prohibitions in mechanisms, not requests**
+3. **Place knowledge where it is read**
+4. **Approve the promises first**
+5. **Separate deciding from building**
 
 The order has dependencies. Until the type is decided, what to block cannot be decided. Adding knowledge without blocks only speeds up accidents. Splitting the work before the guarantees are settled leaves the executor running without knowing what it must not break.
 
 **The minimum is steps 1–3**, needed regardless of whether anything is published or how large the team is. Steps 4–5 are added when there is something published, or when several sessions start running in parallel.
-
-Beneath the five steps lies the Foundation: the same tools and rules apply on every machine, and secrets never appear in prose.
 
 ---
 
@@ -106,11 +104,11 @@ Role boundaries are handed over through zsh functions.
 - **`issue-abort`**: discards an in-progress worktree together with its branch
 - **`issue-finish`**: pushes the reviewed branch, opens the PR, merges it, and cleans up in one go
 
-The executor stops at a local commit, and the only way out to the remote is the user's `issue-finish`. The executor's changes are reviewed line by line by opening [crit](https://github.com/tomasz-tomczyk/crit) inside the executor's own session, and review comments go back to that session to be fixed. Worktrees are isolated, so the machinery could run Issues in parallel, but they are implemented one at a time: working in series is what makes the user's review and approval hold.
+The only way out to the remote is the user's `issue-finish`. The executor's changes are reviewed line by line by opening [crit](https://github.com/tomasz-tomczyk/crit) inside the executor's own session, and review comments go back to that session to be fixed. Worktrees are isolated, so the machinery could run Issues in parallel, but they are implemented one at a time: working in series is what makes the user's review and approval hold.
 
 Three exceptions keep the separation from becoming rigid: incident response that cannot be designed as an Issue in advance, one-off exceptions the user explicitly declares, and a lightweight path that lets small changes touching neither logic nor the guarantee ledger through without an Issue.
 
-In practice, several consultant sessions and worktrees run at once. Sessions running on the same model and the same rules cannot detect on their own that they have gone off course. The reader standing outside them is [session-nudge](.claude/skills/session-nudge/SKILL.md), launched with `M-m`. It reads another session's exchange and drafts advice, which is sent only after the user approves the draft. It never intervenes in another session automatically.
+In practice, several consultant sessions and worktrees run at once, and none of them can notice its own drift, for the same reason. The reader standing outside them is [session-nudge](.claude/skills/session-nudge/SKILL.md), launched with `M-m`. It reads another session's exchange and drafts advice, which is sent only after the user approves the draft. It never intervenes in another session automatically.
 
 ---
 
@@ -141,7 +139,7 @@ If the mapping existed on only one machine, writing on any other machine would m
 
 ## Skills
 
-Criteria and procedures are owned by the skill that uses them. They are listed here by Principles step. The criteria for what gets published are in [.claude/skills/README.md](.claude/skills/README.md).
+Criteria and procedures are owned by the skill that uses them. The criteria for what gets published are in [.claude/skills/README.md](.claude/skills/README.md).
 
 | Step | Skill | Owns |
 |---|---|---|
@@ -180,7 +178,7 @@ Step 2 (putting prohibitions in mechanisms) is owned not by a skill but by `.cla
 
 ## Scope
 
-Only the layers involved in developing with agents (Claude Code, memory, secrets, review, and tmux session management) are extracted from the working dotfiles. Besides the two machines shown here, the working flake also covers headless servers and WSL, and holds editor and desktop settings and fleet status checks; none of those are included. This is an extract, not a mirror, so some things in the working environment are absent here. Unifying tools through Nix, distributing `~/.claude`, decrypting the mapping, and persistent memory are tied to the machine and cannot be enforced from a team repository, so they are kept here rather than in sdlc-kit.
+Only the layers involved in developing with agents (Claude Code, memory, secrets, review, and tmux session management) are extracted from the working dotfiles. Besides the two machines shown here, the working flake also covers headless servers and WSL, and holds editor and desktop settings and fleet status checks; none of those are included. Unifying tools through Nix, distributing `~/.claude`, decrypting the mapping, and persistent memory are tied to the machine and cannot be enforced from a team repository, so they are kept here rather than in sdlc-kit.
 
 The repository is not meant to be cloned and applied to your own machines, so no setup steps are given. The device configurations assume the actual hardware and keys, and the encrypted contents of `secrets/` are not included. CI's `nix flake check` confirms that the published configuration still evaluates.
 
