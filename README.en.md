@@ -9,11 +9,11 @@ The parts that carry over to team repositories are packaged separately in [sdlc-
 
 ---
 
-## From Writing to Checking
+## Verification over Generation
 
-As agents wrote more of the code, my own work moved from writing to checking. The more there was to check, the more the way I checked drifted from day to day. On tired days I missed things; on rushed days I skipped steps. The agents were no different: a rule followed in one session got overlooked in the next.
+Now that AI writes the code, the time goes not into writing but into confirming that what was written can be trusted. Agents are confidently and quietly wrong, and left alone they carry destructive operations and secret leaks straight into production. A promise that people will be careful eventually becomes an empty formality.
 
-So, bit by bit, I moved what I wanted followed out of documents that ask for compliance and into an environment that leaves no way around it. Neither the people nor the agents are expected to remember.
+So removing environment differences, blocking destructive commands, and isolating secrets are fixed in code and configuration, with a human merge as the final gate. Only "what must not break" is decided by a human and approved in writing; implementation and tests are left to the agents. When a promise is broken, a machine detects it and stops, so nobody has to sit and watch.
 
 ---
 
@@ -23,7 +23,7 @@ Rules are sorted by where they live. Rules that apply every time go in CLAUDE.md
 
 ### One Toolchain on Every Machine
 
-One flake manages the macOS and Linux development machines. When tools or versions differ between machines, agents stall on "command not found" or "behaves differently", and a person ends up spending time finding out why.
+One flake manages the macOS and Linux development machines. When tools or versions differ between machines, agents stall on commands that are not found or fail at runtime.
 
 | Configuration | OS | Role |
 |---|---|---|
@@ -86,10 +86,10 @@ If the mapping existed on only one machine, writing on any other machine would m
 |---|---|---|
 | Configuration | Nix Flakes, home-manager | Builds every machine's tools and settings from one declaration, so agents do not stall on machine differences |
 | macOS | nix-darwin | Lets macOS share the home-manager layer with the Linux machine |
-| Disk | disko | Puts the partition layout in the declaration too, so rebuilding the primary machine does not depend on a runbook |
+| Disk | disko | Brings even the partition layout into the Nix declaration |
 | Secrets | sops-nix, age | Ships ciphertext through git and lets each machine decrypt with its own key; plaintext never travels between machines |
 | Agent | Claude Code | Its `settings.json` deny rules and PreToolUse hooks let prohibitions live as mechanisms rather than documents |
-| Review | crit | Comments line by line on the executor's diff or a local page and gets it fixed in place |
+| Review | crit | Gives the user and the agent one shared entry point for reviewing the executor's diff and local pages |
 | Hand-off | zsh | Turns each role boundary, from creating a worktree to publishing, into one command |
 | Sessions | tmux, tmux-claude-session-manager | Moves between parallel Claude Code sessions |
 
