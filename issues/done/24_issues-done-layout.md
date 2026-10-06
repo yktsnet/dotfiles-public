@@ -1,3 +1,22 @@
+## PR記録: chore: 18 までの閉じた Issue を done/ の1ファイルに畳み、起票の番号を done/ まで見て振る
+issue: 24 (24_issues-done-layout.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/79
+
+## 変更内容
+- issues/01〜18 の本文を、対になる issues/done/01〜18 の末尾へ（空行・`---`・空行を挟んで）追記し、直下の18本を削除した。PR 記録の部分は書き換えていない。`github_issue:` 欄は旧本文のまま残した
+- `.claude/skills/local-issue/SKILL.md` の手順2を「`issues/*.md` と `issues/done/*.md`」を見る形にし、直下だけを見ると番号が重なる理由を添えた
+
+## 保証
+なし（記録の置き方を揃えるだけで、ツールの振る舞いは変えない）
+
+## 静的確認結果
+- `git ls-files issues/` に `issues/done/` の外で残るのは、この Issue 自身のみ（close 後は done/ へ移る）
+- `issues/done/01〜18` のすべてに `## PR記録:` の行と `^id: ` の行がある
+- `issues/done/` の差分は追記のみ（削除行0）
+- 変更対象は Issue の「対象」と一致
+
+---
+
 ## 18 までの閉じた Issue を `done/` の1ファイルに畳み、起票の番号を `done/` まで見て振る
 id: 24
 branch-slug: issues-done-layout
