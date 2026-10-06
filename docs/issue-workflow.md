@@ -35,7 +35,7 @@ status   show where everything is
 |---|---|---|
 | `run` | open の Issue（実行者の枝がまだ無いもの） | そのリポで worktree を切り、実行者を起動する |
 | `approve` | draft の Issue | open に変える。y で続けて `run` に進む |
-| `merge` | 実行者が出した `claude/*` の open な PR | 確認のあと squash でマージし、後片付けと main の pull まで済ませる |
+| `merge` | 実行者が出した `claude/*` の open な PR | 確認のあと squash でマージし、後片付けと main の pull まで済ませる。必須チェックのあるリポでは、チェックが通ってマージされるまで待つ。落ちたら auto-merge を外して止まる |
 | `abort` | 実行者の `claude/*` の枝 | 確認（既定は No）のあと、枝を消す。worktree が残っていれば一緒に消す |
 | `status` | — | Issue や枝が残っているリポの現在地を出す |
 
