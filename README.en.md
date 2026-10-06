@@ -78,33 +78,36 @@ Development runs in two phases, handing over the driving documents. In the launc
 When the same model both decides and builds, it cannot notice on its own that it has gone off course. The work is split into three roles.
 
 - **Consultant**: investigates and designs the Issue in dialogue with the user. Does not implement ([local-issue](.claude/skills/local-issue/SKILL.md))
-- **Executor**: takes an Issue and carries it through implementation, tests, static checks, and a local commit. Never touches the remote ([pr-workflow](.claude/skills/pr-workflow/SKILL.md))
-- **User**: approves the Issue's guarantee section, reviews the commits, and publishes them
+- **Executor**: takes an Issue and carries it through implementation, tests, static checks, and a commit. It fixes what the user points out and opens the PR once the user says OK. It never pushes to main and never merges ([pr-workflow](.claude/skills/pr-workflow/SKILL.md))
+- **User**: approves the Issue's guarantee section, checks the behavior in the executor's session, and merges
 
 ```mermaid
 flowchart TD
     U([User]) -->|approve| I[Issue in issues/]
     C([Consultant]) -->|design| I
-    subgraph local [Local worktree]
-        I -->|issue| E([Executor])
-        E --> L[Local commit]
+    subgraph local [Local worktree, executor's session]
+        I -->|launched by i| E([Executor])
+        E --> L[Commit]
+        L --> V{{crit and checking}}
+        V -->|comments| E
     end
-    L -->|review in crit| R{{User decides}}
-    R -->|issue-abort| X[Discard with branch]
+    V -->|OK| P
     subgraph remote [GitHub]
-        P[PR and merge]
+        P[Executor opens the PR] -->|user merges| M[main]
     end
-    R -->|issue-finish| P
 ```
 
-Role boundaries are handed over through zsh functions.
+Role boundaries are handed over through a single zsh function, `i`. It lists the Issues and PRs that can be acted on right now across all repositories, and performs the chosen action.
 
-- **`issue-open`**: moves an Issue whose guarantee section has been approved from `draft` to `open`
-- **`issue`**: picks an `open` Issue, creates a worktree, and launches the executor, leaving the main checkout untouched
-- **`issue-abort`**: discards an in-progress worktree together with its branch
-- **`issue-finish`**: pushes the reviewed branch, opens the PR, merges it, and cleans up in one go
+- **`run`**: picks an `open` Issue, creates a worktree, and launches the executor, leaving the main checkout untouched
+- **`approve`**: moves an Issue whose guarantee section has been approved from `draft` to `open`, then asks whether to implement it right away
+- **`merge`**: squash-merges a PR the executor opened and cleans up
+- **`abort`**: discards an executor's branch, together with its worktree if one remains. Discarding is issued from here too
+- **`status`**: shows where things stand in the repositories that still have Issues or branches
 
-The only way out to the remote is the user's `issue-finish`. The executor's changes are reviewed line by line by opening [crit](https://github.com/tomasz-tomczyk/crit) inside the executor's own session, and review comments go back to that session to be fixed. Worktrees are isolated, so the machinery could run Issues in parallel, but they are implemented one at a time: working in series is what makes the user's review and approval hold.
+What each row of the list does, and how cleanup works, is in [docs/issue-workflow.md](docs/issue-workflow.md).
+
+There are two gates to the remote: the user's OK in the executor's session, and the merge the user presses. The executor's changes are reviewed line by line by opening [crit](https://github.com/tomasz-tomczyk/crit) inside the executor's own session, and review comments go back to that session to be fixed. Parallel runs are allowed only for Issues that do not depend on each other, up to three in the same repository. Checking and fixing stay closed inside each executor session, so the user's approval holds as the count grows; running dependent Issues together would break that premise.
 
 Three exceptions keep the separation from becoming rigid: incident response that cannot be designed as an Issue in advance, one-off exceptions the user explicitly declares, and a lightweight path that lets small changes touching neither logic nor the guarantee ledger through without an Issue.
 
@@ -120,7 +123,7 @@ One flake manages the macOS and Linux development machines. When tools or versio
 
 | Configuration | OS | Role |
 |---|---|---|
-| `linux-desktop` | NixOS (disko / SSD) | Primary dev machine. Where consultant chat and `issue` are launched |
+| `linux-desktop` | NixOS (disko / SSD) | Primary dev machine. Where consultant chat and `i` are launched |
 | `macbook` | macOS (nix-darwin) | Shares the home-manager layer with the Linux machine |
 
 OS differences are confined to `pkgs.stdenv.isDarwin` on the Nix side and to the shims in `os.sh` (`_is_darwin`, `_sed_i`, `_open`, `_linux_only`) on the shell side; everything else is the same file on both. When an agent reaches for `brew` or `npm -g`, `block-non-nix-install.sh` stops it and points to the Nix procedure ([nix-tool-install](.claude/skills/nix-tool-install/SKILL.md)).

@@ -78,33 +78,36 @@ skill は、リポごとに答えが変わる**判断**を担うものと、一�
 同じモデルが決めて作ると、方向を外したことに自分では気づけない。そのため役割を3つに分ける。
 
 - **相談者**: user と対話して調査し、Issue を設計する。実装はしない（[local-issue](.claude/skills/local-issue/SKILL.md)）
-- **実行者**: Issue を入力に、実装・テスト・静的確認・ローカルコミットまでを進める。リモートには触れない（[pr-workflow](.claude/skills/pr-workflow/SKILL.md)）
-- **user**: Issue の保証節を裁可し、コミットをレビューして公開する
+- **実行者**: Issue を入力に、実装・テスト・静的確認・コミットまで進める。user の確認を受けて直し、OK を受けて PR を出す。main へは push せず、マージしない（[pr-workflow](.claude/skills/pr-workflow/SKILL.md)）
+- **user**: Issue の保証節を裁可し、実行者のセッションで動作を確かめ、マージする
 
 ```mermaid
 flowchart TD
     U([user]) -->|裁可| I[issues/ の Issue]
     C([相談者]) -->|設計| I
-    subgraph local [ローカルの worktree]
-        I -->|issue| E([実行者])
-        E --> L[ローカルコミット]
+    subgraph local [ローカルの worktree・実行者のセッション]
+        I -->|i で起動| E([実行者])
+        E --> L[コミット]
+        L --> V{{crit と動作確認}}
+        V -->|指摘| E
     end
-    L -->|crit でレビュー| R{{user の判断}}
-    R -->|issue-abort| X[ブランチごと破棄]
+    V -->|OK| P
     subgraph remote [GitHub]
-        P[PR・マージ]
+        P[実行者が PR を出す] -->|user がマージ| M[main]
     end
-    R -->|issue-finish| P
 ```
 
-役割の境目は zsh の関数で渡す。
+役割の境目は、`i` という1つの関数で渡す。全リポを横断して、その時点で手を付けられる Issue と PR を並べ、選んだ動作を行う。
 
-- **`issue-open`**: 保証節を裁可した Issue を `draft` から `open` に上げる
-- **`issue`**: `open` の Issue を選び、worktree を切って実行者を起動する。main のチェックアウトを汚さない
-- **`issue-abort`**: 進行中の worktree を作業ブランチごと破棄する
-- **`issue-finish`**: レビューを通ったブランチの push → PR 作成 → マージ → 後片付けを一括で行う
+- **`run`**: `open` の Issue を選び、worktree を切って実行者を起動する。main のチェックアウトを汚さない
+- **`approve`**: 保証節を裁可した Issue を `draft` から `open` に上げ、続けて実装するかを聞く
+- **`merge`**: 実行者が出した PR を squash でマージし、後片付けまで済ませる
+- **`abort`**: 実行者の枝を、worktree が残っていれば一緒に破棄する。破棄もここから出す
+- **`status`**: Issue や枝が残るリポの現在地を出す
 
-リモートへ出る経路は user の `issue-finish` しかない。実行者の変更は、実行者のセッションの中で [crit](https://github.com/tomasz-tomczyk/crit) を開いて行単位でレビューし、指摘はそのセッションへ戻して直させる。worktree は隔離されているので機構上は並列にも回せるが、Issue は1本ずつ実装する。直列であることが、user のレビューと裁可が成り立つ条件だからである。
+一覧の各行の動きと後片付けは [docs/issue-workflow.md](docs/issue-workflow.md) にある。
+
+リモートへ出る関門は2か所ある。実行者のセッションで user が出す OK と、user が押すマージである。実行者の変更は、そのセッションの中で [crit](https://github.com/tomasz-tomczyk/crit) を開いて行単位でレビューし、指摘はそのセッションへ戻して直させる。並行は、依存し合わない Issue に限って同じリポで3本まで認める。確認と直しが実行者のセッションごとに閉じているので、本数が増えても user の裁可は成り立つ。依存し合う Issue を同時に走らせると、この前提が崩れる。
 
 分離を硬直させないための例外が3つある。事前に Issue を設計できない障害対応、user が明示した単発の例外、そしてロジックにも保証台帳にも触れない小さな変更を Issue にせず通す軽量経路である。
 
@@ -120,7 +123,7 @@ macOS と Linux の開発機を1つの Flake で管理する。端末ごとに�
 
 | 構成 | OS | 役割 |
 |---|---|---|
-| `linux-desktop` | NixOS（disko / SSD） | 主開発機。相談者チャットと `issue` の起動元 |
+| `linux-desktop` | NixOS（disko / SSD） | 主開発機。相談者チャットと `i` の起動元 |
 | `macbook` | macOS（nix-darwin） | home-manager 層を Linux 機と共有する |
 
 OS の差は、Nix 側では `pkgs.stdenv.isDarwin`、シェル側では `os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）に閉じ込め、それ以外は両 OS が同じファイルを読む。エージェントが `brew` や `npm -g` に手を伸ばすと `block-non-nix-install.sh` が止め、Nix で入れる手順（[nix-tool-install](.claude/skills/nix-tool-install/SKILL.md)）へ案内する。
