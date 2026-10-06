@@ -15,6 +15,13 @@ let
       sha256 = "1jrrpifhydnppzdap0c8m7zhrzvnyrzhf23zhkwk98db9i41fif7";
     };
     rtpFilePath = "claude_session_manager.tmux";
+
+    # `shell` はターンを終えてバックグラウンドの作業だけが残っている状態で、user の番である。
+    # プラグインは知らない状態として灰色の ? にするので、idle と同じ扱いの分岐を足す。
+    postInstall = ''
+      substituteInPlace $target/scripts/agents.sh \
+        --replace-fail 'else if ($3 == "busy")' 'else if ($3 == "shell")   { icon = "\033[32m●\033[0m idle+sh"; rank = 1 } else if ($3 == "busy")'
+    '';
   };
 
   # 呼ぶたびに新しい隠しセッションを起動し、ポップアップ枠でアタッチする。
@@ -147,14 +154,16 @@ let
   # 色相と並び順は M-u ピッカー（プラグインの agents.sh）に合わせ、Poimandres に置き換える。
   # 対象も M-u に揃える。Remote Control のセッションは pane を持たないので agents.sh に
   # 落とされ、ここに出しても飛べないチップが残るだけになる。status の有無で判別できる。
+  # `shell` はターンを終えてバックグラウンドの作業だけが残っている状態で、user の番なので
+  # idle と同じ分岐に入れる（区別する印は付けない。M-u ピッカー側の `idle+sh` で区別する）。
   agentStatus = pkgs.writeShellScript "tmux-agent-status.sh" ''
     set -uo pipefail
     agents="$(claude agents --json 2>/dev/null)" || exit 0
     printf '%s' "$agents" | ${pkgs.jq}/bin/jq -r '
-      def rank: if . == "waiting" then 0 elif . == "idle" then 1 else 2 end;
+      def rank: if . == "waiting" then 0 elif . == "idle" or . == "shell" then 1 else 2 end;
       def chip:
         if .status == "waiting" then "#[fg=#1b1e28,bg=#fffac2,bold] \(.label) #[default]"
-        elif .status == "idle" then "#[fg=#5de4c7,bg=#303340] \(.label) #[default]"
+        elif .status == "idle" or .status == "shell" then "#[fg=#5de4c7,bg=#303340] \(.label) #[default]"
         else "#[fg=#d0679d,bg=#232733] \(.label) #[default]" end;
       [ .[] | select(.kind == "interactive" and .status != null) | . + { repo: (.cwd | split("/") | last) } ]
       | group_by(.repo)
