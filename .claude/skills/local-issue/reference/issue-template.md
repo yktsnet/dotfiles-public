@@ -1,7 +1,6 @@
 ## {タイトル}
 id: {00}
 branch-slug: {slug}
-github_issue:
 status: draft
 type: cleanup | fix | feat
 対象: {変更・新規作成するファイルをすべて列挙。新規は (新規) を付記}
@@ -30,10 +29,10 @@ type: cleanup | fix | feat
 - `確認` : ClaudeCodeが提出前に行う静的確認。このリポの CLAUDE.md の検証手段を参照して埋める。例: lib変更時は影響callerをすべて列挙・修正済みであること。存在しないなら省略より `目視確認` と明示する
 ### ライフサイクル
 - `status: draft` → 設計中
-- `status: open`  → issue() で選択可能。**open は user が保証節・`対象外`・`仮定` を裁可済みであることを含む**
-- `status: close` → 完了済み（issue-finish で更新）
-検証で問題が出た場合はそのIssueをcloseし、`{id}a` として新しいIssueを作成する。
-元のIssueを再openしたりClaudeCodeのセッションに直接プロンプトを送ったりしない。
+- `status: open`  → `i` で実装の候補に出る。**open は user が保証節・`対象外`・`仮定` を裁可済みであることを含む**
+- `status: close` → 完了済み（user の OK 後に実行者が `done/` へ移して更新し、PR に載せる）
+PR を出す前の動作確認で出た問題は、実行者のセッションで直す。新しい Issue にしない。
+マージ後に問題が出た場合は、元の Issue を再 open せず、`{id}a` として新しい Issue を作成する。
 ### 保証節
 - 保証は自然言語で書く。テストコードやテストファイル名の指定は補足であり、主体は振る舞いの宣言
 - user は draft→open の裁可で保証節を必ず読み、削る・足す・直す（保証節は user 承認済みであることが open の意味に含まれる）
