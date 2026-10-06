@@ -1,7 +1,7 @@
 ## `i` の merge で、必須チェックが通ってマージされるまで待つ
 id: 23
 branch-slug: aiagent-merge-wait-checks
-status: open
+status: close
 type: fix
 対象:
 - home-manager/modules/zsh/functions/aiagent.sh（L466-476 の `_aiagent_merge`）
