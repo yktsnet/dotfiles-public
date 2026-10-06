@@ -1,3 +1,36 @@
+## PR記録: fix: `i` の merge で、必須チェックが通ってマージされるまで待つ
+issue: 23 (23_aiagent-merge-wait-checks.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/78
+
+## 変更内容
+`_aiagent_merge` で `gh pr merge --squash` が拒まれたとき（必須チェックが未完了）だけ、次の順で進める。
+1. `gh pr merge --squash --auto` で auto-merge に切り替える
+2. `gh pr checks --watch --fail-fast` でチェックの完了を待つ。落ちたら `--disable-auto` で外して止まる
+3. `gh pr view --json state` を5秒おきに見て、MERGED になるまで最長3分待つ。超えたら止まる
+
+MERGED を確認してから後片付け（`_aiagent_reap`）と main の追従に進む。即時マージが通るときの流れは変えない。
+docs/issue-workflow.md の `merge` の行に、待ち合わせと、落ちたときの動きを足した。
+
+## 保証
+- 即時マージが拒まれたら auto-merge に切り替えてチェックを待ち、MERGED 後に後片付けへ進む: なし（自動テストは無い。user が CI 実行中の PR を `i` の merge で選んで確かめる）
+- チェックが落ちたら auto-merge を外して止まる: なし（同上）
+- チェック通過後3分で MERGED にならなければ止まる: なし（同上）
+- 維持: 即時マージが通るときは従来どおり: なし（同上）
+- 維持: merge は `_confirm` を経てからしか動かない: なし（`_confirm` の位置は変えていない）
+
+## 静的確認結果
+- `zsh -n home-manager/modules/zsh/functions/aiagent.sh`: OK
+- `nix flake check`: 評価エラーなし（既存の非推奨警告のみ）
+- caller: `_aiagent_merge` の呼び出しは `i` の `merge)` 分岐のみ。シグネチャは不変
+
+## 検証手順
+実マージを伴うのでエージェント側では確かめていない。home-manager switch で反映したあと、
+- CI が走っている PR を `i` の merge で選び、チェックの完了を待ってマージ・後片付け・main の追従まで進むこと
+- チェックが落ちる PR で、auto-merge が外れて止まること（`gh pr view <PR> --json autoMergeRequest` が null）
+を確かめる。
+
+---
+
 ## `i` の merge で、必須チェックが通ってマージされるまで待つ
 id: 23
 branch-slug: aiagent-merge-wait-checks
