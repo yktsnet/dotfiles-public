@@ -1,3 +1,36 @@
+## PR記録: feat: Issue駆動の入口を `i` 1本にし、実行者が確認を受けてから PR を出す
+issue: 21 (21_aiagent-single-entry-i.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/76
+
+## 変更内容
+今の流れは、実行者がローカルコミットまで走り、user が `issue-finish` で push・PR・マージをまとめて行う。動作を確かめて直す道が実行者のセッションに無く、入口も `issue` / `issue-open` / `issue-abort` / `issue-finish` / `issue-import-pr` / `issue-status` と散っていた。これを作者の手元で回している現行の形に揃えた。実行者はコミットしたら止まり、user が同じセッションで動作を確かめて直させ、OK を受けて実行者が Issue を `done/` へ閉じて PR を出す。人が打つコマンドは、全リポを横断する `i` だけになった。後片付けは人が呼ばずに進む。
+
+- `aiagent.sh`: 移植元（作者の手元の dotfiles）をほぼそのまま移し、4点を一般化した
+  - 横断するリポ: `AIAGENT_REPO_ROOTS`（空白区切り）で指定。要素自体が git リポならそれを、そうでなければ直下の git リポを対象にする。未設定なら `$HOME/dotfiles-public` の1つだけ。Backlog.md 台帳の除外条件は持ち込まない
+  - Issue の置き場: リポ直下の `issues/` だけ（`apps/*/issues` は見ない）
+  - config dir: `CLAUDE_CONFIG_DIR` が設定されていればそれを使い、隠しセッションへは設定されているときだけ渡す
+  - 校正の待ち合わせ: 公開版に無い仕組みなので外し、未コミットの変更だけを見る
+- `pr-workflow` / `local-issue`（SKILL.md・issue-template.md）: 移植元に揃え、実行者が動作確認を受けてから Issue を閉じて PR を出す手順に更新。テンプレートの `github_issue:` 欄を外す（記録用の GitHub Issue は作らない）
+- `local-issue/reference/proposal.md`（新規）: 報告の表の型を追加
+- `CLAUDE.md`: 「動作フロー」を実行者が確認を受けてから PR を出す形に直し、入口が `i` であることを明記
+
+## 保証
+- 新たに宣言する保証・維持する保証・廃止する保証: Issue の保証節に記載した内容（下記 Issue 記録を参照）。aiagent.sh のテスト基盤がリポに無いため対応する自動テストはなし（理由: zsh の実行系はリポにテスト基盤が無い既存の扱いと同じ）。確認は下記の静的確認と、user が2つ以上のリポに Issue を置いて `i` で起票から後片付けまで通す手動確認で担保する
+
+## 静的確認結果
+- `zsh -n home-manager/modules/zsh/functions/aiagent.sh` → OK
+- `nix flake check` → ✅ darwinConfigurations.macbook（x86_64-linux は評価省略、既存の警告のみ）
+- grep で `issue-finish` / `issue-open` / `issue-abort` / `issue-import-pr` / `issue-status` / `_aiagent_finish` への参照を確認: 対象ファイル（aiagent.sh・pr-workflow/SKILL.md・local-issue 配下・CLAUDE.md）からは消えており、`issues/` 以外で残るのは Issue の対象外に明記した README.md・README.en.md・context/structure.md・home-manager/modules/zsh/README.md・repo-standardize skill のみ（Issue 22 で対応予定）
+- caller/import整合性: aiagent.sh 内の呼び出し元を確認。`_claude_config_dir` 呼び出しは削除済みで呼び出し元も残っていない。`_aiagent_get_issues_dirs` / `_aiagent_repos` の全呼び出し元（`_aiagent_count_status` / `_aiagent_purge_untracked` / `_aiagent_entries` / `_aiagent_reap_all` / `_aiagent_status_all` / `_aiagent_run`）は新しいシグネチャ（引数・戻り値とも変更なし）のまま動作する
+- `crit --base-branch main` によるレビュー: 承認済み、指摘なし（7ファイル・23秒）
+
+## 検証手順
+- 各デバイスで `home-manager switch` を適用する
+- 2つ以上のリポ（`AIAGENT_REPO_ROOTS` で指定）に Issue を置き、`i` で一覧→実装→動作確認→PR までを1本通して確認する
+- `AIAGENT_REPO_ROOTS` 未設定時に `$HOME/dotfiles-public` だけが対象になることを確認する
+
+---
+
 ## Issue 駆動の入口を `i` 1本にし、実行者が確認を受けてから PR を出す
 id: 21
 branch-slug: aiagent-single-entry-i
