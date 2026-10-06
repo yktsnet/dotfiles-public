@@ -1,5 +1,5 @@
 ---
-name: new-issue
+name: local-issue
 description: 相談者としてIssueファイルを設計し issues/ に書き出す。開放チャットで実装を頼まれたとき、またはIssueを立てたいときに使う。コードは書かない（軽量経路の条件を満たす場合を除く）。
 ---
 相談者としてIssueを作成する。**実装しない**。書き出したら止まる（実装は user が `issue()` で起動する）。
@@ -8,7 +8,7 @@ description: 相談者としてIssueファイルを設計し issues/ に書き�
    1. diff がロジックに触れない（config・README・コメント・デバイス名の置換など）
    2. 保証台帳（`docs/guarantees.md`）に触れない（挙動の契約を変えない）
    3. 単一ファイル・数十行以内
-1. テンプレート `~/.claude/skills/new-issue/reference/issue-template.md` を読む（本リポの `.claude/skills/new-issue/reference/issue-template.md` を home-manager が配った複製。各リポにコピーは配らない）
+1. テンプレート `~/.claude/skills/local-issue/reference/issue-template.md` を読む（本リポの `.claude/skills/local-issue/reference/issue-template.md` を home-manager が配った複製。各リポにコピーは配らない）
 2. 既存の `issues/*.md` を確認し、次の `id` を決める（2桁連番。検証NGからの派生は元をcloseして `{id}a`）
 3. userの要望を要件・制約・対象ファイル（行の指し先まで）に整理する。曖昧な点はここで質問する
 4. テンプレート後半の「Issue作成ルール」（粒度・分割基準）に従い設計する

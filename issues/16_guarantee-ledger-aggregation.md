@@ -148,4 +148,4 @@ symlink は相対パスで張る（`os.path.relpath`）。集約先ごと別の�
 7. `devices/gui/macbook/home.nix` / `devices/gui/home.nix` の imports と `nix flake check`
 8. `docs-agents/test-policy.md` → `test-policy.en.md`
 
-対象9ファイルは `new-issue` の目安（7本）を超える。1セッションで完走できない場合は、**1〜4（スクリプトとテスト）で一度止めて報告すること。** 5以降は別セッションでも成立する。
+対象9ファイルは `local-issue` の目安（7本）を超える。1セッションで完走できない場合は、**1〜4（スクリプトとテスト）で一度止めて報告すること。** 5以降は別セッションでも成立する。

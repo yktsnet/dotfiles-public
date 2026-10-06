@@ -54,7 +54,7 @@ Each hook's rejection message states both why it stopped and the correct route. 
 
 ### 3. Place Knowledge Where It Is Read
 
-Rules are placed according to when they are read. Rules that apply every time go in CLAUDE.md, procedures and criteria whose trigger can be stated as "when doing X" go in skills, and anything that must not be crossed goes in deny rules and hooks. If "which file to give the AI, and when" stays as someone's tacit knowledge, the AI cannot reproduce the operation on its own. So procedures become skills, each declaring its trigger in its description. The workflows covered in the following sections (`new-issue`, `guarantee-audit`, and others) are committed in this same form. The placement criteria live in [skill-dev](.claude/skills/skill-dev/SKILL.md).
+Rules are placed according to when they are read. Rules that apply every time go in CLAUDE.md, procedures and criteria whose trigger can be stated as "when doing X" go in skills, and anything that must not be crossed goes in deny rules and hooks. If "which file to give the AI, and when" stays as someone's tacit knowledge, the AI cannot reproduce the operation on its own. So procedures become skills, each declaring its trigger in its description. The workflows covered in the following sections (`local-issue`, `guarantee-audit`, and others) are committed in this same form. The placement criteria live in [skill-dev](.claude/skills/skill-dev/SKILL.md).
 
 Skills split into those that carry **judgment**, whose answer changes per repository, and those that carry **routine**, which can be applied mechanically once decided. How to write a README, how to cut a module, and whether to draw a diagram are the former; scaffolding, CI, the guarantee ledger, and the Issue format are the latter. When many repositories run in parallel, the cost paid on judgment governs throughput. Whatever can be turned into routine is moved there, leaving human time only where judgment is needed.
 
@@ -77,7 +77,7 @@ Development runs in two phases, handing over the driving documents. In the launc
 
 When the same model both decides and builds, it cannot notice on its own that it has gone off course. The work is split into three roles.
 
-- **Consultant**: investigates and designs the Issue in dialogue with the user. Does not implement ([new-issue](.claude/skills/new-issue/SKILL.md))
+- **Consultant**: investigates and designs the Issue in dialogue with the user. Does not implement ([local-issue](.claude/skills/local-issue/SKILL.md))
 - **Executor**: takes an Issue and carries it through implementation, tests, static checks, and a local commit. Never touches the remote ([pr-workflow](.claude/skills/pr-workflow/SKILL.md))
 - **User**: approves the Issue's guarantee section, reviews the commits, and publishes them
 
@@ -151,7 +151,7 @@ Criteria and procedures are owned by the skill that uses them. The criteria for 
 | | [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) | Inventory of contradictory or stale rules |
 | 4. Promises | [guarantee-audit](.claude/skills/guarantee-audit/SKILL.md) | Test policy (GDD), laying down and auditing the guarantee ledger |
 | | [mvp-docs](.claude/skills/mvp-docs/SKILL.md) | PLAN.md / JUDGE.md for the launch phase |
-| 5. Roles | [new-issue](.claude/skills/new-issue/SKILL.md) | Phases, role separation, the three exceptions, Issue design |
+| 5. Roles | [local-issue](.claude/skills/local-issue/SKILL.md) | Phases, role separation, the three exceptions, Issue design |
 | | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | The executor's work from implementation to local commit |
 | | [session-nudge](.claude/skills/session-nudge/SKILL.md) | Consulting on another session from the outside |
 | Publishing | [readme-i18n](.claude/skills/readme-i18n/SKILL.md), [repo-publish](.claude/skills/repo-publish/SKILL.md), [repo-about](.claude/skills/repo-about/SKILL.md) | English README, publishing, About and topics |

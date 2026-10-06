@@ -16,7 +16,7 @@
 | | [consolidate-rules](consolidate-rules/SKILL.md) | 規則同士の矛盾・陳腐化の棚卸し |
 | 保証 | [guarantee-audit](guarantee-audit/SKILL.md) | テスト方針（GDD）・保証台帳の敷設と棚卸し |
 | | [mvp-docs](mvp-docs/SKILL.md) | 立ち上げ期の PLAN.md / JUDGE.md |
-| 分業 | [new-issue](new-issue/SKILL.md) | フェーズ・担当分離・例外の3経路・Issue の設計 |
+| 分業 | [local-issue](local-issue/SKILL.md) | フェーズ・担当分離・例外の3経路・Issue の設計 |
 | | [pr-workflow](pr-workflow/SKILL.md) | 実行者の実装からローカルコミットまで |
 | | [session-nudge](session-nudge/SKILL.md) | 別セッションを外から客観視する相談 |
 | 公開 | [readme-i18n](readme-i18n/SKILL.md)・[repo-publish](repo-publish/SKILL.md)・[repo-about](repo-about/SKILL.md) | 英語版 README・公開手続き・About と topics |

@@ -26,7 +26,7 @@ skill に寄せきれないもの（どの手順にも属さない仕組みの�
 
 ## 2. 置き場所
 
-- **複数リポで使う・リポに依存しない知識/手順**（`new-issue` `pr-workflow` `jp-writing` 等と同種）
+- **複数リポで使う・リポに依存しない知識/手順**（`local-issue` `pr-workflow` `jp-writing` 等と同種）
   → `~/dotfiles/.claude/skills/<name>/SKILL.md`。
   home-manager の activation script（`home-manager/modules/claude.nix`）が rebuild のたびに
   `~/.claude/skills/` へ丸ごとコピーし、全リポ共通のグローバル skill になる。
