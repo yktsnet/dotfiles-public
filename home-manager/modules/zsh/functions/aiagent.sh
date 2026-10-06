@@ -469,7 +469,29 @@ _aiagent_merge() {
   emulate -L zsh
   local pr="$1"
   _confirm "Merge #${pr} ($(gh pr view "$pr" --json title --jq .title))?" || return 0
-  gh pr merge "$pr" --squash || return 1
+  if ! gh pr merge "$pr" --squash; then
+    # 必須チェックが残っていると即時マージは拒まれる。auto-merge に切り替えてチェックの完了を待つ。
+    # 落ちたら auto-merge を外す。有効のまま残すと、直しを push した時点で確認なしにマージされる
+    echo "Immediate merge blocked (likely required checks). Switching to auto-merge."
+    gh pr merge "$pr" --squash --auto || return 1
+    if ! gh pr checks "$pr" --watch --fail-fast; then
+      gh pr merge "$pr" --disable-auto
+      echo "Required checks failed for PR #${pr}. Auto-merge disabled; merge aborted."
+      return 1
+    fi
+    # auto-merge は GitHub 側で非同期に実行されるので、MERGED になるまで待つ（上限3分）
+    local waited=0 state=""
+    while (( waited < 180 )); do
+      state=$(gh pr view "$pr" --json state --jq .state 2>/dev/null)
+      [[ "$state" == "MERGED" ]] && break
+      sleep 5
+      (( waited += 5 ))
+    done
+    if [[ "$state" != "MERGED" ]]; then
+      echo "Timed out waiting for PR #${pr} to merge after checks passed. Check manually."
+      return 1
+    fi
+  fi
   _aiagent_reap
   _aiagent_pull_main
 }
