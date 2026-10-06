@@ -1,7 +1,7 @@
 ## Issue 駆動の入口を `i` 1本にし、実行者が確認を受けてから PR を出す
 id: 21
 branch-slug: aiagent-single-entry-i
-status: open
+status: close
 type: feat
 対象:
 - home-manager/modules/zsh/functions/aiagent.sh
