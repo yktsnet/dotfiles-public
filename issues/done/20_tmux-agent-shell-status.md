@@ -2,7 +2,7 @@
 id: 20
 branch-slug: tmux-agent-shell-status
 github_issue:
-status: open
+status: close
 type: fix
 対象:
 - home-manager/modules/tmux.nix（L8-18 の `claudeSessionManager`、L144-166 の `agentStatus`）
