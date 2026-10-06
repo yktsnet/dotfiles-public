@@ -78,13 +78,13 @@ _aiagent_worktrees() {
     | awk '$1 == "worktree" { p = $2 } $1 == "branch" && $2 ~ /^refs\/heads\/claude\// { sub(/^refs\/heads\//, "", $2); print p "\t" $2 }'
 }
 
-# 枝を取り出している worktree のパス。無ければ空
+# ブランチを取り出している worktree のパス。無ければ空
 _aiagent_branch_wt() {
   git worktree list --porcelain 2>/dev/null \
     | awk -v r="refs/heads/$1" '$1 == "worktree" { p = $2 } $1 == "branch" && $2 == r { print p }'
 }
 
-# Issue ファイルから実行者の枝の名前を組む。id が無ければ失敗する
+# Issue ファイルから実行者のブランチの名前を組む。id が無ければ失敗する
 _aiagent_issue_branch() {
   emulate -L zsh
   local id slug
@@ -150,7 +150,7 @@ _aiagent_wt_clean() {
   fi
 }
 
-# 実行者の枝を捨てる。worktree が残っていれば一緒に消す。破棄なので既定は No
+# 実行者のブランチを捨てる。worktree が残っていれば一緒に消す。破棄なので既定は No
 _aiagent_abort() {
   emulate -L zsh
   local branch="$1" wt
@@ -162,7 +162,7 @@ _aiagent_abort() {
   echo "Aborted: $branch"
 }
 
-# PR を出し終えた Builder の worktree を畳む。マージは後から user が押すので枝は残し、
+# PR を出し終えた Builder の worktree を畳む。マージは後から user が押すのでブランチは残し、
 # マージ後に _aiagent_reap が消す。途中でやめたセッションの worktree は残す
 _aiagent_retire_wt() {
   emulate -L zsh
@@ -181,8 +181,8 @@ _aiagent_retire_wt() {
 }
 
 # squash マージ後の pull は、main に残る untracked の issue ファイルと衝突する
-# （枝で open・close した版がマージで戻ってくる）ので、pull の前に消す。
-# id は issues/ ごとに振られうるので、id ではなく枝に同じパスがあるかで当てる
+# （ブランチで open・close した版がマージで戻ってくる）ので、pull の前に消す。
+# id は issues/ ごとに振られうるので、id ではなくブランチに同じパスがあるかで当てる
 _aiagent_purge_untracked() {
   emulate -L zsh
   local base="$1" branch="$2"
@@ -200,7 +200,7 @@ _aiagent_purge_untracked() {
 }
 
 # カレントのリポのマージ済み claude/* を畳む。PR は実装役が出し、マージは user が GitHub で
-# 押すので、次に i() を開いたときにここで拾う。squash マージは枝のコミットを main の履歴に
+# 押すので、次に i() を開いたときにここで拾う。squash マージはブランチのコミットを main の履歴に
 # 残さず --merged で拾えないため、PR の状態で判定する。畳んだ本数を REPLY に返す
 _aiagent_reap() {
   emulate -L zsh
@@ -256,7 +256,7 @@ _aiagent_repos() {
   done
 }
 
-# 全リポのマージ済み claude/* を畳む。枝の無いリポは gh を呼ばずに飛ばす
+# 全リポのマージ済み claude/* を畳む。ブランチの無いリポは gh を呼ばずに飛ばす
 _aiagent_reap_all() {
   emulate -L zsh
   local repo
@@ -279,21 +279,21 @@ _aiagent_entries() {
         _aiagent_is_template "$f" && continue
         case "$(_aiagent_issue_status "$f")" in
           open)
-            # main 側のファイルはマージまで open のまま残る。枝があれば実装中か PR 待ち
+            # main 側のファイルはマージまで open のまま残る。ブランチがあれば実装中か PR 待ち
             b=$(_aiagent_issue_branch "$f") && git -C "$repo" show-ref --verify --quiet "refs/heads/${b}" && continue
             runs+=("run"$'\t'"$repo"$'\t'"$f"$'\t'"$(printf 'run      %-20s %s' "${repo:t}" "${f:t}")") ;;
           draft) drafts+=("approve"$'\t'"$repo"$'\t'"$f"$'\t'"$(printf 'approve  %-20s %s' "${repo:t}" "${f:t}")") ;;
         esac
       done
     done
-    # PR を見に行くのは claude/* の枝が残るリポだけ。gh の呼び出しは1リポ1回に収める
+    # PR を見に行くのは claude/* のブランチが残るリポだけ。gh の呼び出しは1リポ1回に収める
     if [[ -n "$(git -C "$repo" for-each-ref --format=x 'refs/heads/claude/*')" ]]; then
       for pr in ${(f)"$(cd "$repo" && gh pr list --state open --json number,title,headRefName \
         --jq '.[] | select(.headRefName | startswith("claude/")) | "\(.number)\t#\(.number) \(.title)"' 2>/dev/null)"}; do
         merges+=("merge"$'\t'"$repo"$'\t'"${pr%%$'\t'*}"$'\t'"$(printf 'merge    %-20s %s' "${repo:t}" "${pr#*$'\t'}")")
       done
     fi
-    # worktree の無い枝も並べる。PR をマージせずに閉じた枝はここでしか拾えない
+    # worktree の無いブランチも並べる。PR をマージせずに閉じたブランチはここでしか拾えない
     for b in ${(f)"$(git -C "$repo" for-each-ref --format='%(refname:short)' 'refs/heads/claude/*')"}; do
       aborts+=("abort"$'\t'"$repo"$'\t'"$b"$'\t'"$(printf 'abort    %-20s %s' "${repo:t}" "$b")")
     done
@@ -325,7 +325,7 @@ _aiagent_builder_prompt() {
   print -r -- "You are the Builder. Follow pr-workflow: implement and commit, then stop so the user can verify in this session, and fix what they point out with additional commits. Close this Issue and open the PR only after the user explicitly approves. Push only your own branch; never push to main, and never merge unless the user asks. Do NOT change the status of any other issue file. If you find work outside this Issue's scope, ask the user with AskUserQuestion whether to (a) file it as a new Issue, (b) fix it within this Issue, or (c) skip it. For (a), write it as status: draft following the local-issue skill's format into the main checkout's issues directory (${issues_dirs}), never into this worktree, then return to the original task. Do not stage or commit the draft."
 }
 
-# マージ済みの作業枝（day/* 等）に居残っているだけなら main へ戻す。main 側の Issue は
+# マージ済みの作業ブランチ（day/* 等）に居残っているだけなら main へ戻す。main 側の Issue は
 # untracked なので持ち越せる。未マージか、追跡中のファイルに変更があれば戻さずに止める
 _aiagent_back_to_main() {
   emulate -L zsh
