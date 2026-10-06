@@ -1,7 +1,7 @@
 ## README と構造の文書を、`i` 1本と実行者が PR を出す流れに合わせる
 id: 22
 branch-slug: docs-single-entry-i
-status: open
+status: close
 type: cleanup
 対象:
 - README.md
