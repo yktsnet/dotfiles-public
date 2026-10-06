@@ -1,7 +1,7 @@
 ## 18 までの閉じた Issue を `done/` の1ファイルに畳み、起票の番号を `done/` まで見て振る
 id: 24
 branch-slug: issues-done-layout
-status: open
+status: close
 type: cleanup
 対象:
 - issues/01_*.md 〜 issues/18_*.md（削除、18本）
