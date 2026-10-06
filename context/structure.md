@@ -40,4 +40,4 @@ dotfiles-public/
 ## issues/
 
 - `{NN}_{slug}.md`: 実装対象 Issue。`status: open` のものを Agent が処理し、完了後も `status: close` で残る。
-- `done/`: 実行者が PR を出すときに、同じ枝の中で Issue を移し、PR の題・URL・本文の記録を先頭に足したもの。
+- `done/`: 実行者が PR を出すときに、同じブランチの中で Issue を移し、PR の題・URL・本文の記録を先頭に足したもの。

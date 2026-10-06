@@ -102,8 +102,8 @@ flowchart TD
 - **`run`**: `open` の Issue を選び、worktree を切って実行者を起動する。main のチェックアウトを汚さない
 - **`approve`**: 保証節を裁可した Issue を `draft` から `open` に上げ、続けて実装するかを聞く
 - **`merge`**: 実行者が出した PR を squash でマージし、後片付けまで済ませる
-- **`abort`**: 実行者の枝を、worktree が残っていれば一緒に破棄する。破棄もここから出す
-- **`status`**: Issue や枝が残るリポの現在地を出す
+- **`abort`**: 実行者のブランチを、worktree が残っていれば一緒に破棄する
+- **`status`**: Issue やブランチが残るリポの現在地を出す
 
 一覧の各行の動きと後片付けは [docs/issue-workflow.md](docs/issue-workflow.md) にある。
 
