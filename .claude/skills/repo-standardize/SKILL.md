@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 リポの足場の基準と手順を持つ。設計意図は3点。**全リポ一律の衛生ラインを1本持つ**（軽いリポでも最低ラインは満たし、成熟度で分岐させない）。**禁止は設定に書き、指示ファイルは短く保つ**。**検証手段を Agent に与え、PR 前に自己確認させる**。
 
-CI/CD の基準は `reference/cicd.md`（`repo-readme` の Deploy 節も読む）。Issue まわりの運用は `new-issue` Skill、README の中身は `repo-readme` Skill、図は `mermaid-diagram` Skill の管轄で、本 Skill は触らない。
+CI/CD の基準は `reference/cicd.md`（`repo-readme` の Deploy 節も読む）。Issue まわりの運用は `local-issue` Skill、README の中身は `repo-readme` Skill、図は `mermaid-diagram` Skill の管轄で、本 Skill は触らない。
 
 **公開パイプラインの固定順**: `repo-standardize → guarantee-audit → repo-readme → readme-i18n → repo-publish → repo-about`。本 Skill は**第1**（足場とコアメッセージの確定が先、README の本格化は後）。この順は都度再判断しない。
 

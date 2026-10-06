@@ -3,7 +3,7 @@
 # CI/CD Guide
 
 CI/CD design guide for repositories. Use this to decide the verification and deployment paths when creating a new repo.
-Corresponds to Layer 3 (public verification) in `repo-standardize` and connects with the role separation in `new-issue`.
+Corresponds to Layer 3 (public verification) in `repo-standardize` and connects with the role separation in `local-issue`.
 
 Two design principles: **CI runs the same checks the Agent runs locally** (redundancy catches what the Agent missed before PR). **Deployment is automatic push-style after CI passes** (no manual operations).
 
@@ -157,7 +157,7 @@ Note: because auto-merge commits originate from `GITHUB_TOKEN`, **push-triggered
 
 ## 7. Connection to Role Separation
 
-For repos with CI auto-deployment, the user's role in `new-issue` changes.
+For repos with CI auto-deployment, the user's role in `local-issue` changes.
 
 | Role | Work at deployment time |
 |---|---|

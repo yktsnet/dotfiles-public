@@ -142,6 +142,6 @@ Mermaid のレンダリングはローカルで確認できない。SVG に焼�
 
 ## 4. 注意
 
-- Issue ドリブン期のリポの README を直す場合、相談者は実装しない。`new-issue` Skill で Issue を立てるまで（軽量経路の条件を満たす場合を除く）
+- Issue ドリブン期のリポの README を直す場合、相談者は実装しない。`local-issue` Skill で Issue を立てるまで（軽量経路の条件を満たす場合を除く）
 - 図に固有の接続情報（ドメイン実値・Tunnel UUID・VPN の IP 等）を書かない。`secrets-agents/` の `<PLACEHOLDER>` 方針に従う
 - 図を画像化する必要が出ても、外部ホスティングに依存させない

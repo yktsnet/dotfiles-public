@@ -19,7 +19,7 @@ type: feat
 
 ## 対象外（明示的にスコープ外）
 
-- `repo-standardize` / `repo-readme` / `new-issue` は `~/dotfiles/docs-agents/` や `~/dotfiles/secrets-agents/` への絶対パス依存が強く私的運用に紐づくため、今回は配布対象に含めない。
+- `repo-standardize` / `repo-readme` / `local-issue` は `~/dotfiles/docs-agents/` や `~/dotfiles/secrets-agents/` への絶対パス依存が強く私的運用に紐づくため、今回は配布対象に含めない。
 - README.en.md への同期は本Issueでは行わない（別途 `readme-i18n` skill 実行で対応可能なため）。
 
 ## `.claude-plugin/marketplace.json`（リポジトリルート、新規）

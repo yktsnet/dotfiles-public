@@ -1,6 +1,6 @@
 # zsh
 
-Issue 駆動ワークフロー（[new-issue](../../../.claude/skills/new-issue/SKILL.md)）を実行するシェル関数と、その配線。
+Issue 駆動ワークフロー（[local-issue](../../../.claude/skills/local-issue/SKILL.md)）を実行するシェル関数と、その配線。
 
 ## 構成
 
@@ -24,7 +24,7 @@ Issue 駆動ワークフロー（[new-issue](../../../.claude/skills/new-issue/S
 
 実行者の変更のレビューは、実行者のセッションの中で `pr-workflow` が [crit](https://github.com/tomasz-tomczyk/crit) を開いて済ませる（`home-manager/modules/crit.nix`）。
 
-`functions/` は稼働環境の実装を汎用化したスナップショットであり、稼働側に追従させない。ワークフローの振る舞いの正は [new-issue](../../../.claude/skills/new-issue/SKILL.md) にある。
+`functions/` は稼働環境の実装を汎用化したスナップショットであり、稼働側に追従させない。ワークフローの振る舞いの正は [local-issue](../../../.claude/skills/local-issue/SKILL.md) にある。
 
 ### 公開範囲
 

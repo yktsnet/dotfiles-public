@@ -54,7 +54,7 @@ AI がコードを書くようになって、時間がかかるのは書くこ�
 
 ### 3. 読まれる場面ごとに知識を置く
 
-規則は、読まれる場面で置き場を分ける。毎回守らせる規則は CLAUDE.md、「〜するとき」と条件を言える手順と基準は skill、外れてはいけないものは deny とフックに置く。「どのファイルをいつ AI に渡すか」が人の暗黙知に残っていると、AI 単独では運用を再現できない。そのため手順は skill にし、description に起動条件を宣言する。この先の節で扱うワークフロー自体（`new-issue`・`guarantee-audit` 等）も、この形でコミットされている。置き場の基準は [skill-dev](.claude/skills/skill-dev/SKILL.md) が持つ。
+規則は、読まれる場面で置き場を分ける。毎回守らせる規則は CLAUDE.md、「〜するとき」と条件を言える手順と基準は skill、外れてはいけないものは deny とフックに置く。「どのファイルをいつ AI に渡すか」が人の暗黙知に残っていると、AI 単独では運用を再現できない。そのため手順は skill にし、description に起動条件を宣言する。この先の節で扱うワークフロー自体（`local-issue`・`guarantee-audit` 等）も、この形でコミットされている。置き場の基準は [skill-dev](.claude/skills/skill-dev/SKILL.md) が持つ。
 
 skill は、リポごとに答えが変わる**判断**を担うものと、一度決めれば機械的に当てはめられる**定型**を担うものに分かれる。README の書き方・モジュールの切り方・図を描くかは前者、足場・CI・保証台帳・Issue の型は後者である。多数のリポを並行して回す運用では、判断に払うコストがスループットを左右する。定型に落とせるものは定型へ寄せ、判断が要る場面にだけ人の時間を残す。
 
@@ -77,7 +77,7 @@ skill は、リポごとに答えが変わる**判断**を担うものと、一�
 
 同じモデルが決めて作ると、方向を外したことに自分では気づけない。そのため役割を3つに分ける。
 
-- **相談者**: user と対話して調査し、Issue を設計する。実装はしない（[new-issue](.claude/skills/new-issue/SKILL.md)）
+- **相談者**: user と対話して調査し、Issue を設計する。実装はしない（[local-issue](.claude/skills/local-issue/SKILL.md)）
 - **実行者**: Issue を入力に、実装・テスト・静的確認・ローカルコミットまでを進める。リモートには触れない（[pr-workflow](.claude/skills/pr-workflow/SKILL.md)）
 - **user**: Issue の保証節を裁可し、コミットをレビューして公開する
 
@@ -151,7 +151,7 @@ Issue・PR・コミットの地の文には、IP・ポート・実ホスト名�
 | | [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) | 規則同士の矛盾・陳腐化の棚卸し |
 | 4. 約束の裁可 | [guarantee-audit](.claude/skills/guarantee-audit/SKILL.md) | テスト方針（GDD）・保証台帳の敷設と棚卸し |
 | | [mvp-docs](.claude/skills/mvp-docs/SKILL.md) | 立ち上げ期の PLAN.md / JUDGE.md |
-| 5. 分業 | [new-issue](.claude/skills/new-issue/SKILL.md) | フェーズ・担当分離・例外の3経路・Issue の設計 |
+| 5. 分業 | [local-issue](.claude/skills/local-issue/SKILL.md) | フェーズ・担当分離・例外の3経路・Issue の設計 |
 | | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | 実行者の実装からローカルコミットまで |
 | | [session-nudge](.claude/skills/session-nudge/SKILL.md) | 別セッションを外から客観視する相談 |
 | 公開 | [readme-i18n](.claude/skills/readme-i18n/SKILL.md)・[repo-publish](.claude/skills/repo-publish/SKILL.md)・[repo-about](.claude/skills/repo-about/SKILL.md) | 英語版 README・公開手続き・About と topics |
