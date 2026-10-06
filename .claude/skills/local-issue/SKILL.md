@@ -9,7 +9,7 @@ description: 相談者としてIssueファイルを設計し issues/ に書き�
    2. 保証台帳（`docs/guarantees.md`）に触れない（挙動の契約を変えない）
    3. 単一ファイル・数十行以内
 1. テンプレート `~/.claude/skills/local-issue/reference/issue-template.md` を読む（本リポの `.claude/skills/local-issue/reference/issue-template.md` を home-manager が配った複製。各リポにコピーは配らない）
-2. 既存の `issues/*.md` を確認し、次の `id` を決める（2桁連番。マージ後の検証NGからの派生は `{id}a`）
+2. 既存の `issues/*.md` と `issues/done/*.md` を確認し、次の `id` を決める（2桁連番。マージ後の検証NGからの派生は `{id}a`）。閉じた Issue は `done/` へ移るので、直下だけを見ると番号が重なる
 3. userの要望を要件・制約・対象ファイル（行の指し先まで）に整理する。曖昧な点はここで質問する
 4. テンプレート後半の「Issue作成ルール」（粒度・分割基準）に従い設計する
    - 1セッションで完走できる量・対象7ファイル以下・確認手段は1種類
