@@ -1,3 +1,37 @@
+## PR記録: fix: tmux のエージェント表示と M-u ピッカーで status `shell` を idle として扱う
+issue: 20 (20_tmux-agent-shell-status.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/75
+
+## 変更内容
+Claude Code はターンを終えてバックグラウンドのシェルやサブエージェントだけが残っている状態を `claude agents --json` の `status: "shell"` で報告する。user の番なのに、status-right のチップは作業中の色（赤系）になり、M-u ピッカーは未知の状態として灰色の `?` を出していた。どちらも `shell` を idle と同じ扱いにした。
+
+- `agentStatus`（status-right）: `rank` と `chip` の両方で `shell` を idle と同じ分岐に入れた。チップの色・区別は付けない（既存のチップ幅を動かさない要件のため）。
+- `claudeSessionManager`: `postInstall` で `scripts/agents.sh` に `--replace-fail` を使い `shell` の分岐を追加し、緑の `idle+sh`（既存ラベルと同じ7文字）として rank 1 で表示する。
+
+対象外: status-right 以外の `claude agents` の利用箇所（nudge ピッカーは status を文字列のまま表示するだけ）。プラグインの rev 更新。
+
+## 保証
+- status-right で `status: "shell"` のエージェントのチップが idle と同じ色・並び順（waiting の後、作業中の前）になる → jq での手動確認（下記）
+- M-u ピッカーで `status: "shell"` のエージェントが緑の `● idle+sh` として idle と同じ順位に並ぶ → `--replace-fail` の対象文字列をプラグイン rev `ac3470e` の実ファイルから取得し、一致・置換結果を手動確認（下記）
+- 維持する保証（waiting・idle・busy の色と並び順、status 無しセッションの非表示、未知 status の扱い）→ 自動テスト無し。このリポに tmux 表示を検査する仕組みが無いため
+
+自動テストは無い（tmux の表示を検査する仕組みがこのリポに無い）。
+
+## 静的確認結果
+- `nix flake check`: ✅ darwinConfigurations.macbook（評価のみ、build skipped・既存の挙動）。パス外の pre-existing deprecation warning のみ
+- caller/import 整合性: `claudeSessionManager` / `agentStatus` は `home-manager/modules/tmux.nix` 内でのみ参照される（他ファイルからの参照なし、grep で確認）
+- jq 確認: `shell` を含むサンプル JSON（waiting/idle/shell/busy/null status）を status-right の jq 式に通し、`shell` のチップが idle と同じ色 `#5de4c7` で waiting の後・busy の前に並ぶことを確認
+- agents.sh の置換確認: プラグイン rev `ac3470e` の実ファイルを取得し、`--replace-fail` の対象文字列 `else if ($3 == "busy")` が一意に1箇所存在すること、置換後も `bash -n` で構文エラーが無いこと、awk の分岐を抽出して `shell` → `rank=1` / 緑アイコン `idle+sh`（既存ラベルと同じ7文字幅）になることを確認
+- crit によるレビュー: 指摘なしで approve
+
+変更ファイル: home-manager/modules/tmux.nix
+
+## 検証手順
+- macbook で rebuild したあと、Claude にバックグラウンドのコマンド（例: `sleep 60` を `run_in_background` で）を走らせてターンを終えさせる
+- その間、status-right のチップが idle の色になり、M-u に `● idle+sh` と出ることを目視で確かめる
+
+---
+
 ## tmux のエージェント表示と M-u ピッカーで、status `shell` を idle として扱う
 id: 20
 branch-slug: tmux-agent-shell-status
