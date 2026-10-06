@@ -48,7 +48,7 @@ CI/CD の基準は `reference/cicd.md`（`repo-readme` の Deploy 節も読む�
 
 `.claude/settings.json` をチェックインする（`.local.json` は gitignore される個人上書き用）。雛形は `reference/settings-json-{type}.json`。
 
-- **deny（共通）**: `git push --force *` と `git push -f *` だけを塞ぐ。`git push origin main` 自体は塞がない。実行者がリモートに触れない分業は `pr-workflow` と `issue-finish` で既に効いており、同じ禁止を二重に敷かない
+- **deny（共通）**: `git push --force *` と `git push -f *` だけを塞ぐ。`git push origin main` 自体は塞がない。実行者は main に push せず、マージもしない分業が `pr-workflow` で既に効いており、同じ禁止を二重に敷かない
 - **deny（類型別に追加）**: 設定＝適用コマンド（`*-rebuild *` 等）・シークレット読み書き・ロックファイル編集／ロジック＝本番起動・外部副作用（実発注・実送信・実課金）／Web＝デプロイ CLI（`wrangler` 等）／ツール＝役割に応じた副作用コマンド。デプロイ経路は Agent に握らせない（リモートへ配る構成が残るリポでは `ssh`・`rsync` も）
 - **allow（共通）**: `Bash(git *)`・`Bash(gh pr *)`。push 系は deny が優先するので両立する。リポ外（機密辞書等）を読ませるなら `permissions.additionalDirectories` に足す
 - **allow（類型別）**: 設定＝パーサ・構文チェック系／ロジック＝言語ランタイム（本番コマンドは deny で個別遮断）／Web＝`npm run *`・test ランナー・ビルド CLI

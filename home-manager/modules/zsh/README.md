@@ -18,7 +18,7 @@ Issue 駆動ワークフロー（[local-issue](../../../.claude/skills/local-iss
 
 | ファイル | 主な関数 |
 |---|---|
-| `functions/aiagent.sh` | `issue` `issue-abort` `issue-finish` `issue-status`（Claude Code 用 Issue 駆動） |
+| `functions/aiagent.sh` | `i`（全リポ横断の Issue 駆動の入口） |
 | `functions/menu.sh` | `_pick` `_confirm`（選択 UI と y/N 確認の共通実装） |
 | `functions/os.sh` | `_is_darwin` `_sed_i` `_open` `_linux_only`（OS 差を吸収するシム） |
 
