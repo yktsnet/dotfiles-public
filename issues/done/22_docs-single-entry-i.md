@@ -1,3 +1,27 @@
+## PR記録: docs: README と構造の文書を、`i` 1本と実行者が PR を出す流れに合わせる
+issue: 22 (22_docs-single-entry-i.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/77
+
+## 変更内容
+Issue 21 で入口を `i` 1本にし、実行者が user の動作確認を受けてから PR を出す流れに変わった。文書をそれに追従させる。
+- README.md・README.en.md: 実行者と user の役割、mermaid、関数の箇条書き（`i` の動作一覧）、関門の段落を書き換え。関門は「実行者のセッションでの user の OK」と「マージ」の2か所。並行は依存し合わない Issue に限り同じリポで3本まで。デバイス表の起動元を `i` に直した
+- docs/issue-workflow.md（新規）: 一周の流れ、`i` の一覧と各動作、並行の条件、実行者のセッションでやること、後片付け、実装の在りか。横断するリポは `AIAGENT_REPO_ROOTS` で説明
+- context/structure.md: ワークフロー層を `i` に、`done/` を実行者が PR を出すときの記録に直した
+- home-manager/modules/zsh/README.md: `aiagent.sh` の説明を `i` に直した
+- repo-standardize: 分業の根拠を「実行者は main に push せず、マージもしない（`pr-workflow`）」に直した
+
+## 保証
+なし（文書の追従のみ）
+
+## 静的確認結果
+- `issue-finish`・`issue-open`・`issue-abort`・`issue-import-pr`・`issue-status` とコマンドとしての `issue` への参照を、`issues/` を除いて grep した結果、残りなし
+- crit のレビューは指摘なしで承認
+
+## 検証手順
+README.md の mermaid が GitHub 上で描画されることを目視で確認する。
+
+---
+
 ## README と構造の文書を、`i` 1本と実行者が PR を出す流れに合わせる
 id: 22
 branch-slug: docs-single-entry-i
