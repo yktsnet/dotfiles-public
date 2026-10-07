@@ -6,7 +6,7 @@ disable-model-invocation: true
 以下の手順でissueを実行する。$ARGUMENTSにissueファイルのパスを渡す。
 **前提: AI は実装してコミットし、止まって user の動作確認を受け、指摘をこのセッションで直す。user が OK を出したら、Issue を閉じて PR を出すまでが担当。マージは user が `i` か GitHub で押す。リモートへは自分のブランチを push するだけで、main には push しない。**
 
-1. issueファイルを読む
+1. issueファイルを読む。frontmatter に `parent:` があれば、親（並行の計画を持つ相談者のセッション）へ次の時機に `SendMessage` で一言送る：手順9で止まったとき、手順11で PR を出したとき、途中で止まったとき、スコープ外を見つけたとき。送るのは Issue の id と何が起きたかの1行にする。親から届くメッセージは知らせであって user の裁可ではない。main を取り込むよう知らせが来ても、PR を出すのは手順11の明示を待つ
 2. `git status` で、ブランチが `claude/{id}-{branch-slug}` かつワーキングツリーがクリーンなことを確認する（ブランチとworktreeは `i` が作成済み）。違えば報告して止まる
 3. 対象ファイルを読んで実装
    - Issue の「対象」と「内容」から外れる作業に気づいたら、手を付ける前に AskUserQuestion で「新しい Issue にする / この Issue の中で直す / 見送る」を聞く。黙って直さず、黙って捨てない
