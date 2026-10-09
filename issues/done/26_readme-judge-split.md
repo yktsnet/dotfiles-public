@@ -1,3 +1,41 @@
+## PR記録: feat: README に、作る役と判定する役を分けることと、書いて渡せるかの軸を足す
+issue: 26 (26_readme-judge-split.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/83
+
+## 変更内容
+- README.md の Why に、書いて渡せるかの分かれ目を足し、人間の仕事に「書いて渡せない感覚の判断」を加えた。動作の照合は人の仕事から外した
+- Design 3 に subagent とスクリプト・CI という置き場を足した
+- Design 5 に、作る役と判定する役を分けること（検収役には Issue だけを渡す・判定を足す段の基準・足す理由3つ）を足し、user の担当を使い心地と実機にし、図を「検収役 → crit と使い心地の確認」の流れにした
+- Skills の表に issue-inspector・screen-operator と、skill-dev の持つ「subagent を足す段」を足した
+- README.en.md に同じ節の変更を反映した
+- CLAUDE.md の実行者の行を、検収役の判定を受けてから user の確認（使い心地・実機）へ進む流れに合わせた
+- skill-dev に「6. subagent をどの段に足すか」と description を稼働側から写した（会社のリポの扱いは写していない）
+- .claude/skills/README.md の一覧に、検収役・画面の操作役と、skill-dev の「subagent を足す段」を足した
+
+## 保証
+なし（文書と skill の記述だけで、実行されるコードに触れない）
+
+## 静的確認結果
+- README.md と README.en.md の見出し行番号が一致（17 見出し、diff なし）
+- mermaid は TD・形（{{ }}）・線種を既存と揃え、ラベルは短いまま
+- `grep -n 動作確認 README.md CLAUDE.md` は 0 件
+- skill-dev に会社のリポ・ホスト名の記述なし
+- git diff --name-only --cached:
+  .claude/skills/README.md
+  .claude/skills/skill-dev/SKILL.md
+  CLAUDE.md
+  README.en.md
+  README.md
+
+## 検証手順
+- 前提の Issue 25 がマージされるまで、README が指す `.claude/agents/` の2ファイルのリンクは切れている。25 のマージ後に GitHub 上でリンクと mermaid の表示を確かめる
+- 追記した文面が、自分の思想を自分の言葉で言えているかを読んで確かめる（書いて渡せない判断）
+
+## 注意
+Issue 25 が未マージの間、README が指す `.claude/agents/` の2ファイルはリンク切れ。25 より先にマージしない。
+
+---
+
 ## README に、作る役と判定する役を分けることと、書いて渡せるかの軸を足す
 id: 26
 branch-slug: readme-judge-split
