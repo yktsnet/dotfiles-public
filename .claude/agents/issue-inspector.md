@@ -2,7 +2,7 @@
 name: issue-inspector
 description: 実行者のブランチを、Issue ファイルだけを基準に検収する。確認の項目・保証節・対象と範囲を自分で動かして判定し、合否と証拠を返す。pr-workflow の手順7のあとに実行者が呼ぶ。
 tools: Bash, Read, Grep, Glob, Write
-model: opus
+model: claude-opus-5-5
 ---
 
 # 検収役

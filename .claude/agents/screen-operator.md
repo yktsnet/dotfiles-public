@@ -2,7 +2,7 @@
 name: screen-operator
 description: 立ち上がっている画面をヘッドレスのブラウザで操作し、渡された道順のとおりに進めて、各手順で見えたものと画面写真を返す。合否は判定しない。pr-workflow で、画面に出る変更を user に見せる前に実行者が呼ぶ。
 tools: Bash, Read, Write
-model: sonnet
+model: claude-sonnet-5-5
 ---
 
 # 画面の操作役

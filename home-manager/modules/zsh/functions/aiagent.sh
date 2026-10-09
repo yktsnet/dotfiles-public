@@ -395,7 +395,7 @@ _aiagent_run() {
   local system_prompt
   system_prompt=$(_aiagent_builder_prompt "${(j:, :)issues_dirs}")
 
-  local -a claude_args=(--model claude-sonnet-5 --permission-mode auto)
+  local -a claude_args=(--model claude-sonnet-5-5 --effort high --permission-mode auto)
   # スコープ外の draft は main 側の issues/ に置く（main では untracked が前提）。worktree の外なので許可を足す
   local d
   for d in "${issues_dirs[@]}"; do
