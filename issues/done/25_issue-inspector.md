@@ -1,7 +1,7 @@
 ## 実行者の判定を検収役へ移し、user の確認を使い心地と実機に絞る
 id: 25
 branch-slug: issue-inspector
-status: open
+status: close
 type: feat
 対象:
 - .claude/agents/issue-inspector.md（新規）
