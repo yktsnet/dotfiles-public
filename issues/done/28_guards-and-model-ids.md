@@ -1,7 +1,7 @@
 ## ブランチの切り替えとメモリの書き込みのガードを足し、エージェントのモデルを ID で固定する
 id: 28
 branch-slug: guards-and-model-ids
-status: open
+status: close
 type: feat
 対象:
 - .claude/hooks/no-branch-in-checkout.sh（新規）
