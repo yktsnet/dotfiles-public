@@ -1,3 +1,48 @@
+## PR記録: feat: ブランチ切り替えとメモリ書き込みのガードを足し、エージェントのモデルを ID で固定する
+issue: 28 (28_guards-and-model-ids.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/85
+
+## 変更内容
+- `no-branch-in-checkout.sh` を追加。元のチェックアウトでブランチを作る・切り替える `git switch` / `git checkout` を拒否し、worktree を作るコマンドを拒否文で案内する。main へ戻ることと `--` 付きのファイル復元は通す。回帰テスト `tests/no-branch-in-checkout.test.sh` を併せて追加
+- `gate-memory-write.sh` を追加。`~/memory/`（実体 `~/dotfiles/memory/` を含む）への Edit・Write と、Bash のリダイレクト・tee・cp・mv・install・rm・sed -i・perl -pi で user の承認（ask）を求める。宛先が `~/memory` のようにディレクトリそのもので末尾に `/` が無い形も捕まえる。テスト `tests/gate-memory-write.test.sh` を追加
+- `.claude/settings.json` の PreToolUse に2本を登録（ブランチ側は Bash、メモリ側は Edit|Write|Bash）
+- subagent の `model:` を別名から ID に固定（`opus` → `claude-opus-5-5`、`sonnet` → `claude-sonnet-5-5`）
+- `i` が起こす実行者の引数を `--model claude-sonnet-5-5 --effort high` にする
+- Issue の保証節を、フックが実際に捕まえる Bash の書き込み形に絞った（touch・mkdir・ln・dd・インタプリタ経由は対象外）。対象に `gate-memory-write.test.sh` を足した
+
+## 保証
+- 元のチェックアウトで `git switch`・`git checkout` によるブランチの作成・切り替えは止まり、main へ戻ることと `--` 付きの復元は通る → `.claude/hooks/tests/no-branch-in-checkout.test.sh`
+- `~/memory/` への書き込み（Edit・Write と、Bash のリダイレクト・tee・cp・mv・install・rm・sed -i・perl -pi）は承認を求める → `.claude/hooks/tests/gate-memory-write.test.sh`
+- worktree の中でのブランチ操作は止めない（維持）→ `no-branch-in-checkout.test.sh` の「通す: worktree」
+
+## 静的確認結果
+- `for t in .claude/hooks/tests/*.test.sh; do bash "$t"; done`: すべて通過
+- `zsh -n home-manager/modules/zsh/functions/aiagent.sh`、`jq . .claude/settings.json`、`nix flake check`: 通過
+- `grep -rn '^model:' .claude/agents/`: すべて ID
+- 追加ファイルに会社名・ホスト名なし
+
+## 検証手順
+rebuild のあと次を確認する。
+- 元のチェックアウトで `git switch -c x` が止められ、拒否文に worktree を作るコマンドが出ること。worktree の中では通ること
+- `~/memory/` への書き込みで承認を求められること
+- `i` で起こした実行者が `claude-sonnet-5-5`・effort high で立ち上がること
+
+## 検収
+| 確認・保証 | 判定 |
+|---|---|
+| hook テスト全件・`zsh -n`・`jq`・`nix flake check` | 合 |
+| `model:` が ID、追加ファイルに会社名・ホスト名なし | 合 |
+| 保証: 元のチェックアウトでのブランチ操作が止まる | 合 |
+| 保証: `~/memory/` への書き込みで承認を求める（絞った文言） | 合 |
+| 保証（維持）: worktree 内は止めない | 合 |
+
+範囲の外（検収役の指摘）:
+- 保証の文言を絞った件は user が裁可済み
+- `gate-memory-write.sh` は稼働側から正規表現を広げている（`/memory` で終わるパスも ask になる）
+- 前提の 27 は未マージ。テキスト上の衝突は無いが、27 を先にマージする場合は rebase してテストを流し直す
+
+---
+
 ## ブランチの切り替えとメモリの書き込みのガードを足し、エージェントのモデルを ID で固定する
 id: 28
 branch-slug: guards-and-model-ids
