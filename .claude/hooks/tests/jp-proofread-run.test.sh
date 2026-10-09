@@ -29,6 +29,8 @@ cat >"$work/bin/claude" <<'EOF'
 [ -n "${STUB_EDIT:-}" ] && sed -i.bak "$STUB_EDIT" "$STUB_FILE" && rm -f "$STUB_FILE.bak"
 [ -n "${STUB_SIDE:-}" ] && printf '%s\n' "$STUB_SIDE" >>"$STUB_FILE"
 echo "報告"
+[ -n "${STUB_FAIL:-}" ] && exit 3
+exit 0
 EOF
 chmod +x "$work/bin/claude"
 export PATH="$work/bin:$PATH"
@@ -56,6 +58,7 @@ NAME="リポの外から起動する"; check "" 0 grep -qx "pwd=$(cd "$state_dir
 NAME="CLAUDE_CONFIG_DIR が無ければ既定の config dir"; check "" 0 grep -qx "config=$HOME/.claude" "$STUB_LOG"
 NAME="直した後の版を写しに置く"; check "" 0 cmp -s "$snap" "$STUB_FILE"
 NAME="直したら結果を残す"; check "" 0 ls "$state_dir"/s1.result.*
+NAME="結果に直したファイルのパスと校正役の報告が入る"; check "" 0 sh -c 'grep -qF -- "$1" "$3" && grep -qx 報告 "$3"' _ "$STUB_FILE" _ "$(ls "$state_dir"/s1.result.* | head -1)"
 rm -f "$state_dir"/s1.result.*
 
 printf '三行目。\n四行目。\n' >>"$STUB_FILE"
@@ -80,6 +83,9 @@ NAME="止めたら走っている印を消す"; check "" 1 ls "$state_dir"/s1.ru
 printf '# 別\n\n本文。\n' >"$work/repo/b.md"
 CLAUDE_CONFIG_DIR="$fakehome/cfg" bash "$RUN" s1 "$work/repo/b.md" 3-3
 NAME="CLAUDE_CONFIG_DIR があればそれを使う"; check "" 0 grep -qx "config=$fakehome/cfg" "$STUB_LOG"
+
+STUB_FAIL=1 bash "$RUN" s1 "$STUB_FILE" 1-1
+NAME="校正役が失敗したら、対象とログの場所を結果に残す"; check "" 0 sh -c 'grep -qF "exit 3" "$1" && grep -qF -- "$2" "$1" && grep -qF s1.log "$1"' _ "$(ls "$state_dir"/s1.result.* | head -1)" "$STUB_FILE"
 
 if [ "$fails" -eq 0 ]; then
   echo "すべて通過"
