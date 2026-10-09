@@ -125,6 +125,30 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/jp-proofread-stop.sh",
+            "timeout": 10,
+            "statusMessage": "書いた日本語の校正を裏で起動中"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/jp-proofread-notice.sh",
+            "timeout": 10,
+            "statusMessage": "裏の校正の結果を確認中"
+          }
+        ]
+      }
     ]
   }
 }

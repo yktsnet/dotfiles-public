@@ -136,10 +136,31 @@ _aiagent_sweep_wt() {
   rmdir "$wt_base" 2>/dev/null || true
 }
 
-# worktree を畳んでよいかの判定。未コミットの変更が残っていれば畳まない
+# worktree を畳んでよいかの判定。裏の校正（jp-proofread-run.sh）は実行者のコミット後にも
+# ファイルを直すので、走り終わるのを待ってから未コミットの変更を見る。残っていれば畳まない
 _aiagent_wt_clean() {
   emulate -L zsh
   local wt="$1"
+  local state_dir="${XDG_CACHE_HOME:-$HOME/.cache}/claude/jp-proofread"
+
+  local waited=0 f busy
+  while :; do
+    busy=0
+    for f in "$state_dir"/*.running.*(N); do
+      # 異常終了で残った印は、プロセスが居なければ無視する
+      kill -0 "${f##*.}" 2>/dev/null || continue
+      grep -q "^${wt}/" "$f" 2>/dev/null && { busy=1; break }
+    done
+    (( busy )) || break
+    if (( waited >= 180 )); then
+      echo "Proofreading is still running in ${wt}. Run i again later."
+      return 1
+    fi
+    (( waited == 0 )) && echo "Waiting for proofreading in ${wt} to finish..."
+    sleep 5
+    (( waited += 5 ))
+  done
+
   local dirty
   dirty=$(git -C "$wt" status --porcelain 2>/dev/null)
   if [[ -n "$dirty" ]]; then
