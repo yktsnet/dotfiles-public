@@ -7,6 +7,7 @@ type: feat
 - .claude/hooks/no-branch-in-checkout.sh（新規）
 - .claude/hooks/tests/no-branch-in-checkout.test.sh（新規）
 - .claude/hooks/gate-memory-write.sh（新規）
+- .claude/hooks/tests/gate-memory-write.test.sh（新規）
 - .claude/settings.json（PreToolUse への登録）
 - .claude/agents/issue-inspector.md・screen-operator.md（`model:`）
 - home-manager/modules/zsh/functions/aiagent.sh（実行者のモデルと effort）
