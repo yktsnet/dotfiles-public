@@ -9,7 +9,7 @@ Claude Code は本ファイルを最優先の指示として実行すること�
 - 起動時に `issues/` 内の対象 Issue（`status: open`）を確認する。
 - 実装開始前に `context/conventions.md` と `context/structure.md` を読み、規約と構造を把握する。
 - ローカル環境にて `claude/{id}-{branch-slug}` ブランチ上で作業していることを認識する（ブランチと worktree は入口の `i` が作成済み）。
-- 実装・検証・ローカルコミットは `pr-workflow` スキル（`.claude/skills/pr-workflow/SKILL.md`）の手順に従う。実装してコミットしたら止まり、user の動作確認を受けて指摘を直す。OK を受けたら Issue を閉じて PR を出す。マージは user が `i` か GitHub で押す。
+- 実装・検証・ローカルコミットは `pr-workflow` スキル（`.claude/skills/pr-workflow/SKILL.md`）の手順に従う。実装してコミットしたら検収役の判定を受け、止まって user の確認（使い心地・実機）を受けて指摘を直す。OK を受けたら Issue を閉じて PR を出す。マージは user が `i` か GitHub で押す。
 
 ## コマンド
 - Flake 評価チェック: `nix flake check`

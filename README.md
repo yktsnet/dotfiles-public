@@ -18,7 +18,9 @@ AI がコードを書くようになって、時間がかかるのは書くこ�
 
 もう1つは**意図伝達**である。依頼に書かれていない条件は、エージェントが推論で埋めて、動くものを仕上げてしまう。動くので、空白があったことに気づきにくい。これまで実装者の頭の中で下されていた判断を、実装の前にコードの外へ書き出して渡す必要がある。
 
-そのため、この基盤は**注意し続ける人間を前提にしない**。環境差の排除・破壊的なコマンドの遮断・機密の隔離はコードと設定で固定し、人間のマージを最後の関門に置く。人間は「何が壊れてはいけないか」だけを決めて文書で裁可し、実装とテストはエージェントに任せる。約束が破られれば機械が検知して止まるので、張り付いて見張らずに済む。人間の仕事は、コードを書くことから約束を裁可することへ移る。
+そのため、この基盤は**注意し続ける人間を前提にしない**。環境差の排除・破壊的なコマンドの遮断・機密の隔離はコードと設定で固定し、人間のマージを最後の関門に置く。人間は「何が壊れてはいけないか」を決めて文書で裁可し、実装とテストはエージェントに任せる。約束が破られれば機械が検知して止まるので、張り付いて見張らずに済む。
+
+分かれ目は、**書いて渡せるか**である。挙動は書いて渡せるので、Issue に書いた確認をエージェントが自分で動かして確かめる。使い心地は、エージェントが意図や感覚を持ちにくく、人が言葉にしても渡しきれない。だから人が触って判断する。人間の仕事は、コードを書くことと動作を照合することから、約束を裁可することと、書いて渡せない感覚を判断することへ移る。
 
 ---
 
@@ -56,6 +58,8 @@ AI がコードを書くようになって、時間がかかるのは書くこ�
 
 規則は、読まれる場面で置き場を分ける。毎回守らせる規則は CLAUDE.md、「〜するとき」と条件を言える手順と基準は skill、外れてはいけないものは deny とフックに置く。「どのファイルをいつ AI に渡すか」が人の暗黙知に残っていると、AI 単独では運用を再現できない。そのため手順は skill にし、description に起動条件を宣言する。この先の節で扱うワークフロー自体（`local-issue`・`guarantee-audit` 等）も、この形でコミットされている。置き場の基準は [skill-dev](.claude/skills/skill-dev/SKILL.md) が持つ。
 
+置き場はもう2つある。1つは、会話の文脈を分けて走らせる subagent（`.claude/agents/`）である。読む量が多い作業を親に持ち込まない、判定を作った者の文脈から離す、といった場面で使い、どの段に足すかの基準も skill-dev が持つ。もう1つは、スクリプトと CI である。件数・一覧・索引のように他から導ける値は、文書に手で書かない。手で書いた値は元が変わっても誰も気づかず、食い違う。
+
 skill は、リポごとに答えが変わる**判断**を担うものと、一度決めれば機械的に当てはめられる**定型**を担うものに分かれる。README の書き方・モジュールの切り方・図を描くかは前者、足場・CI・保証台帳・Issue の型は後者である。多数のリポを並行して回す運用では、判断に払うコストがスループットを左右する。定型に落とせるものは定型へ寄せ、判断が要る場面にだけ人の時間を残す。
 
 規則が増えると、規則同士が食い違い始める。CLAUDE.md も skill も永続メモリも「人が書いた規則を AI が読む」構造で、矛盾を自分では検出できない。[consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) が、前回の棚卸し地点（`.claude/RULES.md` のアンカー1行）からの差分だけを定期的に監査し、モデルの世代が変わったときはモデルに特化した規則の陳腐化も見る。永続メモリは索引を持たせず、`~/memory/` 直下に1ファイル1事実で置く（`ls` が索引になる粒度に保つ）。
@@ -75,11 +79,11 @@ skill は、リポごとに答えが変わる**判断**を担うものと、一�
 
 ### 5. 決める役と作る役を分ける
 
-同じモデルが決めて作ると、方向を外したことに自分では気づけない。そのため役割を3つに分ける。
+同じモデルが決めて作ると、方向を外したことに自分では気づけない。そのため役割を3つに分ける。さらに、作る役と判定する役も分ける。
 
 - **相談者**: user と対話して調査し、Issue を設計する。実装はしない（[local-issue](.claude/skills/local-issue/SKILL.md)）
-- **実行者**: Issue を入力に、実装・テスト・静的確認・コミットまで進める。user の確認を受けて直し、OK を受けて PR を出す。main へは push せず、マージしない（[pr-workflow](.claude/skills/pr-workflow/SKILL.md)）
-- **user**: Issue の保証節を裁可し、実行者のセッションで動作を確かめ、マージする
+- **実行者**: Issue を入力に、実装・テスト・静的確認・コミットまで進める。検収役の判定を受け、user の確認を受けて直し、OK を受けて PR を出す。main へは push せず、マージしない（[pr-workflow](.claude/skills/pr-workflow/SKILL.md)）
+- **user**: Issue の保証節を裁可し、実行者のセッションで使い心地と実機を確かめ、マージする
 
 ```mermaid
 flowchart TD
@@ -88,7 +92,9 @@ flowchart TD
     subgraph local [ローカルの worktree・実行者のセッション]
         I -->|i で起動| E([実行者])
         E --> L[コミット]
-        L --> V{{crit と動作確認}}
+        L --> J{{検収役}}
+        J -->|不合格| E
+        J -->|合格| V{{crit と使い心地の確認}}
         V -->|指摘| E
     end
     V -->|OK| P
@@ -107,7 +113,9 @@ flowchart TD
 
 一覧の各行の動きと後片付けは [docs/issue-workflow.md](docs/issue-workflow.md) にある。
 
-リモートへ出る関門は2か所ある。実行者のセッションで user が出す OK と、user が押すマージである。実行者の変更は、そのセッションの中で [crit](https://github.com/tomasz-tomczyk/crit) を開いて行単位でレビューし、指摘はそのセッションへ戻して直させる。並行は、依存し合わない Issue に限って同じリポで3本まで認める。確認と直しが実行者のセッションごとに閉じているので、本数が増えても user の裁可は成り立つ。依存し合う Issue を同時に走らせると、この前提が崩れる。
+判定する役は、作る役が確かめられない段にだけ足す。検収役（[`issue-inspector`](.claude/agents/issue-inspector.md)）には Issue だけを渡し、実行者の説明は渡さない。説明を渡すと、検収役は実行者の意図を前提に読み、約束から外れたところが見えなくなる。Issue の `確認` 項目と保証節を自分で動かして合否と証拠を返すので、user が挙動を照合する手間が減る。画面に出る Issue では、[`screen-operator`](.claude/agents/screen-operator.md) が渡された道順どおりに画面を操作し、見えたものと画面写真を返す。合否は判定せず、使い心地を見るのは user である。相談者と実行者の分離や user の裁可は、すでに別の文脈が確かめている段なので、そこへは足さない。足す理由は、客観性・速さ・自動化の3つに限る（[skill-dev](.claude/skills/skill-dev/SKILL.md) の 6）。
+
+リモートへ出る関門は2か所ある。実行者のセッションで user が出す OK と、user が押すマージである。実行者の変更は、検収役の合格を経たうえで、そのセッションの中で [crit](https://github.com/tomasz-tomczyk/crit) を開いて行単位でレビューし、指摘はそのセッションへ戻して直させる。並行は、依存し合わない Issue に限って同じリポで3本まで認める。確認と直しが実行者のセッションごとに閉じているので、本数が増えても user の裁可は成り立つ。依存し合う Issue を同時に走らせると、この前提が崩れる。
 
 分離を硬直させないための例外が3つある。事前に Issue を設計できない障害対応、user が明示した単発の例外、そしてロジックにも保証台帳にも触れない小さな変更を Issue にせず通す軽量経路である。
 
@@ -150,12 +158,14 @@ Issue・PR・コミットの地の文には、IP・ポート・実ホスト名�
 | | [repo-readme](.claude/skills/repo-readme/SKILL.md) | README の種別判定・下限・コアメッセージ・アウトライン |
 | | [module-dev](.claude/skills/module-dev/SKILL.md) | モジュール型リポの型・境界・デモ |
 | | [mermaid-diagram](.claude/skills/mermaid-diagram/SKILL.md) | 図を描くかの判断・幅の制約・形と線種 |
-| 3. 知識の置き場 | [skill-dev](.claude/skills/skill-dev/SKILL.md) | 置き場の基準・自動発火の絞り方・探索の分け方 |
+| 3. 知識の置き場 | [skill-dev](.claude/skills/skill-dev/SKILL.md) | 置き場の基準・自動発火の絞り方・探索の分け方・subagent を足す段 |
 | | [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) | 規則同士の矛盾・陳腐化の棚卸し |
 | 4. 約束の裁可 | [guarantee-audit](.claude/skills/guarantee-audit/SKILL.md) | テスト方針（GDD）・保証台帳の敷設と棚卸し |
 | | [mvp-docs](.claude/skills/mvp-docs/SKILL.md) | 立ち上げ期の PLAN.md / JUDGE.md |
 | 5. 分業 | [local-issue](.claude/skills/local-issue/SKILL.md) | フェーズ・担当分離・例外の3経路・Issue の設計 |
 | | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | 実行者の実装からローカルコミットまで |
+| | [issue-inspector](.claude/agents/issue-inspector.md) | 実行者のブランチを Issue だけで検収する subagent |
+| | [screen-operator](.claude/agents/screen-operator.md) | 画面を操作して確かめる subagent |
 | | [session-nudge](.claude/skills/session-nudge/SKILL.md) | 別セッションを外から客観視する相談 |
 | 公開 | [readme-i18n](.claude/skills/readme-i18n/SKILL.md)・[repo-publish](.claude/skills/repo-publish/SKILL.md)・[repo-about](.claude/skills/repo-about/SKILL.md) | 英語版 README・公開手続き・About と topics |
 | Foundation | [nix-tool-install](.claude/skills/nix-tool-install/SKILL.md)・[sops-secrets](.claude/skills/sops-secrets/SKILL.md)・[jp-writing](.claude/skills/jp-writing/SKILL.md) | Nix 経由の導入・機密の暗号化・日本語の文章規範 |

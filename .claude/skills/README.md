@@ -12,12 +12,14 @@
 | | [repo-readme](repo-readme/SKILL.md) | README の種別判定（Type A / B / C）・下限・コアメッセージ・アウトライン |
 | | [module-dev](module-dev/SKILL.md) | モジュール型リポの型・境界・デモ |
 | | [mermaid-diagram](mermaid-diagram/SKILL.md) | 図を描くかの判断・幅の制約・形と線種 |
-| 知識の置き場 | [skill-dev](skill-dev/SKILL.md) | 置き場の基準・自動発火の絞り方・探索の分け方 |
+| 知識の置き場 | [skill-dev](skill-dev/SKILL.md) | 置き場の基準・自動発火の絞り方・探索の分け方・subagent を足す段 |
 | | [consolidate-rules](consolidate-rules/SKILL.md) | 規則同士の矛盾・陳腐化の棚卸し |
 | 保証 | [guarantee-audit](guarantee-audit/SKILL.md) | テスト方針（GDD）・保証台帳の敷設と棚卸し |
 | | [mvp-docs](mvp-docs/SKILL.md) | 立ち上げ期の PLAN.md / JUDGE.md |
 | 分業 | [local-issue](local-issue/SKILL.md) | フェーズ・担当分離・例外の3経路・Issue の設計 |
 | | [pr-workflow](pr-workflow/SKILL.md) | 実行者の実装からローカルコミットまで |
+| | [issue-inspector](../agents/issue-inspector.md) | 実行者のブランチを Issue だけで検収する subagent |
+| | [screen-operator](../agents/screen-operator.md) | 画面を操作して確かめる subagent |
 | | [session-nudge](session-nudge/SKILL.md) | 別セッションを外から客観視する相談 |
 | 公開 | [readme-i18n](readme-i18n/SKILL.md)・[repo-publish](repo-publish/SKILL.md)・[repo-about](repo-about/SKILL.md) | 英語版 README・公開手続き・About と topics |
 | 前提 | [nix-tool-install](nix-tool-install/SKILL.md)・[sops-secrets](sops-secrets/SKILL.md)・[jp-writing](jp-writing/SKILL.md) | Nix 経由の導入・機密の暗号化・日本語の文章規範 |

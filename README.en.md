@@ -18,7 +18,9 @@ The first is **verification**: it takes time to confirm that what was written ca
 
 The second is **conveying intent**: conditions missing from a request get filled in by the agent's own inference, and it still finishes something that runs. Because it runs, the gap is easy to miss. Decisions that used to be made inside the implementer's head now have to be written down outside the code and handed over before implementation starts.
 
-So this platform **does not assume a human who stays attentive**. Removing environment differences, blocking destructive commands, and isolating secrets are fixed in code and configuration, with a human merge as the final gate. The human decides only "what must not break" and approves it in writing; implementation and tests are left to the agents. When a promise is broken, a machine detects it and stops, so nobody has to sit and watch. The human's job moves from writing code to approving promises.
+So this platform **does not assume a human who stays attentive**. Removing environment differences, blocking destructive commands, and isolating secrets are fixed in code and configuration, with a human merge as the final gate. The human decides "what must not break" and approves it in writing; implementation and tests are left to the agents. When a promise is broken, a machine detects it and stops, so nobody has to sit and watch.
+
+The dividing line is **whether it can be written down and handed over**. Behavior can be, so the agent runs the checks written in the Issue and confirms it itself. Feel, how it is to use, cannot: the agent has little sense of intent or feeling, and even in words a person cannot hand it over completely. So a person touches it and decides. The human's job moves from writing code and matching behavior by hand to approving promises and judging what cannot be written down.
 
 ---
 
@@ -56,6 +58,8 @@ Each hook's rejection message states both why it stopped and the correct route. 
 
 Rules are placed according to when they are read. Rules that apply every time go in CLAUDE.md, procedures and criteria whose trigger can be stated as "when doing X" go in skills, and anything that must not be crossed goes in deny rules and hooks. If "which file to give the AI, and when" stays as someone's tacit knowledge, the AI cannot reproduce the operation on its own. So procedures become skills, each declaring its trigger in its description. The workflows covered in the following sections (`local-issue`, `guarantee-audit`, and others) are committed in this same form. The placement criteria live in [skill-dev](.claude/skills/skill-dev/SKILL.md).
 
+There are two more places. One is the subagent (`.claude/agents/`), which runs in a separate conversation context. It is used when a task reads a lot and should not burden the parent, or when a judgment should be kept away from the context of whoever made the thing; skill-dev also owns the criteria for which step gets one. The other is scripts and CI. Values that can be derived from elsewhere, such as counts, lists, and indexes, are not written by hand in documents. A hand-written value drifts from its source without anyone noticing.
+
 Skills split into those that carry **judgment**, whose answer changes per repository, and those that carry **routine**, which can be applied mechanically once decided. How to write a README, how to cut a module, and whether to draw a diagram are the former; scaffolding, CI, the guarantee ledger, and the Issue format are the latter. When many repositories run in parallel, the cost paid on judgment governs throughput. Whatever can be turned into routine is moved there, leaving human time only where judgment is needed.
 
 As rules accumulate, they start to contradict each other. CLAUDE.md, skills, and persistent memory are all "rules written by people and read by AI," with no way to detect their own contradictions. [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) periodically audits only what changed since the last inventory point (a one-line anchor in `.claude/RULES.md`), and when the model generation changes it also checks for model-specific rules that have gone stale. Persistent memory has no index; it lives directly under `~/memory/`, one fact per file (kept at a granularity where `ls` is the index).
@@ -75,11 +79,11 @@ Development runs in two phases, handing over the driving documents. In the launc
 
 ### 5. Separate Deciding from Building
 
-When the same model both decides and builds, it cannot notice on its own that it has gone off course. The work is split into three roles.
+When the same model both decides and builds, it cannot notice on its own that it has gone off course. The work is split into three roles. Beyond that, the builder and the judge are kept apart as well.
 
 - **Consultant**: investigates and designs the Issue in dialogue with the user. Does not implement ([local-issue](.claude/skills/local-issue/SKILL.md))
-- **Executor**: takes an Issue and carries it through implementation, tests, static checks, and a commit. It fixes what the user points out and opens the PR once the user says OK. It never pushes to main and never merges ([pr-workflow](.claude/skills/pr-workflow/SKILL.md))
-- **User**: approves the Issue's guarantee section, checks the behavior in the executor's session, and merges
+- **Executor**: takes an Issue and carries it through implementation, tests, static checks, and a commit. It takes the inspector's verdict, fixes what the user points out, and opens the PR once the user says OK. It never pushes to main and never merges ([pr-workflow](.claude/skills/pr-workflow/SKILL.md))
+- **User**: approves the Issue's guarantee section, checks how it feels to use and how it runs on the real machine in the executor's session, and merges
 
 ```mermaid
 flowchart TD
@@ -88,7 +92,9 @@ flowchart TD
     subgraph local [Local worktree, executor's session]
         I -->|launched by i| E([Executor])
         E --> L[Commit]
-        L --> V{{crit and checking}}
+        L --> J{{Inspector}}
+        J -->|fail| E
+        J -->|pass| V{{crit and feel check}}
         V -->|comments| E
     end
     V -->|OK| P
@@ -107,7 +113,9 @@ Role boundaries are handed over through a single zsh function, `i`. It lists the
 
 What each row of the list does, and how cleanup works, is in [docs/issue-workflow.md](docs/issue-workflow.md).
 
-There are two gates to the remote: the user's OK in the executor's session, and the merge the user presses. The executor's changes are reviewed line by line by opening [crit](https://github.com/tomasz-tomczyk/crit) inside the executor's own session, and review comments go back to that session to be fixed. Parallel runs are allowed only for Issues that do not depend on each other, up to three in the same repository. Checking and fixing stay closed inside each executor session, so the user's approval holds as the count grows; running dependent Issues together would break that premise.
+A judge is added only at a step where the builder cannot check its own work. The inspector ([`issue-inspector`](.claude/agents/issue-inspector.md)) is given only the Issue, never the executor's explanation. An explanation would make the inspector read the work through the executor's intent, and the places that drift from the promise would disappear from view. It runs the Issue's check items and guarantee section itself and returns a verdict with evidence, so the user no longer matches behavior by hand. For an Issue that shows up on a screen, [`screen-operator`](.claude/agents/screen-operator.md) follows the given route through the screen and returns what it saw and screenshots. It gives no verdict; judging how it feels remains the user's. Steps already checked by another context, namely the consultant/executor split and the user's approval, get no judge. A judge is added for one of three reasons only: objectivity, speed, or automation ([skill-dev](.claude/skills/skill-dev/SKILL.md), section 6).
+
+There are two gates to the remote: the user's OK in the executor's session, and the merge the user presses. Once the inspector passes, the executor's changes are reviewed line by line by opening [crit](https://github.com/tomasz-tomczyk/crit) inside the executor's own session, and review comments go back to that session to be fixed. Parallel runs are allowed only for Issues that do not depend on each other, up to three in the same repository. Checking and fixing stay closed inside each executor session, so the user's approval holds as the count grows; running dependent Issues together would break that premise.
 
 Three exceptions keep the separation from becoming rigid: incident response that cannot be designed as an Issue in advance, one-off exceptions the user explicitly declares, and a lightweight path that lets small changes touching neither logic nor the guarantee ledger through without an Issue.
 
@@ -150,12 +158,14 @@ Criteria and procedures are owned by the skill that uses them. The criteria for 
 | | [repo-readme](.claude/skills/repo-readme/SKILL.md) | README kind, minimum sections, core message, outline |
 | | [module-dev](.claude/skills/module-dev/SKILL.md) | Module-type repository shape, boundaries, demos |
 | | [mermaid-diagram](.claude/skills/mermaid-diagram/SKILL.md) | Whether to draw, width limits, shapes and line styles |
-| 3. Knowledge | [skill-dev](.claude/skills/skill-dev/SKILL.md) | Placement criteria, narrowing auto-invocation, splitting exploration |
+| 3. Knowledge | [skill-dev](.claude/skills/skill-dev/SKILL.md) | Placement criteria, narrowing auto-invocation, splitting exploration, which step gets a subagent |
 | | [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) | Inventory of contradictory or stale rules |
 | 4. Promises | [guarantee-audit](.claude/skills/guarantee-audit/SKILL.md) | Test policy (GDD), laying down and auditing the guarantee ledger |
 | | [mvp-docs](.claude/skills/mvp-docs/SKILL.md) | PLAN.md / JUDGE.md for the launch phase |
 | 5. Roles | [local-issue](.claude/skills/local-issue/SKILL.md) | Phases, role separation, the three exceptions, Issue design |
 | | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | The executor's work from implementation to local commit |
+| | [issue-inspector](.claude/agents/issue-inspector.md) | A subagent that inspects the executor's branch against the Issue alone |
+| | [screen-operator](.claude/agents/screen-operator.md) | A subagent that operates a screen to check it |
 | | [session-nudge](.claude/skills/session-nudge/SKILL.md) | Consulting on another session from the outside |
 | Publishing | [readme-i18n](.claude/skills/readme-i18n/SKILL.md), [repo-publish](.claude/skills/repo-publish/SKILL.md), [repo-about](.claude/skills/repo-about/SKILL.md) | English README, publishing, About and topics |
 | Foundation | [nix-tool-install](.claude/skills/nix-tool-install/SKILL.md), [sops-secrets](.claude/skills/sops-secrets/SKILL.md), [jp-writing](.claude/skills/jp-writing/SKILL.md) | Installing through Nix, encrypting secrets, Japanese writing rules |
