@@ -25,7 +25,7 @@ type: feat
 ### 保証
 - 新たに宣言する保証:
   - 元のチェックアウト（worktree でない側）で、ブランチを作る・切り替える `git switch`・`git checkout` は止まる。main へ戻ることと、`--` を付けたファイルの復元は通る
-  - `~/memory/` への書き込み（Edit・Write・Bash 経由）は、user の承認を求める
+  - `~/memory/` への書き込み（Edit・Write と、Bash のリダイレクト・tee・cp・mv・install・rm・sed -i・perl -pi）は、user の承認を求める。touch・mkdir・ln・dd・インタプリタ経由の書き込みは対象外
 - 維持する保証: worktree の中でのブランチ操作は止めない
 
 ### .claude/hooks/no-branch-in-checkout.sh とテスト・gate-memory-write.sh
