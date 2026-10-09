@@ -115,27 +115,7 @@ If the mapping existed on only one machine, writing on any other machine would m
 
 ## Skills
 
-Criteria and procedures are owned by the skill that uses them. The criteria for what gets published are in [.claude/skills/README.md](.claude/skills/README.md).
-
-| Principle | Skill, agent, hook | Owns |
-|---|---|---|
-| 1. Promises | [guarantee-audit](.claude/skills/guarantee-audit/SKILL.md) | Test policy (GDD), laying down and auditing the guarantee ledger |
-| | [mvp-docs](.claude/skills/mvp-docs/SKILL.md) | PLAN.md / JUDGE.md for the launch phase |
-| | [local-issue](.claude/skills/local-issue/SKILL.md) | Phases, role separation, the three exceptions, designing the Issue and its guarantee section |
-| | [repo-standardize](.claude/skills/repo-standardize/SKILL.md) | Repository type and verification means, settings.json, CLAUDE.md and context/, file hygiene. CI/CD in [reference/cicd.md](.claude/skills/repo-standardize/reference/cicd.md) |
-| | [repo-readme](.claude/skills/repo-readme/SKILL.md), [module-dev](.claude/skills/module-dev/SKILL.md), [mermaid-diagram](.claude/skills/mermaid-diagram/SKILL.md) | README kind and minimum sections, module-type boundaries and demos, whether and how to draw diagrams |
-| | [skill-dev](.claude/skills/skill-dev/SKILL.md) | Placement criteria, narrowing auto-invocation, splitting exploration, which step gets a subagent |
-| 2. Checking | [`.claude/hooks/`](.claude/hooks/), `.claude/settings.json` | Deny rules and hooks. How to write hooks is in [.claude/hooks/README.md](.claude/hooks/README.md) |
-| | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | The executor's implementation, the verifier's check, hand-off to the user, and PR |
-| | [issue-verifier](.claude/agents/issue-verifier.md) | A subagent that checks the executor's branch against the Issue alone |
-| | [screen-operator](.claude/agents/screen-operator.md) | A subagent that operates a screen and returns what it saw |
-| | [jp-proofreader](.claude/agents/jp-proofreader.md) | A proofreader for Japanese documents, run by a Stop hook outside the conversation |
-| | [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) | Inventory of contradictory or stale rules |
-| | [session-nudge](.claude/skills/session-nudge/SKILL.md) | Consulting on another session from the outside |
-| Publishing | [readme-i18n](.claude/skills/readme-i18n/SKILL.md), [repo-publish](.claude/skills/repo-publish/SKILL.md), [repo-about](.claude/skills/repo-about/SKILL.md) | English README, publishing, About and topics |
-| Foundation | [nix-tool-install](.claude/skills/nix-tool-install/SKILL.md), [sops-secrets](.claude/skills/sops-secrets/SKILL.md), [jp-writing](.claude/skills/jp-writing/SKILL.md) | Installing through Nix, encrypting secrets, Japanese writing rules |
-
-Principle 3 (leaving humans only what cannot be written down) is owned not by a skill but by the points where `local-issue` and `pr-workflow` stop and hand back to the user.
+Procedures and criteria are owned by the skill that uses them, and each Design section links to them. The full index and the criteria for what gets published are in [.claude/skills/README.md](.claude/skills/README.md). Subagent definitions live in [.claude/agents/](.claude/agents/), and hooks in [.claude/hooks/](.claude/hooks/).
 
 ---
 
@@ -159,17 +139,3 @@ Principle 3 (leaving humans only what cannot be written down) is owned not by a 
 Only the layers involved in developing with agents (Claude Code, memory, secrets, review, and tmux session management) are extracted from the working dotfiles. Besides the two machines shown here, the working flake also covers headless servers and WSL, and holds editor and desktop settings and fleet status checks; none of those are included. Unifying tools through Nix, distributing `~/.claude`, decrypting the mapping, and persistent memory are tied to the machine and cannot be enforced from a team repository, so they are kept here rather than in sdlc-kit.
 
 The repository is not meant to be cloned and applied to your own machines, so no setup steps are given. The device configurations assume the actual hardware and keys, and the encrypted contents of `secrets/` are not included. CI's `nix flake check` confirms that the published configuration still evaluates.
-
----
-
-## Repository Map
-
-| Path | Contents | Section |
-|---|---|---|
-| `.claude/skills/` | Procedures and criteria. Index in [Skills](#skills) | All of Design |
-| `.claude/agents/` | The verifier, the screen operator, and the proofreader | 2. Mechanisms and Separate Contexts |
-| `.claude/settings.json`, `.claude/hooks/` | Deny rules and hooks | 2. Mechanisms and Separate Contexts |
-| `home-manager/modules/` | Claude Code distribution, memory, secrets, tmux, crit. Issue-driven functions in `zsh/` | 2. Mechanisms and Separate Contexts, One Source |
-| `issues/` | This repository's own Issues and PR records | 1. Write the Promises Down First |
-| `flake.nix`, `devices/` | NixOS / nix-darwin configurations for the dev machines. Shared parts in `devices/common/` | One Toolchain |
-| `secrets-agents/` | Where the mapping is decrypted (`example.md` is a sample) | Secrets |

@@ -115,27 +115,7 @@ Issue・PR・コミットの地の文には、IP・ポート・実ホスト名�
 
 ## Skills
 
-基準と手順は、それを使う skill が持つ。何を公開するかの基準は [.claude/skills/README.md](.claude/skills/README.md) にある。
-
-| 原則 | skill・agent・フック | 持つもの |
-|---|---|---|
-| 1. 約束を書く | [guarantee-audit](.claude/skills/guarantee-audit/SKILL.md) | テスト方針（GDD）・保証台帳の敷設と棚卸し |
-| | [mvp-docs](.claude/skills/mvp-docs/SKILL.md) | 立ち上げ期の PLAN.md / JUDGE.md |
-| | [local-issue](.claude/skills/local-issue/SKILL.md) | フェーズ・担当分離・例外の3経路・Issue と保証節の設計 |
-| | [repo-standardize](.claude/skills/repo-standardize/SKILL.md) | リポ類型と検証手段・settings.json・CLAUDE.md と context/・ファイル衛生。CI/CD は [reference/cicd.md](.claude/skills/repo-standardize/reference/cicd.md) |
-| | [repo-readme](.claude/skills/repo-readme/SKILL.md)・[module-dev](.claude/skills/module-dev/SKILL.md)・[mermaid-diagram](.claude/skills/mermaid-diagram/SKILL.md) | README の種別と下限・モジュール型リポの境界とデモ・図を描くかと描き方 |
-| | [skill-dev](.claude/skills/skill-dev/SKILL.md) | 置き場の基準・自動発火の絞り方・探索の分け方・subagent を足す段 |
-| 2. 確かめる | [`.claude/hooks/`](.claude/hooks/)・`.claude/settings.json` | deny とフック。書き方は [.claude/hooks/README.md](.claude/hooks/README.md) |
-| | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | 実行者の実装・確認者の判定・user への受け渡し・PR |
-| | [issue-verifier](.claude/agents/issue-verifier.md) | 実行者のブランチを Issue だけで確かめる subagent |
-| | [screen-operator](.claude/agents/screen-operator.md) | 画面を操作して見えたものを返す subagent |
-| | [jp-proofreader](.claude/agents/jp-proofreader.md) | Stop フックが会話の外で回す、日本語の文書の校正役 |
-| | [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) | 規則同士の矛盾・陳腐化の棚卸し |
-| | [session-nudge](.claude/skills/session-nudge/SKILL.md) | 別セッションを外から客観視する相談 |
-| 公開 | [readme-i18n](.claude/skills/readme-i18n/SKILL.md)・[repo-publish](.claude/skills/repo-publish/SKILL.md)・[repo-about](.claude/skills/repo-about/SKILL.md) | 英語版 README・公開手続き・About と topics |
-| Foundation | [nix-tool-install](.claude/skills/nix-tool-install/SKILL.md)・[sops-secrets](.claude/skills/sops-secrets/SKILL.md)・[jp-writing](.claude/skills/jp-writing/SKILL.md) | Nix 経由の導入・機密の暗号化・日本語の文章規範 |
-
-原則 3（人には書けない判断だけを残す）は skill ではなく、`local-issue` と `pr-workflow` が user に返す止まる点が持つ。
+手順と基準は、それを使う skill が持ち、Design の各節から指している。全体の一覧と、何を公開するかの基準は [.claude/skills/README.md](.claude/skills/README.md) にある。subagent の定義は [.claude/agents/](.claude/agents/)、フックは [.claude/hooks/](.claude/hooks/) にある。
 
 ---
 
@@ -159,17 +139,3 @@ Issue・PR・コミットの地の文には、IP・ポート・実ホスト名�
 稼働中の dotfiles から、エージェントとの開発に関わる層（Claude Code・メモリ・機密・レビュー・tmux のセッション管理）だけを抜き出している。稼働側の Flake は、ここに載せた2台のほかに headless のサーバーや WSL も束ね、エディタ・デスクトップの設定やフリートの状態確認も持つが、それらは含めていない。Nix による道具の統一・`~/.claude` の配布・対応表の復号・永続メモリは端末に紐づき、チームのリポジトリからは効かせられないので、sdlc-kit には入れずここに残している。
 
 clone して各自の端末へ適用することは想定しておらず、動かす手順も載せていない。デバイス構成は実機のハードウェアと鍵を前提にしていて、`secrets/` の暗号文も含めていないためである。CI の `nix flake check` は、公開している構成が評価できる状態にあることを確かめている。
-
----
-
-## Repository Map
-
-| パス | 中身 | 対応する節 |
-|---|---|---|
-| `.claude/skills/` | 手順と基準。一覧は [Skills](#skills) | Design 全体 |
-| `.claude/agents/` | 確認者・画面の操作役・校正役 | 2. 確かめるのは仕組みと別の文脈 |
-| `.claude/settings.json`・`.claude/hooks/` | deny とフック | 2. 確かめるのは仕組みと別の文脈 |
-| `home-manager/modules/` | Claude Code の配布・メモリ・機密・tmux・crit。`zsh/` に Issue 駆動の関数 | 2. 確かめるのは仕組みと別の文脈・規則を1か所から全セッションへ配る |
-| `issues/` | このリポジトリ自身の Issue と PR の控え | 1. 守る約束を先に書く |
-| `flake.nix`・`devices/` | 開発機の NixOS / nix-darwin 構成。共通部分は `devices/common/` | 全端末で道具を揃える |
-| `secrets-agents/` | 対応表の復号先（`example.md` はサンプル） | 機密を地の文に出さない |
