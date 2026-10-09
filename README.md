@@ -54,9 +54,9 @@ AI がコードを書くようになって、時間がかかるのは書くこ�
 
 エージェントは自信を持ったまま静かに間違える。人が気をつけるという約束は形骸化するので、確かめることを人の注意に預けない。
 
-**仕組み**：外れてはいけないもの（`rebuild` 系、`flake.lock` の編集、`ssh`、機密の対応表）は deny と[フック](.claude/hooks/)で止める。フックの拒否文には、止めた理由と正しい経路を書く。エージェントは拒否されると別の手を試し、何を試すかは拒否文で決まるからである。件数・一覧・索引のように他から導ける値は手で書かず、スクリプトと CI が書き出してずれを落とす。
+**仕組み**：外れてはいけないもの（`rebuild` 系、`flake.lock` の編集、`ssh`、機密の対応表）は deny と[フック](.claude/hooks/)で止める。フックの拒否文には、止めた理由と正しい経路を書く。エージェントは拒否されると別の手を試し、何を試すかは拒否文で決まるからである。元のチェックアウトでのブランチの切り替えはフックが止め、永続メモリへの書き込みには承認を挟む。件数・一覧・索引のように他から導ける値は手で書かず、スクリプトと CI が書き出してずれを落とす。subagent を呼ぶことも、頼まずに仕組みに置く。書き換えた日本語の文書は、Stop フックが会話の外で校正役（[jp-proofreader](.claude/agents/jp-proofreader.md)）に回し、結果は次のターンで渡す。
 
-**別の文脈**：同じモデルが作って確かめると、外したことに自分では気づけない。相談者が Issue を設計し（[local-issue](.claude/skills/local-issue/SKILL.md)）、実行者が実装し（[pr-workflow](.claude/skills/pr-workflow/SKILL.md)）、検収役（[issue-inspector](.claude/agents/issue-inspector.md)）が Issue だけを基準に検収する。検収役に実行者の説明を渡さないのは、渡すと実行者の意図を前提に読み、約束から外れたところが見えなくなるからである。画面に出る変更は [screen-operator](.claude/agents/screen-operator.md) が操作して、見えたものを返す。subagent は、すでに別の文脈が確かめている段には足さない。足す理由は客観性・速さ・自動化に限る（skill-dev の 6）。規則同士の食い違いも書いた本人には見つけにくいので、[consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) が別に棚卸しする。
+**別の文脈**：同じモデルが作って確かめると、外したことに自分では気づけない。相談者が Issue を設計し（[local-issue](.claude/skills/local-issue/SKILL.md)）、実行者が実装し（[pr-workflow](.claude/skills/pr-workflow/SKILL.md)）、確認者（[issue-verifier](.claude/agents/issue-verifier.md)）が Issue だけを基準に確かめる。確認者に実行者の説明を渡さないのは、渡すと実行者の意図を前提に読み、約束から外れたところが見えなくなるからである。画面に出る変更は [screen-operator](.claude/agents/screen-operator.md) が操作して、見えたものを返す。subagent は、すでに別の文脈が確かめている段には足さない。足す理由は客観性・速さ・自動化に限る（skill-dev の 6）。規則同士の食い違いも書いた本人には見つけにくいので、[consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) が別に棚卸しする。
 
 ```mermaid
 flowchart TD
@@ -65,7 +65,7 @@ flowchart TD
     subgraph local [ローカルの worktree・実行者のセッション]
         I -->|i で起動| E([実行者])
         E --> L[コミット]
-        L --> J{{検収役}}
+        L --> J{{確認者}}
         J -->|不合格| E
         J -->|合格| V{{crit と使い心地の確認}}
         V -->|指摘| E
@@ -126,9 +126,10 @@ Issue・PR・コミットの地の文には、IP・ポート・実ホスト名�
 | | [repo-readme](.claude/skills/repo-readme/SKILL.md)・[module-dev](.claude/skills/module-dev/SKILL.md)・[mermaid-diagram](.claude/skills/mermaid-diagram/SKILL.md) | README の種別と下限・モジュール型リポの境界とデモ・図を描くかと描き方 |
 | | [skill-dev](.claude/skills/skill-dev/SKILL.md) | 置き場の基準・自動発火の絞り方・探索の分け方・subagent を足す段 |
 | 2. 確かめる | [`.claude/hooks/`](.claude/hooks/)・`.claude/settings.json` | deny とフック。書き方は [.claude/hooks/README.md](.claude/hooks/README.md) |
-| | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | 実行者の実装・検収・user への受け渡し・PR |
-| | [issue-inspector](.claude/agents/issue-inspector.md) | 実行者のブランチを Issue だけで検収する subagent |
+| | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | 実行者の実装・確認者の判定・user への受け渡し・PR |
+| | [issue-verifier](.claude/agents/issue-verifier.md) | 実行者のブランチを Issue だけで確かめる subagent |
 | | [screen-operator](.claude/agents/screen-operator.md) | 画面を操作して見えたものを返す subagent |
+| | [jp-proofreader](.claude/agents/jp-proofreader.md) | Stop フックが会話の外で回す、日本語の文書の校正役 |
 | | [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) | 規則同士の矛盾・陳腐化の棚卸し |
 | | [session-nudge](.claude/skills/session-nudge/SKILL.md) | 別セッションを外から客観視する相談 |
 | 公開 | [readme-i18n](.claude/skills/readme-i18n/SKILL.md)・[repo-publish](.claude/skills/repo-publish/SKILL.md)・[repo-about](.claude/skills/repo-about/SKILL.md) | 英語版 README・公開手続き・About と topics |
@@ -166,7 +167,7 @@ clone して各自の端末へ適用することは想定しておらず、動�
 | パス | 中身 | 対応する節 |
 |---|---|---|
 | `.claude/skills/` | 手順と基準。一覧は [Skills](#skills) | Design 全体 |
-| `.claude/agents/` | 検収役と画面の操作役 | 2. 確かめるのは仕組みと別の文脈 |
+| `.claude/agents/` | 確認者・画面の操作役・校正役 | 2. 確かめるのは仕組みと別の文脈 |
 | `.claude/settings.json`・`.claude/hooks/` | deny とフック | 2. 確かめるのは仕組みと別の文脈 |
 | `home-manager/modules/` | Claude Code の配布・メモリ・機密・tmux・crit。`zsh/` に Issue 駆動の関数 | 2. 確かめるのは仕組みと別の文脈・規則を1か所から全セッションへ配る |
 | `issues/` | このリポジトリ自身の Issue と PR の控え | 1. 守る約束を先に書く |

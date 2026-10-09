@@ -18,7 +18,7 @@
 | | [mvp-docs](mvp-docs/SKILL.md) | 立ち上げ期の PLAN.md / JUDGE.md |
 | 分業 | [local-issue](local-issue/SKILL.md) | フェーズ・担当分離・例外の3経路・Issue の設計 |
 | | [pr-workflow](pr-workflow/SKILL.md) | 実行者の実装からローカルコミットまで |
-| | [issue-inspector](../agents/issue-inspector.md) | 実行者のブランチを Issue だけで検収する subagent |
+| | [issue-verifier](../agents/issue-verifier.md) | 実行者のブランチを Issue だけで確かめる subagent |
 | | [screen-operator](../agents/screen-operator.md) | 画面を操作して確かめる subagent |
 | | [session-nudge](session-nudge/SKILL.md) | 別セッションを外から客観視する相談 |
 | 公開 | [readme-i18n](readme-i18n/SKILL.md)・[repo-publish](repo-publish/SKILL.md)・[repo-about](repo-about/SKILL.md) | 英語版 README・公開手続き・About と topics |

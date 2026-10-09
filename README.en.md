@@ -54,9 +54,9 @@ Promises are not the only thing written down before building. The repository typ
 
 Agents are confidently and quietly wrong. A promise that people will be careful decays into a formality, so checking is not left to human attention.
 
-**Mechanisms**: what must not be crossed (`rebuild` commands, edits to `flake.lock`, `ssh`, the secrets mapping) is stopped by deny rules and [hooks](.claude/hooks/). Each hook's rejection message states why it stopped and the correct route, because a rejected agent tries something else and what it tries comes from the message. Values that can be derived from elsewhere, such as counts, lists, and indexes, are not written by hand; scripts and CI write them out and fail on drift.
+**Mechanisms**: what must not be crossed (`rebuild` commands, edits to `flake.lock`, `ssh`, the secrets mapping) is stopped by deny rules and [hooks](.claude/hooks/). Each hook's rejection message states why it stopped and the correct route, because a rejected agent tries something else and what it tries comes from the message. Hooks also stop branch switching in the main checkout and put an approval in front of writes to persistent memory. Values that can be derived from elsewhere, such as counts, lists, and indexes, are not written by hand; scripts and CI write them out and fail on drift. Calling a subagent is put in a mechanism too, not requested: after Japanese documents are edited, a Stop hook hands them to the proofreader ([jp-proofreader](.claude/agents/jp-proofreader.md)) outside the conversation, and the result arrives on the next turn.
 
-**Separate contexts**: when the same model builds and checks, it cannot notice on its own that it has gone off course. The consultant designs the Issue ([local-issue](.claude/skills/local-issue/SKILL.md)), the executor implements it ([pr-workflow](.claude/skills/pr-workflow/SKILL.md)), and the inspector ([issue-inspector](.claude/agents/issue-inspector.md)) inspects the work against the Issue alone. The inspector is never given the executor's explanation, because it would then read the work through the executor's intent and lose sight of where it drifts from the promise. For changes that show up on a screen, [screen-operator](.claude/agents/screen-operator.md) operates the screen and returns what it saw. A subagent is not added at a step that another context already checks, and is added for one of three reasons only: objectivity, speed, or automation (skill-dev, section 6). Contradictions between rules are also hard for their authors to see, so [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) audits them separately.
+**Separate contexts**: when the same model builds and checks, it cannot notice on its own that it has gone off course. The consultant designs the Issue ([local-issue](.claude/skills/local-issue/SKILL.md)), the executor implements it ([pr-workflow](.claude/skills/pr-workflow/SKILL.md)), and the verifier ([issue-verifier](.claude/agents/issue-verifier.md)) checks the work against the Issue alone. The verifier is never given the executor's explanation, because it would then read the work through the executor's intent and lose sight of where it drifts from the promise. For changes that show up on a screen, [screen-operator](.claude/agents/screen-operator.md) operates the screen and returns what it saw. A subagent is not added at a step that another context already checks, and is added for one of three reasons only: objectivity, speed, or automation (skill-dev, section 6). Contradictions between rules are also hard for their authors to see, so [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) audits them separately.
 
 ```mermaid
 flowchart TD
@@ -65,7 +65,7 @@ flowchart TD
     subgraph local [Local worktree, executor's session]
         I -->|launched by i| E([Executor])
         E --> L[Commit]
-        L --> J{{Inspector}}
+        L --> J{{Verifier}}
         J -->|fail| E
         J -->|pass| V{{crit and feel check}}
         V -->|comments| E
@@ -126,9 +126,10 @@ Criteria and procedures are owned by the skill that uses them. The criteria for 
 | | [repo-readme](.claude/skills/repo-readme/SKILL.md), [module-dev](.claude/skills/module-dev/SKILL.md), [mermaid-diagram](.claude/skills/mermaid-diagram/SKILL.md) | README kind and minimum sections, module-type boundaries and demos, whether and how to draw diagrams |
 | | [skill-dev](.claude/skills/skill-dev/SKILL.md) | Placement criteria, narrowing auto-invocation, splitting exploration, which step gets a subagent |
 | 2. Checking | [`.claude/hooks/`](.claude/hooks/), `.claude/settings.json` | Deny rules and hooks. How to write hooks is in [.claude/hooks/README.md](.claude/hooks/README.md) |
-| | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | The executor's implementation, inspection, hand-off to the user, and PR |
-| | [issue-inspector](.claude/agents/issue-inspector.md) | A subagent that inspects the executor's branch against the Issue alone |
+| | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | The executor's implementation, the verifier's check, hand-off to the user, and PR |
+| | [issue-verifier](.claude/agents/issue-verifier.md) | A subagent that checks the executor's branch against the Issue alone |
 | | [screen-operator](.claude/agents/screen-operator.md) | A subagent that operates a screen and returns what it saw |
+| | [jp-proofreader](.claude/agents/jp-proofreader.md) | A proofreader for Japanese documents, run by a Stop hook outside the conversation |
 | | [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) | Inventory of contradictory or stale rules |
 | | [session-nudge](.claude/skills/session-nudge/SKILL.md) | Consulting on another session from the outside |
 | Publishing | [readme-i18n](.claude/skills/readme-i18n/SKILL.md), [repo-publish](.claude/skills/repo-publish/SKILL.md), [repo-about](.claude/skills/repo-about/SKILL.md) | English README, publishing, About and topics |
@@ -166,7 +167,7 @@ The repository is not meant to be cloned and applied to your own machines, so no
 | Path | Contents | Section |
 |---|---|---|
 | `.claude/skills/` | Procedures and criteria. Index in [Skills](#skills) | All of Design |
-| `.claude/agents/` | The inspector and the screen operator | 2. Mechanisms and Separate Contexts |
+| `.claude/agents/` | The verifier, the screen operator, and the proofreader | 2. Mechanisms and Separate Contexts |
 | `.claude/settings.json`, `.claude/hooks/` | Deny rules and hooks | 2. Mechanisms and Separate Contexts |
 | `home-manager/modules/` | Claude Code distribution, memory, secrets, tmux, crit. Issue-driven functions in `zsh/` | 2. Mechanisms and Separate Contexts, One Source |
 | `issues/` | This repository's own Issues and PR records | 1. Write the Promises Down First |
