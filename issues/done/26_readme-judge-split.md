@@ -1,7 +1,7 @@
 ## README に、作る役と判定する役を分けることと、書いて渡せるかの軸を足す
 id: 26
 branch-slug: readme-judge-split
-status: open
+status: close
 type: feat
 対象:
 - README.md（Why・Design 3・Design 5・Skills の表）
