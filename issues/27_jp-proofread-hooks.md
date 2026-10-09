@@ -9,6 +9,7 @@ type: feat
 - .claude/hooks/jp-proofread-run.sh（新規）
 - .claude/hooks/jp-proofread-notice.sh（新規）
 - .claude/hooks/tests/jp-proofread-stop.test.sh・jp-proofread-run.test.sh・jp-proofread-notice.test.sh（新規、3本）
+- .claude/hooks/tests/aiagent-wt-clean.test.sh（新規。`i` の待ちを固定する）
 - .claude/settings.json（Stop と UserPromptSubmit への登録）
 - home-manager/modules/zsh/functions/aiagent.sh（worktree を畳む前に校正の終わりを待つ）
 内容: 稼働側では、会話で書き換えた日本語の文書を、Stop フックが会話の外で校正の subagent（`jp-proofreader`）に渡している。書き手と別の文脈で規範を当てるためで、Agent ツールで呼ばせないのは、起動と完了のたびに会話側のモデルのターンを起こさないためである。結果は次に user が話しかけたターンで notice フックが渡す。subagent を skill で頼まずに、フックという仕組みで回している実例で、公開側には無い。稼働側に合わせて公開する（`.claude/skills/README.md`「点検のしかた」）。
