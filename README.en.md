@@ -26,64 +26,37 @@ The dividing line is **whether it can be written down and handed over**. Behavio
 
 ## Principles
 
-The machinery is stacked in the following order.
+The machinery rests on three principles.
 
-1. **Decide the type before building**
-2. **Put prohibitions in mechanisms, not requests**
-3. **Place knowledge where it is read**
-4. **Approve the promises first**
-5. **Separate deciding from building**
+1. **Write the promises down first**
+2. **Let mechanisms and separate contexts do the checking**
+3. **Leave humans only the judgments that cannot be written down**
 
-The order has dependencies. Until the type is decided, what to block cannot be decided. Adding knowledge without blocks only speeds up accidents. Splitting the work before the guarantees are settled leaves the executor running without knowing what it must not break.
+Principles 1 and 2 answer the two bottlenecks in Why (conveying intent and verification); principle 3 answers the dividing line between them (whether something can be written down and handed over). The order has dependencies. Without written promises, the mechanisms do not know what to enforce, and a separate context does not know what to check against. Without mechanisms that check, matching and watching creep back into the judgments meant to be left to humans.
 
-**The minimum is steps 1–3**, needed regardless of whether anything is published or how large the team is. Steps 4–5 are added when there is something published, or when several sessions start running in parallel.
+Deciding the repository type, placing the rules, and deny rules with hooks are needed from the start, whatever the scale. The guarantee ledger and role separation are added when there is something published, or when several sessions start running in parallel.
 
 ---
 
 ## Design
 
-### 1. Decide the Type Before Building
+### 1. Write the Promises Down First
 
-A new repository is classified before anything is written. [repo-standardize](.claude/skills/repo-standardize/SKILL.md) decides the repository type and its verification means, `settings.json`, and the CLAUDE.md skeleton; [repo-readme](.claude/skills/repo-readme/SKILL.md) decides the kind of README (a demonstration to show, an experiment to measure, or a tool to use); [module-dev](.claude/skills/module-dev/SKILL.md) decides the boundaries and demo approach of a module-type repository.
+Agents fill in unwritten conditions by inference. So whatever a human decides is written down and handed over before anything is built.
 
-The type comes first so that later rules can be derived from it. Once the verification means are fixed, the contents of CI and the deny list follow; once the kind of README is fixed, the minimum set of sections follows.
+At the center is **Guarantee-Driven Development (GDD)**. A human approves what must not break (the guarantees) in the Issue's guarantee section, and the agent writes the tests that pin it down along with the implementation. If TDD is the discipline of writing tests first, GDD is the discipline of approving the promises first. Approved guarantees accumulate, together with the tests behind them, in each repository's guarantee ledger, `docs/guarantees.md`. Behavior not in the ledger is not a promise ([guarantee-audit](.claude/skills/guarantee-audit/SKILL.md), [Zenn: Guarantee-Driven Development](https://zenn.dev/yktsnet/articles/202608-guarantee-driven-development)).
 
-### 2. Put Prohibitions in Mechanisms, Not Requests
+Development runs in two phases, **handing over the driving documents**. In the launch phase, before the direction is settled, PLAN.md (remaining work) and JUDGE.md (design decisions) drive the work ([mvp-docs](.claude/skills/mvp-docs/SKILL.md)). Once the guarantee ledger goes into formal use, it takes over and the repository moves to the Issue-driven phase. The full idea is in sdlc-kit's [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md).
 
-`rebuild` commands, edits to `flake.lock`, `ssh`, and reading or writing the secrets mapping are closed off by deny rules. Deny rules only match string prefixes, so anything that has to be judged as an action, such as a path-qualified `/tmp/venv/bin/pip install` or rewriting `~/.claude` through `sed -i`, is handled by [PreToolUse hooks](.claude/hooks/).
+Promises are not the only thing written down before building. The repository type (its kind and verification means, the kind of README) is decided before anything is written ([repo-standardize](.claude/skills/repo-standardize/SKILL.md), [repo-readme](.claude/skills/repo-readme/SKILL.md), [module-dev](.claude/skills/module-dev/SKILL.md)). Rules are placed according to when they are read: what applies every time goes in CLAUDE.md, and procedures whose trigger can be stated as "when doing X" go in skills ([skill-dev](.claude/skills/skill-dev/SKILL.md)).
 
-Each hook's rejection message states both why it stopped and the correct route. A rejected agent tries something else, and what it tries comes from the message, so it takes the route written there. `static-check.sh`, which syntax-checks the single file right after each edit, follows the same idea: it takes a check that nobody would notice being skipped out of the model's discretion.
+### 2. Let Mechanisms and Separate Contexts Do the Checking
 
-### 3. Place Knowledge Where It Is Read
+Agents are confidently and quietly wrong. A promise that people will be careful decays into a formality, so checking is not left to human attention.
 
-Rules are placed according to when they are read. Rules that apply every time go in CLAUDE.md, procedures and criteria whose trigger can be stated as "when doing X" go in skills, and anything that must not be crossed goes in deny rules and hooks. If "which file to give the AI, and when" stays as someone's tacit knowledge, the AI cannot reproduce the operation on its own. So procedures become skills, each declaring its trigger in its description. The workflows covered in the following sections (`local-issue`, `guarantee-audit`, and others) are committed in this same form. The placement criteria live in [skill-dev](.claude/skills/skill-dev/SKILL.md).
+**Mechanisms**: what must not be crossed (`rebuild` commands, edits to `flake.lock`, `ssh`, the secrets mapping) is stopped by deny rules and [hooks](.claude/hooks/). Each hook's rejection message states why it stopped and the correct route, because a rejected agent tries something else and what it tries comes from the message. Values that can be derived from elsewhere, such as counts, lists, and indexes, are not written by hand; scripts and CI write them out and fail on drift.
 
-There are two more places. One is the subagent (`.claude/agents/`), which runs in a separate conversation context. It is used when a task reads a lot and should not burden the parent, or when a judgment should be kept away from the context of whoever made the thing; skill-dev also owns the criteria for which step gets one. The other is scripts and CI. Values that can be derived from elsewhere, such as counts, lists, and indexes, are not written by hand in documents. A hand-written value drifts from its source without anyone noticing.
-
-Skills split into those that carry **judgment**, whose answer changes per repository, and those that carry **routine**, which can be applied mechanically once decided. How to write a README, how to cut a module, and whether to draw a diagram are the former; scaffolding, CI, the guarantee ledger, and the Issue format are the latter. When many repositories run in parallel, the cost paid on judgment governs throughput. Whatever can be turned into routine is moved there, leaving human time only where judgment is needed.
-
-As rules accumulate, they start to contradict each other. CLAUDE.md, skills, and persistent memory are all "rules written by people and read by AI," with no way to detect their own contradictions. [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) periodically audits only what changed since the last inventory point (a one-line anchor in `.claude/RULES.md`), and when the model generation changes it also checks for model-specific rules that have gone stale. Persistent memory has no index; it lives directly under `~/memory/`, one fact per file (kept at a granularity where `ls` is the index).
-
-### 4. Approve the Promises First
-
-Tests are the device by which the executor notices on its own that it broke something. What must not break (the guarantees) is approved by a human in the Issue's guarantee section, and the tests that turn it into something executable are written by the executor. This division of labor is called **Guarantee-Driven Development (GDD)**. If TDD is the discipline of writing tests first, GDD is the discipline of approving the promises first.
-
-Approved guarantees accumulate in each repository's guarantee ledger, `docs/guarantees.md`. The ledger lists only contract-surface guarantees (public API, CLI, externally observable behavior) that tests back up. Behavior not in the ledger is not a promise and may change without notice. The ledger is maintained as follows.
-
-- **Laying it down**: [guarantee-audit](.claude/skills/guarantee-audit/SKILL.md) extracts guarantees from existing tests and lays down the ledger after the user approves it. Guarantees that should exist but have no test are recorded separately in a Gaps section
-- **Keeping up**: from then on, tests and ledger are updated in the same PR as the Issue's guarantee section. The executor's procedure ([pr-workflow](.claude/skills/pr-workflow/SKILL.md)) treats a missing ledger update as unfinished work
-- **Matching the scope**: before committing, the executor confirms that the list of staged files exactly matches the Issue's `対象` (targets) field. A change that strays outside the declared scope never reaches a commit
-- **Seeing it all**: the ledger stays in each repository as the source of truth, while a scheduled job gathers links to every repository that has one into a single index, so whoever approves can see what is being promised across the board
-
-Development runs in two phases, handing over the driving documents. In the launch phase, before the direction is settled, work is implemented directly while PLAN.md (remaining work) and JUDGE.md (design decisions) grow alongside it ([mvp-docs](.claude/skills/mvp-docs/SKILL.md)). Once the guarantee ledger goes into formal use, the repository moves to the Issue-driven phase and is run on the ledger and tests from then on. Each repository declares its phase in its CLAUDE.md. The full idea is in sdlc-kit's [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md).
-
-### 5. Separate Deciding from Building
-
-When the same model both decides and builds, it cannot notice on its own that it has gone off course. The work is split into three roles. Beyond that, the builder and the judge are kept apart as well.
-
-- **Consultant**: investigates and designs the Issue in dialogue with the user. Does not implement ([local-issue](.claude/skills/local-issue/SKILL.md))
-- **Executor**: takes an Issue and carries it through implementation, tests, static checks, and a commit. It takes the inspector's verdict, fixes what the user points out, and opens the PR once the user says OK. It never pushes to main and never merges ([pr-workflow](.claude/skills/pr-workflow/SKILL.md))
-- **User**: approves the Issue's guarantee section, checks how it feels to use and how it runs on the real machine in the executor's session, and merges
+**Separate contexts**: when the same model builds and checks, it cannot notice on its own that it has gone off course. The consultant designs the Issue ([local-issue](.claude/skills/local-issue/SKILL.md)), the executor implements it ([pr-workflow](.claude/skills/pr-workflow/SKILL.md)), and the inspector ([issue-inspector](.claude/agents/issue-inspector.md)) inspects the work against the Issue alone. The inspector is never given the executor's explanation, because it would then read the work through the executor's intent and lose sight of where it drifts from the promise. For changes that show up on a screen, [screen-operator](.claude/agents/screen-operator.md) operates the screen and returns what it saw. A subagent is not added at a step that another context already checks, and is added for one of three reasons only: objectivity, speed, or automation (skill-dev, section 6). Contradictions between rules are also hard for their authors to see, so [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) audits them separately.
 
 ```mermaid
 flowchart TD
@@ -103,23 +76,15 @@ flowchart TD
     end
 ```
 
-Role boundaries are handed over through a single zsh function, `i`. It lists the Issues and PRs that can be acted on right now across all repositories, and performs the chosen action.
+Role boundaries are handed over through a single zsh function, `i`. It launches an executor per worktree and takes care of merging and cleanup ([docs/issue-workflow.md](docs/issue-workflow.md), [Zenn: Issue-Driven Workflow](https://zenn.dev/yktsnet/articles/202604-issue-driven-workflow)). From outside the parallel sessions, [session-nudge](.claude/skills/session-nudge/SKILL.md) acts as a reader and drafts advice.
 
-- **`run`**: picks an `open` Issue, creates a worktree, and launches the executor, leaving the main checkout untouched
-- **`approve`**: moves an Issue whose guarantee section has been approved from `draft` to `open`, then asks whether to implement it right away
-- **`merge`**: squash-merges a PR the executor opened and cleans up
-- **`abort`**: discards an executor's branch, together with its worktree if one remains. Discarding is issued from here too
-- **`status`**: shows where things stand in the repositories that still have Issues or branches
+### 3. Leave Humans Only the Judgments That Cannot Be Written Down
 
-What each row of the list does, and how cleanup works, is in [docs/issue-workflow.md](docs/issue-workflow.md).
+The dividing line is whether something can be written down and handed over. Behavior can, so it is promised under principle 1 and checked under principle 2. How it feels to use, and whether it matches the intent, cannot: the agent has little sense of intent or feeling, and even in words a person cannot hand it over completely. Only this is left to humans.
 
-A judge is added only at a step where the builder cannot check its own work. The inspector ([`issue-inspector`](.claude/agents/issue-inspector.md)) is given only the Issue, never the executor's explanation. An explanation would make the inspector read the work through the executor's intent, and the places that drift from the promise would disappear from view. It runs the Issue's check items and guarantee section itself and returns a verdict with evidence, so the user no longer matches behavior by hand. For an Issue that shows up on a screen, [`screen-operator`](.claude/agents/screen-operator.md) follows the given route through the screen and returns what it saw and screenshots. It gives no verdict; judging how it feels remains the user's. Steps already checked by another context, namely the consultant/executor split and the user's approval, get no judge. A judge is added for one of three reasons only: objectivity, speed, or automation ([skill-dev](.claude/skills/skill-dev/SKILL.md), section 6).
+The user holds four things: approving the guarantee section, checking feel and real-machine behavior in the executor's session, deciding whether to accept anything that strays from the promise, and merging. The gates to the remote are the OK in the executor's session and the merge. The user is never asked to match behavior, and nothing is shown at two steps.
 
-There are two gates to the remote: the user's OK in the executor's session, and the merge the user presses. Once the inspector passes, the executor's changes are reviewed line by line by opening [crit](https://github.com/tomasz-tomczyk/crit) inside the executor's own session, and review comments go back to that session to be fixed. Parallel runs are allowed only for Issues that do not depend on each other, up to three in the same repository. Checking and fixing stay closed inside each executor session, so the user's approval holds as the count grows; running dependent Issues together would break that premise.
-
-Three exceptions keep the separation from becoming rigid: incident response that cannot be designed as an Issue in advance, one-off exceptions the user explicitly declares, and a lightweight path that lets small changes touching neither logic nor the guarantee ledger through without an Issue.
-
-In practice, several consultant sessions and worktrees run at once, and none of them can notice its own drift, for the same reason. The reader standing outside them is [session-nudge](.claude/skills/session-nudge/SKILL.md), launched with `M-m`. It reads another session's exchange and drafts advice, which is sent only after the user approves the draft. It never intervenes in another session automatically.
+Narrowing this down also keeps human judgment from thinning out. As speed goes up, people grasp less and approvals drift into formality. Having handed off behavior matching, people no longer trace behavior themselves; in exchange, what they look at is narrowed to what only they can judge. Running at most three Issues in parallel, only ones that do not depend on each other, with checks and fixes closed within each executor's session, serves the same end: every approval still holds as the count grows.
 
 ---
 
@@ -152,25 +117,24 @@ If the mapping existed on only one machine, writing on any other machine would m
 
 Criteria and procedures are owned by the skill that uses them. The criteria for what gets published are in [.claude/skills/README.md](.claude/skills/README.md).
 
-| Step | Skill | Owns |
+| Principle | Skill, agent, hook | Owns |
 |---|---|---|
-| 1. Type | [repo-standardize](.claude/skills/repo-standardize/SKILL.md) | Repository type and verification means, settings.json, CLAUDE.md and context/, file hygiene. CI/CD in [reference/cicd.md](.claude/skills/repo-standardize/reference/cicd.md) |
-| | [repo-readme](.claude/skills/repo-readme/SKILL.md) | README kind, minimum sections, core message, outline |
-| | [module-dev](.claude/skills/module-dev/SKILL.md) | Module-type repository shape, boundaries, demos |
-| | [mermaid-diagram](.claude/skills/mermaid-diagram/SKILL.md) | Whether to draw, width limits, shapes and line styles |
-| 3. Knowledge | [skill-dev](.claude/skills/skill-dev/SKILL.md) | Placement criteria, narrowing auto-invocation, splitting exploration, which step gets a subagent |
-| | [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) | Inventory of contradictory or stale rules |
-| 4. Promises | [guarantee-audit](.claude/skills/guarantee-audit/SKILL.md) | Test policy (GDD), laying down and auditing the guarantee ledger |
+| 1. Promises | [guarantee-audit](.claude/skills/guarantee-audit/SKILL.md) | Test policy (GDD), laying down and auditing the guarantee ledger |
 | | [mvp-docs](.claude/skills/mvp-docs/SKILL.md) | PLAN.md / JUDGE.md for the launch phase |
-| 5. Roles | [local-issue](.claude/skills/local-issue/SKILL.md) | Phases, role separation, the three exceptions, Issue design |
-| | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | The executor's work from implementation to local commit |
+| | [local-issue](.claude/skills/local-issue/SKILL.md) | Phases, role separation, the three exceptions, designing the Issue and its guarantee section |
+| | [repo-standardize](.claude/skills/repo-standardize/SKILL.md) | Repository type and verification means, settings.json, CLAUDE.md and context/, file hygiene. CI/CD in [reference/cicd.md](.claude/skills/repo-standardize/reference/cicd.md) |
+| | [repo-readme](.claude/skills/repo-readme/SKILL.md), [module-dev](.claude/skills/module-dev/SKILL.md), [mermaid-diagram](.claude/skills/mermaid-diagram/SKILL.md) | README kind and minimum sections, module-type boundaries and demos, whether and how to draw diagrams |
+| | [skill-dev](.claude/skills/skill-dev/SKILL.md) | Placement criteria, narrowing auto-invocation, splitting exploration, which step gets a subagent |
+| 2. Checking | [`.claude/hooks/`](.claude/hooks/), `.claude/settings.json` | Deny rules and hooks. How to write hooks is in [.claude/hooks/README.md](.claude/hooks/README.md) |
+| | [pr-workflow](.claude/skills/pr-workflow/SKILL.md) | The executor's implementation, inspection, hand-off to the user, and PR |
 | | [issue-inspector](.claude/agents/issue-inspector.md) | A subagent that inspects the executor's branch against the Issue alone |
-| | [screen-operator](.claude/agents/screen-operator.md) | A subagent that operates a screen to check it |
+| | [screen-operator](.claude/agents/screen-operator.md) | A subagent that operates a screen and returns what it saw |
+| | [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) | Inventory of contradictory or stale rules |
 | | [session-nudge](.claude/skills/session-nudge/SKILL.md) | Consulting on another session from the outside |
 | Publishing | [readme-i18n](.claude/skills/readme-i18n/SKILL.md), [repo-publish](.claude/skills/repo-publish/SKILL.md), [repo-about](.claude/skills/repo-about/SKILL.md) | English README, publishing, About and topics |
 | Foundation | [nix-tool-install](.claude/skills/nix-tool-install/SKILL.md), [sops-secrets](.claude/skills/sops-secrets/SKILL.md), [jp-writing](.claude/skills/jp-writing/SKILL.md) | Installing through Nix, encrypting secrets, Japanese writing rules |
 
-Step 2 (putting prohibitions in mechanisms) is owned not by a skill but by `.claude/settings.json` and [`.claude/hooks/`](.claude/hooks/). How to write hooks is in [.claude/hooks/README.md](.claude/hooks/README.md).
+Principle 3 (leaving humans only what cannot be written down) is owned not by a skill but by the points where `local-issue` and `pr-workflow` stop and hand back to the user.
 
 ---
 
@@ -202,8 +166,9 @@ The repository is not meant to be cloned and applied to your own machines, so no
 | Path | Contents | Section |
 |---|---|---|
 | `.claude/skills/` | Procedures and criteria. Index in [Skills](#skills) | All of Design |
-| `.claude/settings.json`, `.claude/hooks/` | Deny rules and hooks | 2. Prohibitions in Mechanisms |
-| `home-manager/modules/` | Claude Code distribution, memory, secrets, tmux, crit. Issue-driven functions in `zsh/` | 5. Separate Deciding from Building, One Source |
-| `issues/` | This repository's own Issues and PR records | 5. Separate Deciding from Building |
+| `.claude/agents/` | The inspector and the screen operator | 2. Mechanisms and Separate Contexts |
+| `.claude/settings.json`, `.claude/hooks/` | Deny rules and hooks | 2. Mechanisms and Separate Contexts |
+| `home-manager/modules/` | Claude Code distribution, memory, secrets, tmux, crit. Issue-driven functions in `zsh/` | 2. Mechanisms and Separate Contexts, One Source |
+| `issues/` | This repository's own Issues and PR records | 1. Write the Promises Down First |
 | `flake.nix`, `devices/` | NixOS / nix-darwin configurations for the dev machines. Shared parts in `devices/common/` | One Toolchain |
 | `secrets-agents/` | Where the mapping is decrypted (`example.md` is a sample) | Secrets |
