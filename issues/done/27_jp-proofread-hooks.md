@@ -1,7 +1,7 @@
 ## 書いた日本語の校正を、フックが会話の外で subagent に回す
 id: 27
 branch-slug: jp-proofread-hooks
-status: open
+status: close
 type: feat
 対象:
 - .claude/agents/jp-proofreader.md（新規）
