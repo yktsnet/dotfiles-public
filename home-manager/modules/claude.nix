@@ -20,7 +20,7 @@ in
     '';
   };
 
-  # `~/.claude` 配下（settings.json / CLAUDE.md / skills / hooks）は本リポの
+  # `~/.claude` 配下（settings.json / CLAUDE.md / skills / hooks / agents）は本リポの
   # `.claude/` と `home-manager/config/claude/` を正本とし、activation script で
   # 実体コピーして配置する。symlink ではなく実体コピーにしているのは、WSL 環境では
   # Nix ストアへのシンボリックリンクが Windows 側（\\wsl.localhost\）から読めないため。
@@ -31,7 +31,7 @@ in
   # 生成元（本リポの `.claude/`）へ誘導する。
   config.home.activation.claude-config = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     dst="$HOME/.claude"
-    rm -rf "$dst/settings.json" "$dst/CLAUDE.md" "$dst/skills" "$dst/hooks"
+    rm -rf "$dst/settings.json" "$dst/CLAUDE.md" "$dst/skills" "$dst/hooks" "$dst/agents"
     install -Dm644 "${claudeSrc}/settings.json" "$dst/settings.json"
     # 生成元を .claude/ の外に置くのは、本リポ自身で作業するとき
     # グローバル指示とプロジェクト指示として同一内容が二重に読まれるため
@@ -39,7 +39,8 @@ in
     chmod 644 "$dst/CLAUDE.md"
     cp -rL "${claudeSrc}/skills" "$dst/skills"
     cp -rL "${claudeSrc}/hooks" "$dst/hooks"
-    chmod -R u+w "$dst/skills" "$dst/hooks"
+    cp -rL "${claudeSrc}/agents" "$dst/agents"
+    chmod -R u+w "$dst/skills" "$dst/hooks" "$dst/agents"
     chmod -R u+x "$dst/hooks"
   '';
 }
