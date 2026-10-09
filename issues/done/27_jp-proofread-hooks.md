@@ -1,3 +1,48 @@
+## PR記録: feat: 書いた日本語の校正を、Stop フックが会話の外で subagent に回す
+issue: 27 (27_jp-proofread-hooks.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/86
+
+## 変更内容
+- `.claude/agents/jp-proofreader.md`: 日本語 .md の表現だけを校正する役。稼働側の定義を写した（モデルは ID 固定、Write・Glob・Grep を持たせない理由のコメント付き）
+- `.claude/hooks/jp-proofread-stop.sh`: Stop で、会話が書き換えた日本語の .md の変わった行の範囲だけを、会話の外で校正に回す
+- `.claude/hooks/jp-proofread-run.sh`: 校正役のヘッドレス実行の本体。config dir は `CLAUDE_CONFIG_DIR` があればそれを、無ければ `~/.claude` を使う形に一般化した
+- `.claude/hooks/jp-proofread-notice.sh`: UserPromptSubmit で、校正の結果を次のターンに渡す
+- `.claude/settings.json`: Stop と UserPromptSubmit に登録（timeout・statusMessage は稼働側と同じ）
+- `aiagent.sh`: `_aiagent_wt_clean` が、その worktree を対象に走っている校正の印を見て、終わるまで待つ（上限180秒、超えたら畳まずに知らせる）
+- テスト: `jp-proofread-{stop,run,notice}.test.sh` に加え、`i` の待ちを固定する `aiagent-wt-clean.test.sh` を足した。run のテストは、校正の結果の中身（成功時・失敗時）も照合する
+
+## 保証
+- 変わった行の範囲だけが会話の外で校正に回る。日本語が無ければ起動しない → `jp-proofread-stop.test.sh`
+- 校正の結果は次の user のターンで渡る → `jp-proofread-run.test.sh`（結果の中身）、`jp-proofread-notice.test.sh`（渡し方）
+- `i` は校正が走り終わるまで worktree を畳まない（上限を過ぎたら畳まずに知らせる） → `aiagent-wt-clean.test.sh`
+- 既存のフックの判定は不変 → `route-browser-to-crit.test.sh`
+
+## 静的確認結果
+- `.claude/hooks/tests/*.test.sh` 5本すべて通過、`zsh -n aiagent.sh` 通過、`nix flake check` 通過、`jq . .claude/settings.json` 通過
+- 追加したファイルに会社名・会社の config dir・ホスト名は無い
+- 稼働側との `diff`: 差は config dir の分岐の一般化（run）、除外パスから `.claude-corp` を外した1行（stop）、それに合わせた run のテストのみ
+
+## 検証手順
+rebuild のあと、日本語の .md を書き換えた会話で、次のターンに校正の結果が届くことを確かめる（実機）。登録は `$CLAUDE_PROJECT_DIR/.claude/hooks/...` を指すので、このリポ以外の会話でも動くかも併せて見る。
+
+## 検収
+| 確認 | 判定 |
+|---|---|
+| テスト5本、`zsh -n`、`nix flake check`、`jq` | 合 |
+| 会社名・会社の config dir・ホスト名が無い | 合 |
+| agent とフック3本が稼働側と一致（差は一般化した箇所だけ） | 合 |
+
+| 保証 | 判定 |
+|---|---|
+| 変わった行の範囲だけが校正に回る。日本語が無ければ起動しない | 合 |
+| 校正の結果は、次のターンで会話に渡る | 合 |
+| `i` は校正が走り終わるまで worktree を畳まない | 合 |
+| 既存のフックの判定は変わらない | 合 |
+
+範囲の外: `aiagent-wt-clean.test.sh` を Issue の対象に足した（user が承認）。
+
+---
+
 ## 書いた日本語の校正を、フックが会話の外で subagent に回す
 id: 27
 branch-slug: jp-proofread-hooks
