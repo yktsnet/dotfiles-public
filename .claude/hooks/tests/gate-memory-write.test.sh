@@ -30,6 +30,12 @@ check ask Bash command 'cp a.md ~/memory/a.md'
 check ask Bash command 'mv a.md ~/memory/a.md'
 check ask Bash command 'rm ~/memory/a.md'
 check ask Bash command 'sed -i s/a/b/ ~/memory/a.md'
+check ask Bash command 'cp a.md ~/memory'
+check ask Bash command 'cp a.md $HOME/memory'
+check ask Bash command 'cp a.md /Users/u/memory'
+check ask Bash command 'mv a.md ~/dotfiles/memory'
+check ask Bash command 'install -m 644 a.md $HOME/memory'
+check ask Bash command 'cp a.md "$HOME/memory"'
 check ask Bash command 'install -m 644 a.md ~/memory/a.md'
 check ask Bash command 'perl -pi -e s/a/b/ ~/memory/a.md'
 
@@ -41,6 +47,6 @@ check silent Bash command 'cat ~/memory/a.md'
 check silent Bash command 'ls ~/memory/'
 check silent Bash command 'grep -r x ~/memory/'
 check silent Bash command 'echo x > /tmp/a.md'
-
+check silent Bash command 'cp a.md /tmp/memory-notes'
 [ "$fail" = 0 ] && echo ok
 exit "$fail"

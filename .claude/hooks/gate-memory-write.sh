@@ -31,8 +31,9 @@ memory-write スキルを読み、要否の判断軸（そこにしか無いか�
 
 if [ "$tool_name" = "Bash" ]; then
   cmd=$(printf '%s' "$payload" | jq -r '.tool_input.command // ""')
-  # 読み取り（cat / grep / ls）は素通しし、書き込み側のみ捕捉する
-  printf '%s' "$cmd" | grep -Eq '(>>?|tee|cp|mv|install|rm|sed -i|perl -pi)[^|&;]*(/memory/|~/memory)' || exit 0
+  # 読み取り（cat / grep / ls）は素通しし、書き込み側のみ捕捉する。
+  # 宛先がディレクトリそのもの（cp a.md $HOME/memory）でも末尾の / が無いだけで漏れないよう、語尾も見る
+  printf '%s' "$cmd" | grep -Eq '(>>?|tee|cp|mv|install|rm|sed -i|perl -pi)[^|&;]*(/memory(/|[[:space:]"'"'"']|$)|~/memory)' || exit 0
   ask "$reason"
 fi
 
