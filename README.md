@@ -44,7 +44,7 @@ AI がコードを書くようになって、時間がかかるのは書くこ�
 
 エージェントは、書かれていない条件を推論で埋める。だから人が決めることは、作る前に書いて渡す。
 
-中心は**保証駆動開発（Guarantee-Driven Development, GDD）**である。何が壊れてはいけないか（保証）を人が Issue の保証節で裁可し、それを固定するテストと実装はエージェントが書く。TDD がテストを先に書く規律なら、GDD は約束の裁可を先に行う規律である。裁可した保証は各リポの保証台帳 `docs/guarantees.md` に、裏付けるテストと一緒に積み上がる。台帳に載っていない振る舞いは約束ではない（[guarantee-audit](.claude/skills/guarantee-audit/SKILL.md)、[Zenn: 保証駆動開発](https://zenn.dev/yktsnet/articles/202608-guarantee-driven-development)）。
+中心は**保証駆動開発**（Guarantee-Driven Development, GDD）である。何が壊れてはいけないか（保証）を人が Issue の保証節で裁可し、それを固定するテストと実装はエージェントが書く。TDD がテストを先に書く規律なら、GDD は約束の裁可を先に行う規律である。裁可した保証は各リポの保証台帳 `docs/guarantees.md` に、裏付けるテストと一緒に積み上がる。台帳に載っていない振る舞いは約束ではない（[guarantee-audit](.claude/skills/guarantee-audit/SKILL.md)、[Zenn: 保証駆動開発](https://zenn.dev/yktsnet/articles/202608-guarantee-driven-development)）。
 
 開発は2つのフェーズで**駆動文書を交代させる**。方向が固まらない立ち上げ期は PLAN.md（残作業）と JUDGE.md（設計判断）が開発を駆動し（[mvp-docs](.claude/skills/mvp-docs/SKILL.md)）、保証台帳が正式運用に上がった時点で台帳へ交代して Issue 駆動期に入る。考え方の全体は sdlc-kit の [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md) にある。
 
