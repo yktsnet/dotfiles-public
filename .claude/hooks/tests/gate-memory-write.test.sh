@@ -30,6 +30,8 @@ check ask Bash command 'cp a.md ~/memory/a.md'
 check ask Bash command 'mv a.md ~/memory/a.md'
 check ask Bash command 'rm ~/memory/a.md'
 check ask Bash command 'sed -i s/a/b/ ~/memory/a.md'
+check ask Bash command 'install -m 644 a.md ~/memory/a.md'
+check ask Bash command 'perl -pi -e s/a/b/ ~/memory/a.md'
 
 # 通す: 読み取り、無関係なパス
 check silent Write file_path "$home/other/a.md"
