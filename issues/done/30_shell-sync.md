@@ -1,7 +1,7 @@
 ## zsh 関数と home-manager を稼働側に追従させる
 id: 30
 branch-slug: shell-sync
-status: open
+status: close
 parent: dotfiles-fe
 type: cleanup
 対象: home-manager/modules/zsh/functions/aiagent.sh, home-manager/modules/zsh/functions/menu.sh, home-manager/modules/tmux.nix, home-manager/modules/ctx.nix, home-manager/config/claude/common.md
