@@ -22,7 +22,7 @@
 | | [screen-operator](../agents/screen-operator.md) | 画面を操作して確かめる subagent |
 | | [session-nudge](session-nudge/SKILL.md) | 別セッションを外から客観視する相談 |
 | 公開 | [readme-i18n](readme-i18n/SKILL.md)・[repo-publish](repo-publish/SKILL.md)・[repo-about](repo-about/SKILL.md) | 英語版 README・公開手続き・About と topics |
-| 前提 | [nix-tool-install](nix-tool-install/SKILL.md)・[sops-secrets](sops-secrets/SKILL.md)・[jp-writing](jp-writing/SKILL.md) | Nix 経由の導入・機密の暗号化・日本語の文章規範 |
+| 前提 | [nix-tool-install](nix-tool-install/SKILL.md)・[sops-secrets](sops-secrets/SKILL.md)・[jp-writing](jp-writing/SKILL.md)・[memory-write](memory-write/SKILL.md) | Nix 経由の導入・機密の暗号化・日本語の文章規範・永続メモリの書き場と書式 |
 
 ## 公開の基準
 

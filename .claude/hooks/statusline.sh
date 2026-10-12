@@ -5,9 +5,16 @@ input=$(cat)
 get() { jq -r "$1 // empty" <<<"$input"; }
 
 model=$(get '.model.display_name')
+effort=$(get '.effort.level')
 dir=$(get '.workspace.current_dir')
 [ -z "$dir" ] && dir=$(get '.cwd')
-dir_name=$(basename "${dir:-.}")
+# サブディレクトリや worktree にいても、ディレクトリ名ではなく元のリポ名を出す
+common=$(git -C "${dir:-.}" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
+if [ -n "$common" ]; then
+  dir_name=$(basename "$(dirname "$common")")
+else
+  dir_name=$(basename "${dir:-.}")
+fi
 branch=$(git -C "${dir:-.}" branch --show-current 2>/dev/null)
 
 ctx_pct=$(get '.context_window.used_percentage')
@@ -53,7 +60,17 @@ fmt_tokens() {
   fi
 }
 
-line="${dir_name}${branch:+:${branch}} [${model:-?}]"
+# Claude Code が端末タイトルへ送る会話のタイトルを、tmux のペインタイトル経由で拾う
+# （並行するセッションの見分け用。先頭の状態記号は落とす）
+title=""
+if [ -n "${TMUX_PANE:-}" ]; then
+  title=$(tmux display -p -t "$TMUX_PANE" '#{pane_title}' 2>/dev/null)
+  # ✳（待機）と点字のスピナー（作業中）
+  title=$(printf '%s' "$title" | perl -CS -pe 's/^[\x{2733}\x{2800}-\x{28FF}]\s*//')
+  [ "$title" = "$(hostname -s 2>/dev/null)" ] && title=""
+fi
+
+line="${title:+${title} · }${dir_name}${branch:+:${branch}} [${model:-?}${effort:+ ${effort}}]"
 if [ -n "$ctx_pct" ]; then
   ctx_tokens=""
   if [ -n "$ctx_in" ] && [ -n "$ctx_out" ]; then

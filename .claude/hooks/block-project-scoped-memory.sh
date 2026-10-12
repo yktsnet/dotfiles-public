@@ -1,27 +1,42 @@
 #!/usr/bin/env bash
-# PreToolUse hook (Edit|Write): プロジェクトスコープの memory ディレクトリへの書き込みを拒否する。
-# ハーネスのシステムプロンプトは永続メモリの置き場として ~/.claude/projects/<project>/memory/ を
-# 指示してくるが、この環境の正本は ~/memory/ であり、SessionStart の sync-memory-index.sh が
-# ~/memory/{user,feedback,project,reference}/ から MEMORY.md を再生成している。両者は互いを
-# 知らないため、放置するとプロジェクト側に劣化した重複メモリが溜まり、索引にも載らず発見されない。
-# sync-memory-index.sh は「索引を正しく保つ」対策であって「正しい場所に書かせる」対策ではない。
-# その穴をこのフックで塞ぐ。
-file_path=$(jq -r '.tool_input.file_path // ""')
-home="${HOME:-/Users/$(whoami)}"
+# PreToolUse hook (Edit|Write|Bash): プロジェクトスコープの memory ディレクトリへの書き込みを拒否する。
+#
+# ハーネスのシステムプロンプトは永続メモリの置き場として
+# ~/.claude/projects/<project>/memory/ を指示してくるが、この環境の正本は ~/memory/ である。
+# 両者は互いを知らないため、放置するとプロジェクト側に劣化した重複メモリが溜まり、
+# 一覧に出ないまま永久に発見されない。
+#
+# シェル経由（cat > 等）だと Write を通らず素通りするため Bash も対象にする。
+# 判定の形は gate-memory-write.sh と揃えてある。
+payload=$(cat)
+home="${HOME}"
+tool_name=$(printf '%s' "$payload" | jq -r '.tool_name // ""')
 
-case "$file_path" in
-  "$home"/.claude/projects/*/memory/*) ;;
-  *) exit 0 ;;
-esac
+deny() {
+  jq -n --arg dst "$1" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "deny",
+      permissionDecisionReason: ("~/.claude/projects/*/memory/ はこの環境では使わない。永続メモリの正本は ~/memory/ 直下で、サブディレクトリも索引ファイルも持たない。書く前に memory-write スキルを読み、user の承認と、skill / docs に書き場が無いことの確認を先に済ませること。書く場合の宛先は " + $dst + "。")
+    }
+  }'
+  exit 0
+}
 
-base=$(basename "$file_path")
-
-if [ "$base" = "MEMORY.md" ]; then
-  suggested="$home/memory/MEMORY.md（ただし手で書かない。SessionStart の sync-memory-index.sh が各メモリの frontmatter から再生成する）"
-else
-  suggested="$home/memory/{user|feedback|project|reference}/$base"
+if [ "$tool_name" = Bash ]; then
+  cmd=$(printf '%s' "$payload" | jq -r '.tool_input.command // ""')
+  # 読み取り（cat / grep / ls）は素通しし、書き込み側のみ捕捉する
+  printf '%s' "$cmd" \
+    | grep -Eq '(>>?|tee|cp|mv|install|rm|sed -i|perl -pi)[^|&;]*/\.claude/projects/[^[:space:]]*/memory/' \
+    || exit 0
+  deny "${home}/memory/<name>.md"
 fi
 
-cat <<EOF
-{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"~/.claude/projects/*/memory/ はこの環境では使わない。永続メモリの正本は ~/memory/ で、型ごとのサブディレクトリ (user / feedback / project / reference) に1ファイル1事実で置く。代わりに ${suggested} へ書くこと。索引 ~/memory/MEMORY.md は SessionStart フックが自動生成するため手で編集しない。書く前に ~/memory/MEMORY.md を読み、既存メモリと重複しないか必ず確認すること。"}}
-EOF
+file_path=$(printf '%s' "$payload" | jq -r '.tool_input.file_path // ""')
+
+case "$file_path" in
+  "$home"/.claude/projects/*/memory/*)
+    deny "${home}/memory/$(basename "$file_path")" ;;
+esac
+
+exit 0
