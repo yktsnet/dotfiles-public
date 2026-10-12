@@ -1,3 +1,54 @@
+## PR記録: chore: .claude/ を稼働側に追従させる（skill・hook・settings）
+issue: 29 (29_claude-sync.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/88
+
+## 変更内容
+公開の基準（`.claude/skills/README.md`）に従い、稼働側の `.claude/` を一般化した写しに揃えた。
+- 外したもの: `backup-secret-json.sh` とその PreToolUse の配線、`.claude/RULES.md`。sops-secrets の「JSON だけ Read/Edit/Write を許す」例外をやめ、`secrets/` は Agent から読み書きしない（`settings.json` に `Read(secrets/**)` と `Edit(secrets/**)` の deny を足した）
+- consolidate-rules: アンカー方式をやめ、毎回全件を読む形に差し替え。英語版を対象にしない判断は残した
+- pr-workflow: 手順8〜11の crit の段取り（手順9で開き直す、指摘の無い Finish Review を PR を出す明示とみなす）
+- block-project-scoped-memory: Bash も対象にし、`sync-memory-index.sh` への言及を消した
+- block-live-claude-config-edit: `agents/` を対象に足し、ヒアドキュメントの本文を判定から外した。matcher を `Edit|Write|Bash` の1組に集約。テストを新規追加（会社面のケースは持ち込まない）
+- statusline: worktree でも元のリポ名を出し、effort と tmux ペインタイトルの会話タイトルを出す
+- memory-write を切り出し、`skills/README.md` の一覧に足した
+
+## 保証
+- Agent は `secrets/` 配下を読めず編集もできない → `settings.json` の deny（テストなし: 宣言的な設定）
+- 配布先への直接編集はヒアドキュメント本文のパスでは止めず、リダイレクト先なら止める → `.claude/hooks/tests/block-live-claude-config-edit.test.sh`
+- `~/.claude/projects/*/memory/` へは Bash 経由でも書き込めない → なし（回帰テストは足していない。ペイロードを流した手元確認のみ）
+- 維持: ほかのフックの配線とテストの結果は変わらない
+- 廃止: `secrets/**/*.json.age` の Edit/Write 前のバックアップ（フックごと外した）
+
+## 静的確認結果
+- `hooks/tests/*.test.sh` 全通過、`hooks/*.sh` は `bash -n` 通過、`jq . .claude/settings.json` 通過
+- `backup-secret-json` / `RULES.md` / `sync-memory-index` の grep は `issues/` 以外で0件
+- `settings.json` が参照するフックは全て存在
+
+## 検証手順
+`home-manager switch` で配布した後の実機で、次を確認する（実適用は user が実施）。
+- `secrets/` 配下の Read が止まる
+- statusline に元のリポ名・effort・会話のタイトルが出る
+
+## 確認者の判定
+| 確認 | 判定 |
+|---|---|
+| 対象ファイルごとの稼働側との diff が「持ち込まない差」だけ | 合 |
+| 旧語の grep が `issues/done/` 以外で0件 | 否（軽微）: Issue 本文自体に語があった。`done/` へ移して解消 |
+| `jq . .claude/settings.json` | 合 |
+| `hooks/tests/*.test.sh` | 合（8本） |
+
+| 保証 | 判定 |
+|---|---|
+| `secrets/` を読めず編集もできない | 合（テストなし。deny 2件の存在を確認） |
+| ヒアドキュメント本文のパスでは止めず、リダイレクト先なら止める | 合 |
+| `projects/*/memory/` へ Bash 経由でも書けない | 合（回帰テストなし） |
+| 他フックの配線とテストの結果は変わらない | 合 |
+| 廃止: secret JSON のバックアップ | 合 |
+
+範囲の外: なし（`issues/` の差分は Issue を open にした先行コミットによるもの）
+
+---
+
 ## .claude/ を稼働側に追従させる（skill・hook・settings）
 id: 29
 branch-slug: claude-sync
