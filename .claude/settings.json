@@ -20,6 +20,8 @@
       "Bash(nh *)",
       "Bash(nix flake update *)",
       "Edit(flake.lock)",
+      "Read(secrets/**)",
+      "Edit(secrets/**)",
       "Edit(secrets-agents/**)",
       "Read(secrets-agents/**)"
     ]
@@ -34,12 +36,6 @@
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-non-nix-install.sh",
             "timeout": 10,
             "statusMessage": "Nix 外インストールを検査中"
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-live-claude-config-edit.sh",
-            "timeout": 10,
-            "statusMessage": "~/.claude 直接編集を検査中"
           },
           {
             "type": "command",
@@ -60,6 +56,18 @@
         "hooks": [
           {
             "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-live-claude-config-edit.sh",
+            "timeout": 10,
+            "statusMessage": "~/.claude 直接編集を検査中"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-project-scoped-memory.sh",
+            "timeout": 10,
+            "statusMessage": "memory の書き込み先を検査中"
+          },
+          {
+            "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/gate-memory-write.sh",
             "timeout": 10,
             "statusMessage": "memory の書き込み承認を確認中"
@@ -74,29 +82,6 @@
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-new-skill-md.sh",
             "timeout": 10,
             "statusMessage": "新規SKILL.md作成を検査中"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-live-claude-config-edit.sh",
-            "timeout": 10,
-            "statusMessage": "~/.claude 直接編集を検査中"
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-project-scoped-memory.sh",
-            "timeout": 10,
-            "statusMessage": "memory の書き込み先を検査中"
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/backup-secret-json.sh",
-            "timeout": 10,
-            "statusMessage": "secret上書き前にバックアップ中"
           }
         ]
       }
