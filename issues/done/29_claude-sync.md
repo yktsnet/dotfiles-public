@@ -1,7 +1,7 @@
 ## .claude/ を稼働側に追従させる（skill・hook・settings）
 id: 29
 branch-slug: claude-sync
-status: open
+status: close
 parent: dotfiles-fe
 type: cleanup
 対象: .claude/settings.json, .claude/RULES.md（削除）, .claude/hooks/backup-secret-json.sh（削除）, .claude/hooks/block-project-scoped-memory.sh, .claude/hooks/block-live-claude-config-edit.sh, .claude/hooks/tests/block-live-claude-config-edit.test.sh（新規）, .claude/hooks/statusline.sh, .claude/skills/memory-write/SKILL.md（新規）, .claude/skills/README.md, .claude/skills/consolidate-rules/SKILL.md, .claude/skills/pr-workflow/SKILL.md, .claude/skills/sops-secrets/SKILL.md
