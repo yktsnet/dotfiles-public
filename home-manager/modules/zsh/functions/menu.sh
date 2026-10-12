@@ -19,6 +19,21 @@ _pick() {
   printf '%s\n' "${sel%%$'\t'*}"
 }
 
+# _pick の複数選択版。Tab で印を付けた行の key を1行ずつ返す
+_pick_multi() {
+  emulate -L zsh
+  local prompt="$1"
+  shift
+
+  local -a sel
+  sel=("${(@f)$(printf '%s\n' "$@" \
+    | fzf --multi --prompt="${prompt}> " \
+          --delimiter=$'\t' --with-nth=2..)}") || return 1
+  [[ -z "${sel[1]}" ]] && return 1
+
+  printf '%s\n' "${sel[@]%%$'\t'*}"
+}
+
 # 使い方:
 #   _confirm "delete branch?" || return 0     # 既定 No
 #   _confirm "continue?" y || return 0        # 既定 Yes

@@ -37,4 +37,16 @@ let
 in
 {
   home.packages = [ ctx ];
+
+  # daemon は prerelease の既定で無効で、有効化は `ctx daemon enable` が各端末の config.toml に書く。
+  # Nix の外に置くと端末を移ったときに抜けるため、ここで宣言する。有効なら import のついでに
+  # daemon が起動し、既定の取り込み元（~/.claude/projects 等）を最新に保つ。
+  # 読み取り専用の symlink になるので `ctx daemon disable` は失敗する。止めるときはここを直す。
+  home.file.".ctx/config.toml" = {
+    force = true;
+    text = ''
+      [daemon]
+      enabled = true
+    '';
+  };
 }
