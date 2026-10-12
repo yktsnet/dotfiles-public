@@ -1,3 +1,51 @@
+## PR記録: chore: zsh 関数と home-manager を稼働側に追従させる
+issue: 30 (30_shell-sync.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/89
+
+## 変更内容
+- aiagent.sh: 実行者の system prompt に「指摘の無い crit の Finish Review を PR を出す明示とみなす」を追加。`i` の fzf に C-o（エディタで開く）・折り返し・bat によるプレビューを足し、draft の裁可の前にエディタで全文を読ませて確認を挟む
+- menu.sh: `_pick_multi`（Tab で複数選択する fzf ピッカー）を追加
+- tmux.nix: status-right のエージェント表示を、エージェントごとのチップから状態別の件数（waiting / idle / busy）に変更。M-u の説明コメントを実態（起動は c() に一本化）に合わせた
+- ctx.nix: daemon を有効にする `~/.ctx/config.toml` を宣言
+- common.md: 応答の言語、コメント/実行時メッセージの言語規則、経緯を永続メモリに置く規則、worktree でブランチを切る節、memory-write への参照を追加
+
+持ち込まない差は Issue のとおり: 横断リポの `AIAGENT_REPO_ROOTS` と issues/ の場所、会社面、ホスト名、`~/github-corp/` の節。
+tmux.nix のうち、公開範囲を絞った際に外した pane 格子・スクラッチ popup・sessionizer・基本設定とテーマ・コピー設定は戻していない（user と合意）。
+
+## 保証
+なし（公開側は clone して適用する想定がなく、確かめられるのは評価と構文まで。挙動は稼働側で確かめ済み）
+
+## 静的確認結果
+- `zsh -n` aiagent.sh / menu.sh: ok
+- `nix flake check`: ok（darwinConfigurations.macbook）
+- `nix eval .#nixosConfigurations.linux-desktop.config.system.build.toplevel.drvPath`: ok
+- tmux.nix の jq フィルタを waiting / shell / busy / status なしの入力で実行し、3 状態の件数が出ることを確認
+- `git diff --name-only --cached`:
+  - home-manager/config/claude/common.md
+  - home-manager/modules/ctx.nix
+  - home-manager/modules/tmux.nix
+  - home-manager/modules/zsh/functions/aiagent.sh
+  - home-manager/modules/zsh/functions/menu.sh
+
+## 検証手順
+- 各デバイスで `home-manager switch`（または `darwin-rebuild` / `nixos-rebuild`）を適用し、tmux の status-right が件数表示になること、`~/.ctx/config.toml` が生成されることを確認する
+- `i` で C-o と draft の裁可前のエディタ表示が動くことを確認する
+
+
+## 確認者の判定
+| 確認 | 判定 |
+|---|---|
+| aiagent.sh の差が持ち込まない差だけ | 合 |
+| menu.sh（`_pick_multi`） | 合 |
+| tmux.nix | 否（公開範囲を絞った際に外した部分を戻さないことは user と合意済み。Issue の「持ち込まない差」には未記載） |
+| ctx.nix | 合 |
+| common.md | 合 |
+| `nix flake check` | 合 |
+| `zsh -n`（aiagent.sh・menu.sh） | 合 |
+| 保証 | なし（Issue どおり） |
+
+---
+
 ## zsh 関数と home-manager を稼働側に追従させる
 id: 30
 branch-slug: shell-sync
