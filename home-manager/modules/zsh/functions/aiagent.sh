@@ -343,7 +343,7 @@ _AIAGENT_CANDIDATES=3
 
 _aiagent_builder_prompt() {
   local issues_dirs="$1"
-  print -r -- "You are the Builder. Follow pr-workflow: implement and commit, then stop so the user can verify in this session, and fix what they point out with additional commits. Close this Issue and open the PR only after the user explicitly approves. Push only your own branch; never push to main, and never merge unless the user asks. Do NOT change the status of any other issue file. If you find work outside this Issue's scope, ask the user with AskUserQuestion whether to (a) file it as a new Issue, (b) fix it within this Issue, or (c) skip it. For (a), write it as status: draft following the local-issue skill's format into the main checkout's issues directory (${issues_dirs}), never into this worktree, then return to the original task. Do not stage or commit the draft."
+  print -r -- "You are the Builder. Follow pr-workflow: implement and commit, then stop so the user can verify in this session, and fix what they point out with additional commits. Close this Issue and open the PR only after the user explicitly approves; a crit review finished with no comments counts as that approval. Push only your own branch; never push to main, and never merge unless the user asks. Do NOT change the status of any other issue file. If you find work outside this Issue's scope, ask the user with AskUserQuestion whether to (a) file it as a new Issue, (b) fix it within this Issue, or (c) skip it. For (a), write it as status: draft following the local-issue skill's format into the main checkout's issues directory (${issues_dirs}), never into this worktree, then return to the original task. Do not stage or commit the draft."
 }
 
 # マージ済みの作業ブランチ（day/* 等）に居残っているだけなら main へ戻す。main 側の Issue は
@@ -535,8 +535,10 @@ i() {
   local -a sel
   sel=(${(f)"$(print -rl -- "${items[@]}" \
     | fzf --prompt="issue> " --delimiter=$'\t' --with-nth=4 \
-          --multi="$_AIAGENT_CANDIDATES" --header="TAB: run up to ${_AIAGENT_CANDIDATES} from one repo" \
-          --preview='if [ {1} = merge ]; then cd {2} && gh pr view {3} && echo && gh pr diff {3} --name-only; elif [ -f {3} ]; then cat {3}; fi')"})
+          --multi="$_AIAGENT_CANDIDATES" --header="TAB: run up to ${_AIAGENT_CANDIDATES} from one repo / C-o: open in editor" \
+          --bind="ctrl-o:execute([ -f {3} ] && ${EDITOR:-nvim} {3})" \
+          --preview-window=wrap \
+          --preview='if [ {1} = merge ]; then cd {2} && gh pr view {3} && echo && gh pr diff {3} --name-only; elif [ -f {3} ]; then bat --style=plain --color=always --theme=ansi -l md {3}; fi')"})
   (( ${#sel} )) || { print "i: cancelled" >&2; return 1 }
 
   local action repo
@@ -552,6 +554,9 @@ i() {
   case "$action" in
     run) _aiagent_run "${targets[@]}" ;;
     approve)
+      # 裁可の前に全文を読ませる。開いた先で直してから閉じてもよい
+      ${EDITOR:-nvim} "${targets[1]}"
+      _confirm "Approve ${targets[1]:t}?" || return 0
       _sed_i "s/^status: draft$/status: open/" "${targets[1]}"
       print "Opened: ${targets[1]:t}"
       _confirm "continue to implement?" && _aiagent_run "${targets[1]}"
