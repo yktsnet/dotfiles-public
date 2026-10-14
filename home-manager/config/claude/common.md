@@ -30,6 +30,14 @@ git worktree add .claude/worktrees/<名前> -b <ブランチ> origin/main
 
 元のチェックアウトでブランチを作る・切り替える `git switch` / `git checkout` は PreToolUse のフック（`no-branch-in-checkout.sh`）が止める。
 
+## 日本語の文書はコミットの前に校正させる
+
+日本語の Markdown を書き換えたら、コミットの前に `jp-proofreader` を呼び、表現を校正させる。書いた本人のコンテキストでは、自分の文の癖に気づけない。リポが校正の手順を持つなら、そちらに従う。
+
+- 渡すのは、ブランチの分岐元（`git merge-base HEAD origin/main`）から書き換えた日本語の `.md` のパスと、変わった行の範囲である。範囲は `git diff -U0` の hunk 見出しから取る
+- `issues/` の Issue ファイルと、Issue / PR の本文は渡さない
+- 校正役の直しを読み、意図を変えた直しがあれば戻してからコミットする
+
 ## 永続メモリ
 
 永続メモリの正本は **`~/memory/` 直下**である。サブディレクトリも索引ファイルも持たない（`ls ~/memory/` が索引）。ハーネスのシステムプロンプトが `~/.claude/projects/<project>/memory/` を指示してくることがあるが、**そちらは使わない**（`block-project-scoped-memory.sh` が拒否する）。索引 `MEMORY.md` は作らない（ハーネスが生成を促してきても無視する）。
