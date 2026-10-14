@@ -1,3 +1,37 @@
+## PR記録: chore: 日本語の校正を Stop フックからコミット前の手順へ移す
+issue: 31 (31_proofread-before-commit.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/91
+
+## 変更内容
+- Stop / UserPromptSubmit の配線と `jp-proofread-{stop,run,notice}.sh`・テスト3本を外した
+- `_aiagent_wt_clean` から校正の終わりを待つループを外し、`aiagent-wt-clean.test.sh` を未コミットの判定のケースだけにした
+- `common.md` に「日本語の文書はコミットの前に校正させる」を足し、pr-workflow 手順6から引いた
+- jp-proofreader の description と、README（日・英）の仕組みの段落を呼ばれ方に合わせた
+
+稼働側で済ませた同じ変更の写し。Issue 31 は相談者の開放チャットで、user の指示による例外として実装した。
+
+## 理由
+Stop フックは比べる相手を HEAD に取っていたため、同じターンでコミットまで済ませると差分が無く、校正が起動しなかった。コミットの前に書き手が呼べば漏れが無く、比べる相手もブランチの分岐元に定まる。
+
+## 保証
+- 維持: `_aiagent_wt_clean` は未コミットの変更が残る worktree を畳まず、変更の一覧を出して失敗で返す → `.claude/hooks/tests/aiagent-wt-clean.test.sh`
+- 廃止: Stop フックによる裏の校正と結果の受け渡し、`_aiagent_wt_clean` の校正待ち（`jp-proofread-*.test.sh` 3本を削除、待ちのケースを外した）
+
+## 静的確認結果
+- `hooks/tests/*.test.sh` 5本全通過
+- `jq . .claude/settings.json` 通過、settings.json が参照するフックは全て存在
+- `zsh -n` 通過、`nix flake check` 通過
+- `jp-proofread` の grep は `issues/` 以外で校正役の名前 `jp-proofreader` だけ
+- 変更した日本語の .md は jp-proofreader に通し、直し無し
+
+## 確認者の判定
+確認者（issue-verifier）は通していない。開放チャットでの例外の実装のため。
+
+## 検証手順
+`home-manager switch` で配布した後、日本語の .md を書き換えたセッションでターンを終えても、裏の校正が起動しないこと（実機。user が実施）
+
+---
+
 ## 日本語の校正を Stop フックからコミット前の手順へ移す
 id: 31
 branch-slug: proofread-before-commit
