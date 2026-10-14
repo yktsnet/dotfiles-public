@@ -54,6 +54,18 @@ _aiagent_issue_status() {
   head -n 15 "$1" 2>/dev/null | awk '/^status:/ { print $2; exit }'
 }
 
+# depends: に挙げた id のうち、まだマージされていないもの。Issue は PR のブランチで done/ へ閉じるので、
+# main の done/ に現れたらマージ済みである。親のセッションを置かず、順序は Issue 自身に持たせる
+_aiagent_deps_unmet() {
+  emulate -L zsh
+  local f="$1" line id
+  line=$(head -n 15 "$f" 2>/dev/null | awk '/^depends:/ { sub(/^depends:[ \t]*/, ""); print; exit }')
+  for id in ${=line//,/ }; do
+    local -a hit=("${f:h}"/done/${id}_*.md(N))
+    (( ${#hit} )) || print -r -- "$id"
+  done
+}
+
 # カレントのリポの status: <draft|open> の件数
 _aiagent_count_status() {
   emulate -L zsh
@@ -103,9 +115,23 @@ _aiagent_status() {
   print "${base:t}"
   printf '  %-9s%s\n' draft "$(_aiagent_count_status draft)" open "$(_aiagent_count_status open)"
 
+  local -a waits
+  local d f unmet
+  for d in ${(f)"$(_aiagent_get_issues_dirs "$base")"}; do
+    for f in "$d"/*.md(N); do
+      [[ "$(_aiagent_issue_status "$f")" == open ]] || continue
+      unmet=$(_aiagent_deps_unmet "$f")
+      [[ -n "$unmet" ]] && waits+=("${f:t}  (after ${(j:, :)${(f)unmet}})")
+    done
+  done
+  printf '  %-9s%s\n' waiting "${#waits}"
+  local w
+  for w in "${waits[@]}"; do
+    print "           ${w}"
+  done
+
   local -a wts=(${(f)"$(_aiagent_worktrees)"})
   printf '  %-9s%s\n' worktree "${#wts}"
-  local w
   for w in "${wts[@]}"; do
     print "           ${w#*$'\t'}  (${w%%$'\t'*})"
   done
@@ -302,6 +328,8 @@ _aiagent_entries() {
           open)
             # main 側のファイルはマージまで open のまま残る。ブランチがあれば実装中か PR 待ち
             b=$(_aiagent_issue_branch "$f") && git -C "$repo" show-ref --verify --quiet "refs/heads/${b}" && continue
+            # 前提の Issue がマージされるまでは出さない。待っているものは status に出る
+            [[ -n "$(_aiagent_deps_unmet "$f")" ]] && continue
             runs+=("run"$'\t'"$repo"$'\t'"$f"$'\t'"$(printf 'run      %-20s %s' "${repo:t}" "${f:t}")") ;;
           draft) drafts+=("approve"$'\t'"$repo"$'\t'"$f"$'\t'"$(printf 'approve  %-20s %s' "${repo:t}" "${f:t}")") ;;
         esac
@@ -338,12 +366,12 @@ _aiagent_status_all() {
   done
 }
 
-# 一度に起動できる本数。選ぶ判断を軽くするために絞る
+# 並行させる本数。選ぶ判断を軽くするために絞る。1回に選べる数と、動いている実行者との合計の両方に効く
 _AIAGENT_CANDIDATES=3
 
 _aiagent_builder_prompt() {
   local issues_dirs="$1"
-  print -r -- "You are the Builder. Follow pr-workflow: implement and commit, then stop so the user can verify in this session, and fix what they point out with additional commits. Close this Issue and open the PR only after the user explicitly approves; a crit review finished with no comments counts as that approval. Push only your own branch; never push to main, and never merge unless the user asks. Do NOT change the status of any other issue file. If you find work outside this Issue's scope, ask the user with AskUserQuestion whether to (a) file it as a new Issue, (b) fix it within this Issue, or (c) skip it. For (a), write it as status: draft following the local-issue skill's format into the main checkout's issues directory (${issues_dirs}), never into this worktree, then return to the original task. Do not stage or commit the draft."
+  print -r -- "You are the Builder. Follow pr-workflow: implement and commit, stop in this session only where pr-workflow asks the user to check or decide something, and fix what they point out with additional commits. Close this Issue and open the PR only after the user approves, or without stopping when pr-workflow step 9 leaves nothing for the user to decide. Push only your own branch; never push to main, and never merge unless the user asks. Do NOT change the status of any other issue file. If you find work outside this Issue's scope, ask the user with AskUserQuestion whether to (a) file it as a new Issue, (b) fix it within this Issue, or (c) skip it. For (a), write it as status: draft following the local-issue skill's format into the main checkout's issues directory (${issues_dirs}), never into this worktree, then return to the original task. Do not stage or commit the draft."
 }
 
 # マージ済みの作業ブランチ（day/* 等）に居残っているだけなら main へ戻す。main 側の Issue は
@@ -365,8 +393,31 @@ _aiagent_back_to_main() {
   echo "Switched to main from merged ${cur}."
 }
 
+# 1本の Issue の実行者を、その worktree で前面に起動する。閉じたら、PR を出し終えていれば worktree を畳む。
+# 並行の2本目以降は、_aiagent_run が分けたペインでこれを打つ
+_aiagent_builder() {
+  emulate -L zsh
+  local git_root="$1" wt_dir="$2" branch_name="$3" rel="$4"
+
+  local -a issues_dirs=(${(f)"$(_aiagent_get_issues_dirs "$git_root")"})
+  local -a claude_args=(--model claude-sonnet-5-5 --effort high --permission-mode auto)
+  # スコープ外の draft は main 側の issues/ に置く（main では untracked が前提）。worktree の外なので許可を足す
+  local d
+  for d in "${issues_dirs[@]}"; do
+    claude_args+=(--add-dir "$d")
+  done
+
+  (
+    cd "$wt_dir" || exit 1
+    claude "${claude_args[@]}" --system-prompt "$(_aiagent_builder_prompt "${(j:, :)issues_dirs}")" \
+      "/pr-workflow '${wt_dir}/${rel}'"
+  )
+  cd "$git_root" || return 1
+  _aiagent_retire_wt "$wt_dir" "$branch_name"
+}
+
 # 渡された Issue ファイル（同じリポの open）ごとに worktree を切って Builder を起動する。
-# 1本なら前面で走らせ、終わったら worktree を畳む。複数なら tmux の隠しセッションに置く
+# 1本目は今のペインで、2本目以降は見えるペインに並べる。ペインごとに使い心地を見て OK を出すため
 _aiagent_run() {
   emulate -L zsh
   local -a files=("$@")
@@ -381,21 +432,31 @@ _aiagent_run() {
   # 別の端末で進めた main から切らないと、PR が競合する
   _aiagent_pull_main || return 1
 
-  # 複数起動は tmux の隠しセッションに置き、M-u のピッカーから入る。tmux の外では入口が無い
   if (( ${#files} > 1 )) && [[ -z "$TMUX" ]]; then
     echo "Launching multiple issues needs tmux. Run inside tmux, or select one."
+    return 1
+  fi
+  # 1窓に並べて使い心地を見比べられるのは6枚までとする
+  if (( ${#files} > 1 )) && (( $(tmux display-message -p -t "$TMUX_PANE" '#{window_panes}') + ${#files} - 1 > 6 )); then
+    echo "Too many panes for this window (max 6)."
     return 1
   fi
 
   # 起動前に全件を検証する。途中で止まって一部だけ worktree が残るのを避ける
   local -a branch_names wt_dirs
-  local f branch_leaf
+  local f branch_leaf unmet
   for f in "${files[@]}"; do
     if ! branch_leaf=$(_aiagent_issue_branch "$f"); then
       echo "Issue is missing an id: $f"
       return 1
     fi
     branch_leaf="${branch_leaf#claude/}"
+
+    unmet=$(_aiagent_deps_unmet "$f")
+    if [[ -n "$unmet" ]]; then
+      echo "${f:t} depends on unmerged issue(s): ${(j:, :)${(f)unmet}}"
+      return 1
+    fi
 
     if git show-ref --verify --quiet "refs/heads/claude/${branch_leaf}"; then
       echo "Branch claude/${branch_leaf} already exists. Abort or delete it first."
@@ -410,38 +471,28 @@ _aiagent_run() {
     wt_dirs+=("${git_root}.wt/${branch_leaf}")
   done
 
+  # i は先にマージ済みを畳むので、残る claude/* は作業中か PR 待ちの実行者である
+  local -a running=(${(f)"$(git for-each-ref --format='%(refname:short)' 'refs/heads/claude/*')"})
+  if (( ${#running} + ${#files} > _AIAGENT_CANDIDATES )); then
+    echo "Already running in ${git_root:t}: ${#running}"
+    print -rl -- "  ${^running[@]}"
+    _confirm "Launching ${#files} more exceeds ${_AIAGENT_CANDIDATES}. Launch anyway?" || return 0
+  fi
+
   _confirm "Run pr-workflow with Claude Code for ${(j:, :)${files[@]:t}}?" || return 0
 
-  local -a issues_dirs=(${(f)"$(_aiagent_get_issues_dirs "$git_root")"})
-  local system_prompt
-  system_prompt=$(_aiagent_builder_prompt "${(j:, :)issues_dirs}")
+  local trust_json="${CLAUDE_CONFIG_DIR:-$HOME}/.claude.json"
 
-  local -a claude_args=(--model claude-sonnet-5-5 --effort high --permission-mode auto)
-  # スコープ外の draft は main 側の issues/ に置く（main では untracked が前提）。worktree の外なので許可を足す
-  local d
-  for d in "${issues_dirs[@]}"; do
-    claude_args+=(--add-dir "$d")
-  done
-
-  # 後段の tmux セッションは関数ラッパを通らないので、config dir をここで決めて渡す。
-  # CLAUDE_CONFIG_DIR が設定されていればそれを、無ければ既定（~/.claude.json は $HOME 直下）を使う
-  local config_dir claude_bin
-  config_dir="${CLAUDE_CONFIG_DIR:-$HOME}"
-  claude_bin=$(whence -p claude)
-  local trust_json="${config_dir}/.claude.json"
-  # 隠しセッションへは、設定されているときだけ CLAUDE_CONFIG_DIR を渡す
-  local -a config_env=()
-  [[ -n "$CLAUDE_CONFIG_DIR" ]] && config_env=(env "CLAUDE_CONFIG_DIR=$CLAUDE_CONFIG_DIR")
-
-  local i rel wt_dir branch_name session tmp_json
+  local -a rels
+  local i rel wt_dir tmp_json
   for (( i = 1; i <= ${#files}; i++ )); do
     f=${files[$i]}
     rel="${f#${git_root}/}"
+    rels+=("$rel")
     wt_dir=${wt_dirs[$i]}
-    branch_name=${branch_names[$i]}
 
     # worktree に隔離して実行（main のチェックアウトを汚さない・並列実行可）
-    git worktree add "$wt_dir" -b "$branch_name" || return 1
+    git worktree add "$wt_dir" -b "${branch_names[$i]}" || return 1
 
     # issue ファイル（main 側では untracked のまま）をブランチにコピーしてコミットする。
     # 各ブランチ上でのみ open コミットを行うことで、main 直積みに伴う並行 Issue の混入や
@@ -452,7 +503,7 @@ _aiagent_run() {
     git -C "$wt_dir" commit -q -m "chore(issues): open ${f:t}"
 
     # ワークツリー等のディレクトリの信頼設定を足して、Claude Code の安全確認プロンプトをバイパスする。
-    # CLAUDE_CONFIG_DIR を渡して起動するので、読まれるのは ~/.claude.json ではなく config dir 側の .claude.json。
+    # CLAUDE_CONFIG_DIR を設定していれば、読まれるのは ~/.claude.json ではなく config dir 側の .claude.json。
     # jq が空を出したまま mv すると設定が消えるので、中身があるときだけ置き換える
     if [[ -f "$trust_json" ]]; then
       tmp_json=$(mktemp)
@@ -464,24 +515,18 @@ _aiagent_run() {
         rm -f "$tmp_json"
       fi
     fi
-
-    if (( ${#files} == 1 )); then
-      (
-        cd "$wt_dir" || exit 1
-        claude "${claude_args[@]}" --system-prompt "$system_prompt" "/pr-workflow '${wt_dir}/${rel}'"
-      )
-      _aiagent_retire_wt "$wt_dir" "$branch_name"
-    else
-      # tmux に置いた Builder は終わりを待てないので、worktree はマージ後に _aiagent_reap が畳む。
-      # tmux のセッション名に '.' と ':' は使えない
-      session="claude-issue-${${branch_name#claude/}//[.:]/-}"
-      tmux new-session -d -s "$session" -c "$wt_dir" -- \
-        "${config_env[@]}" "$claude_bin" "${claude_args[@]}" \
-        --system-prompt "$system_prompt" "/pr-workflow '${wt_dir}/${rel}'" \
-        || { echo "Failed to start tmux session for ${branch_name}."; return 1 }
-      echo "Started ${branch_name} in tmux session ${session} (M-u to attach)."
-    fi
   done
+
+  # 2本目以降は新しいペインで _aiagent_builder を打つ。worktree は上で切り終えているので起動をずらさなくてよい。
+  # 末尾のペインの後ろへ足すと、並びが起動順になる
+  local pane last
+  for (( i = 2; i <= ${#files}; i++ )); do
+    last=$(tmux list-panes -t "$TMUX_PANE" -F '#{pane_id}' | tail -n 1)
+    pane=$(tmux split-window -t "$last" -c "$git_root" -P -F '#{pane_id}') || return 1
+    tmux send-keys -t "$pane" \
+      "_aiagent_builder ${(q)git_root} ${(q)wt_dirs[$i]} ${(q)branch_names[$i]} ${(q)rels[$i]}" Enter
+  done
+  _aiagent_builder "$git_root" "${wt_dirs[1]}" "${branch_names[1]}" "${rels[1]}"
 }
 
 # 実行者が出した PR を squash でマージし、そのまま畳んで main を追従させる。
