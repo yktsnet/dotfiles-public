@@ -56,7 +56,7 @@ AI がコードを書くようになって、時間がかかるのは書くこ�
 
 **仕組み**：外れてはいけないもの（`rebuild` 系、`flake.lock` の編集、`ssh`、機密の対応表）は deny と[フック](.claude/hooks/)で止める。フックの拒否文には、止めた理由と正しい経路を書く。エージェントは拒否されると別の手を試し、何を試すかは拒否文で決まるからである。元のチェックアウトでのブランチの切り替えはフックが止め、永続メモリへの書き込みには承認を挟む。件数・一覧・索引のように他から導ける値は手で書かず、スクリプトと CI が書き出してずれを落とす。subagent を呼ぶことも、頼まずに仕組みに置く。書き換えた日本語の文書は、Stop フックが会話の外で校正役（[jp-proofreader](.claude/agents/jp-proofreader.md)）に回し、結果は次のターンで渡す。
 
-**別の文脈**：同じモデルが作って確かめると、外したことに自分では気づけない。相談者が Issue を設計し（[local-issue](.claude/skills/local-issue/SKILL.md)）、実行者が実装し（[pr-workflow](.claude/skills/pr-workflow/SKILL.md)）、確認者（[issue-verifier](.claude/agents/issue-verifier.md)）が Issue だけを基準に確かめる。確認者に実行者の説明を渡さないのは、渡すと実行者の意図を前提に読み、約束から外れたところが見えなくなるからである。画面に出る変更は [screen-operator](.claude/agents/screen-operator.md) が操作して、見えたものを返す。subagent は、すでに別の文脈が確かめている段には足さない。足す理由は客観性・速さ・自動化に限る（skill-dev の 6）。規則同士の食い違いも書いた本人には見つけにくいので、[consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) が別に棚卸しする。
+**別の文脈**：同じモデルが作って確かめると、外したことに自分では気づけない。相談者が Issue を設計し（[local-issue](.claude/skills/local-issue/SKILL.md)）、実行者が実装し（[pr-workflow](.claude/skills/pr-workflow/SKILL.md)）、確認者（[issue-verifier](.claude/agents/issue-verifier.md)）が Issue だけを基準に確かめる。確認者に実行者の説明を渡さないのは、渡すと実行者の意図を前提に読み、約束から外れたところが見えなくなるからである。テストも実行者が書くので、実装の出力を写した期待値は誤りごと通る。確認者は、証拠にしたテストの期待値を Issue から自分で出し直し、守るはずの箇所を写しの上で1か所壊して、そのテストが落ちるかまで見る。画面に出る変更は [screen-operator](.claude/agents/screen-operator.md) が操作して、見えたものを返す。subagent は、すでに別の文脈が確かめている段には足さない。足す理由は客観性・速さ・自動化に限る（skill-dev の 6）。規則同士の食い違いも書いた本人には見つけにくいので、[consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) が別に棚卸しする。
 
 ```mermaid
 flowchart TD
@@ -67,22 +67,26 @@ flowchart TD
         E --> L[コミット]
         L --> J{{確認者}}
         J -->|不合格| E
-        J -->|合格| V{{crit と使い心地の確認}}
-        V -->|指摘| E
+        J -->|合格| V{{user に見てもらうものがあるか}}
+        V -->|あり| H{{使い心地・合意から外れたこと・実機の確認}}
+        H -->|指摘| E
     end
-    V -->|OK| P
+    V -->|なし| P
+    H -->|OK| P
     subgraph remote [GitHub]
         P[実行者が PR を出す] -->|user がマージ| M[main]
     end
 ```
 
-役割の境目は、zsh の関数 `i` 1つで渡す。worktree ごとに実行者を起動し、マージと後片付けまでを受け持つ（[docs/issue-workflow.md](docs/issue-workflow.md)、[Zenn: Issue 駆動ワークフロー](https://zenn.dev/yktsnet/articles/202604-issue-driven-workflow)）。並行するセッションの外からは、[session-nudge](.claude/skills/session-nudge/SKILL.md) が読み手として助言を起こす。
+役割の境目は、zsh の関数 `i` 1つで渡す。worktree ごとに実行者を起動し、マージと後片付けまでを受け持つ（[docs/issue-workflow.md](docs/issue-workflow.md)、[Zenn: Issue 駆動ワークフロー](https://zenn.dev/yktsnet/articles/202604-issue-driven-workflow)）。並行する実行者のあいだに取りまとめのセッションは置かない。前後のある Issue は `depends:` に先の Issue を書き、`i` は先の Issue がマージされるまで後の Issue を候補に出さない。順序を見張る役を置かず、Issue 自身に持たせる。並行するセッションの外からは、[session-nudge](.claude/skills/session-nudge/SKILL.md) が読み手として助言を起こす。
 
 ### 3. 人には書けない判断だけを残す
 
 分かれ目は、書いて渡せるかである。挙動は書いて渡せるので、1 で約束し、2 で確かめる。使い心地や意図に合っているかは、エージェントが意図や感覚を持ちにくく、人が言葉にしても渡しきれない。人に残すのはこれだけにする。
 
-user が持つのは4つである。保証節の裁可、実行者のセッションでの使い心地と実機の確認、約束から外れたことを採るかの判断、マージ。リモートへ出る関門は、実行者のセッションでの OK とマージの2か所になる。挙動の照合は頼まず、同じものを2つの段で見せない。
+user が持つのは4つである。保証節の裁可、実行者のセッションでの使い心地と実機の確認、約束から外れたことを採るかの判断、マージ。実行者が止まるのは、2つめと3つめに当たるものがあるときだけで、無ければ PR まで進む。リモートへ出る関門で必ず通るのはマージだけになる。挙動の照合は頼まず、同じものを2つの段で見せない。
+
+使い心地は先に見る。画面に出る変更は、テストと台帳を書く前に画面を渡す。使い心地で形が変わると、先に書いたテストが無駄になる。
 
 絞るのは、人の判断を薄めないためでもある。速度が上がるほど人の把握は減り、裁可は形だけになりやすい。挙動の照合を手放した分、人は挙動を自分で辿らなくなる。その代わりに、人が見るものを本人にしか判断できないものへ絞る。並行を依存し合わない Issue の3本までにして、確認と直しを実行者のセッションごとに閉じているのも、本数が増えても一つ一つの裁可が成り立つようにするためである。
 

@@ -56,7 +56,7 @@ Agents are confidently and quietly wrong. A promise that people will be careful 
 
 **Mechanisms**: what must not be crossed (`rebuild` commands, edits to `flake.lock`, `ssh`, the secrets mapping) is stopped by deny rules and [hooks](.claude/hooks/). Each hook's rejection message states why it stopped and the correct route, because a rejected agent tries something else and what it tries comes from the message. Hooks also stop branch switching in the main checkout and put an approval in front of writes to persistent memory. Values that can be derived from elsewhere, such as counts, lists, and indexes, are not written by hand; scripts and CI write them out and fail on drift. Calling a subagent is put in a mechanism too, not requested: after Japanese documents are edited, a Stop hook hands them to the proofreader ([jp-proofreader](.claude/agents/jp-proofreader.md)) outside the conversation, and the result arrives on the next turn.
 
-**Separate contexts**: when the same model builds and checks, it cannot notice on its own that it has gone off course. The consultant designs the Issue ([local-issue](.claude/skills/local-issue/SKILL.md)), the executor implements it ([pr-workflow](.claude/skills/pr-workflow/SKILL.md)), and the verifier ([issue-verifier](.claude/agents/issue-verifier.md)) checks the work against the Issue alone. The verifier is never given the executor's explanation, because it would then read the work through the executor's intent and lose sight of where it drifts from the promise. For changes that show up on a screen, [screen-operator](.claude/agents/screen-operator.md) operates the screen and returns what it saw. A subagent is not added at a step that another context already checks, and is added for one of three reasons only: objectivity, speed, or automation (skill-dev, section 6). Contradictions between rules are also hard for their authors to see, so [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) audits them separately.
+**Separate contexts**: when the same model builds and checks, it cannot notice on its own that it has gone off course. The consultant designs the Issue ([local-issue](.claude/skills/local-issue/SKILL.md)), the executor implements it ([pr-workflow](.claude/skills/pr-workflow/SKILL.md)), and the verifier ([issue-verifier](.claude/agents/issue-verifier.md)) checks the work against the Issue alone. The verifier is never given the executor's explanation, because it would then read the work through the executor's intent and lose sight of where it drifts from the promise. The executor also writes the tests, so an expected value copied from the implementation's output passes along with the bug. The verifier re-derives the expected values of the tests used as evidence from the Issue on its own, breaks the guarded spot once in a scratch copy, and checks that the test then fails. For changes that show up on a screen, [screen-operator](.claude/agents/screen-operator.md) operates the screen and returns what it saw. A subagent is not added at a step that another context already checks, and is added for one of three reasons only: objectivity, speed, or automation (skill-dev, section 6). Contradictions between rules are also hard for their authors to see, so [consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) audits them separately.
 
 ```mermaid
 flowchart TD
@@ -67,22 +67,26 @@ flowchart TD
         E --> L[Commit]
         L --> J{{Verifier}}
         J -->|fail| E
-        J -->|pass| V{{crit and feel check}}
-        V -->|comments| E
+        J -->|pass| V{{Anything for the user to look at?}}
+        V -->|yes| H{{Check feel, drift from the agreement, real machine}}
+        H -->|comments| E
     end
-    V -->|OK| P
+    V -->|no| P
+    H -->|OK| P
     subgraph remote [GitHub]
         P[Executor opens the PR] -->|user merges| M[main]
     end
 ```
 
-Role boundaries are handed over through a single zsh function, `i`. It launches an executor per worktree and takes care of merging and cleanup ([docs/issue-workflow.md](docs/issue-workflow.md), [Zenn: Issue-Driven Workflow](https://zenn.dev/yktsnet/articles/202604-issue-driven-workflow)). From outside the parallel sessions, [session-nudge](.claude/skills/session-nudge/SKILL.md) acts as a reader and drafts advice.
+Role boundaries are handed over through a single zsh function, `i`. It launches an executor per worktree and takes care of merging and cleanup ([docs/issue-workflow.md](docs/issue-workflow.md), [Zenn: Issue-Driven Workflow](https://zenn.dev/yktsnet/articles/202604-issue-driven-workflow)). No coordinating session sits between parallel executors. An Issue that must come after another names it in `depends:`, and `i` keeps the later Issue out of the candidates until the earlier one is merged. Order is held by the Issues themselves, not by a role that watches over them. From outside the parallel sessions, [session-nudge](.claude/skills/session-nudge/SKILL.md) acts as a reader and drafts advice.
 
 ### 3. Leave Humans Only the Judgments That Cannot Be Written Down
 
 The dividing line is whether something can be written down and handed over. Behavior can, so it is promised under principle 1 and checked under principle 2. How it feels to use, and whether it matches the intent, cannot: the agent has little sense of intent or feeling, and even in words a person cannot hand it over completely. Only this is left to humans.
 
-The user holds four things: approving the guarantee section, checking feel and real-machine behavior in the executor's session, deciding whether to accept anything that strays from the promise, and merging. The gates to the remote are the OK in the executor's session and the merge. The user is never asked to match behavior, and nothing is shown at two steps.
+The user holds four things: approving the guarantee section, checking feel and real-machine behavior in the executor's session, deciding whether to accept anything that strays from the promise, and merging. The executor stops only when there is something for the second or third, and otherwise goes on to the PR. The only gate to the remote that is always passed is the merge. The user is never asked to match behavior, and nothing is shown at two steps.
+
+Feel is checked first. For changes that show up on a screen, the screen is handed over before the tests and the ledger are written. If feel changes the shape, tests written first are wasted.
 
 Narrowing this down also keeps human judgment from thinning out. As speed goes up, people grasp less and approvals drift into formality. Having handed off behavior matching, people no longer trace behavior themselves; in exchange, what they look at is narrowed to what only they can judge. Running at most three Issues in parallel, only ones that do not depend on each other, with checks and fixes closed within each executor's session, serves the same end: every approval still holds as the count grows.
 
