@@ -36,7 +36,9 @@ git worktree add .claude/worktrees/<名前> -b <ブランチ> origin/main
 
 - 渡すのは、ブランチの分岐元（`git merge-base HEAD origin/main`）から書き換えた日本語の `.md` のパスと、変わった行の範囲である。範囲は `git diff -U0` の hunk 見出しから取る
 - `issues/` の Issue ファイルと、Issue / PR の本文は渡さない
+- 範囲の行は書き手が書いた文として扱われ、校正役は keep を既定にせずに直す
 - 校正役の直しを読み、意図を変えた直しがあれば戻してからコミットする
+- 校正役が直さずに報告へ回した点は、書き手が一人で退けない。直すか残すかを user に見せて決める
 
 ## 永続メモリ
 
