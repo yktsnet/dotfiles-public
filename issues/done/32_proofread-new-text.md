@@ -1,7 +1,7 @@
 ## 校正役に、新しく書いた文へ keep を当てさせず、内輪の語も見させる
 id: 32
 branch-slug: proofread-new-text
-status: open
+status: close
 type: fix
 対象: .claude/agents/jp-proofreader.md, .claude/skills/jp-writing/SKILL.md, home-manager/config/claude/common.md
 内容: 校正役が、ブランチで新しく書いた文にもリライトの作法（既定は keep）を当てて直さず、書き手の癖が残っていた。また、内輪の呼び名が術語になっていても規範に当たる項目が無く、指摘されなかった。範囲の行は書き手の文として規範をすべて当てること、内輪の呼び名を術語にしないこと、報告に回された点を書き手が一人で退けないことを、3つのファイルに入れる。稼働側（非公開の dotfiles）で済ませた同じ変更の写しである。
