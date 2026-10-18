@@ -103,7 +103,7 @@ type: feat
 - 反映には dotfiles 側の rebuild が要るため、作成したセッションではまだ skill 一覧に出ない場合がある
 - frontmatter の規約は `block-new-skill-md.sh` が検査する。詳細をここに二重化せず、フック本体を参照させる
 
-`docs-agents/harness-guide.md` の「知識の配置基準」節と内容が重なるが、**あちらは「何を skill にするか」、こちらは「どこに置くか」**である。統合せず、`skill-dev` からは配置の話だけを扱う。
+`docs-agents/harness-guide.md` の「知識の配置基準」節と内容が重なるが、**あちらは「何を skill にするか」、こちらは「どこに置くか**」である。統合せず、`skill-dev` からは配置の話だけを扱う。
 
 #### .claude/skills/module-dev/SKILL.md（新規）
 
