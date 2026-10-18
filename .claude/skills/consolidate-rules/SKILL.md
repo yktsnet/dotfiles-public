@@ -21,7 +21,7 @@ description: CLAUDE.md群・基準のガイド（skill の reference/）・自�
 
 description が英語の Skill（外部から取り込んだベンダーの写し）と Anthropic 標準搭載 Skill（`anthropic-skills:*` prefix 等）は対象外。user が書いた規則ではないため。**判定は実行時に frontmatter を見て行い、固定の除外リストは持たない。**
 
-**基準の実体は、それを使う skill が持つ。**1本の skill しか読まない基準は `SKILL.md` 本体に、複数の skill が読むものや長いものはその skill の `reference/` に置く。skill に寄せきれないもの（`hooks/README.md` のような仕組みの説明）だけを MD として残す。棚卸しで基準を独立した MD へ切り出す提案はしない。
+**基準の実体は、それを使う skill が持つ**。1本の skill しか読まない基準は `SKILL.md` 本体に、複数の skill が読むものや長いものはその skill の `reference/` に置く。skill に寄せきれないもの（`hooks/README.md` のような仕組みの説明）だけを MD として残す。棚卸しで基準を独立した MD へ切り出す提案はしない。
 
 ## 再び指摘しない判断
 
