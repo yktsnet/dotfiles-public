@@ -3,7 +3,7 @@ issue: 33 (33_ci-deterministic-checks.md)
 PR: https://github.com/yktsnet/dotfiles-public/pull/95
 
 ## 変更内容
-- `.github/workflows/ci.yml` に `rule-checks` ジョブを追加。`find .claude -path '*/tests/*.test.sh'` で見つけたテストを1本ずつ bash で流し（全部流してから失敗を返す）、続けて `check-refs.py` を流す。参照チェックはテストが落ちても流れる（`if: always()`）。発火条件は既存ジョブと同じ（main への push と PR）
+- `.github/workflows/ci.yml` に `rule-checks` ジョブを追加。`find .claude -path '*/tests/*.test.sh'` で見つけたテストを1本ずつ bash で流し（全部流してから失敗を返す）、続けて `check-refs.py` を流す。フックテストのステップには git の identity を環境変数で渡す（ランナーには無く、`no-branch-in-checkout.test.sh` が初期コミットを作れず落ちたため）。参照チェックはテストが落ちても流れる（`if: always()`）。発火条件は既存ジョブと同じ（main への push と PR）
 - `.claude/skills/consolidate-rules/scripts/check-refs.py` を新規追加（標準ライブラリのみ）。次を1件1行で出力し、あれば終了コード1
   - Markdown の相対リンク先の不在（フェンス・インラインコード・`issues/done/` は見ない）
   - settings.json のフック登録と `.claude/hooks/*.sh` の実体の食い違い（両方向）
@@ -23,7 +23,7 @@ PR: https://github.com/yktsnet/dotfiles-public/pull/95
 - `ci.yml` は YAML として読め、PR と main への push で走る
 
 ## 検証手順
-この PR の CI で `Rule Checks` ジョブが緑になることを確認する（ubuntu-latest と apt の zsh で6本が通ること）。
+`Rule Checks` ジョブが ubuntu-latest で緑になることを、この PR の CI で確認済み（6本が通る）。
 
 ## 確認者の判定
 | # | 項目 | 判定 |
@@ -33,7 +33,7 @@ PR: https://github.com/yktsnet/dotfiles-public/pull/95
 | 3 | 存在しないリンクを足した写しで非0、ファイルとリンク先を出力 | 合 |
 | 4 | フックの登録を外した写しで非0、フック名を出力 | 合 |
 | 5 | ci.yml が YAML として読め、PR と main への push で走る | 合 |
-| 6 | PR で CI の新しいジョブが緑になる | 判定できない（GitHub のランナーで未実行。PR の CI で確かめる） |
+| 6 | PR で CI の新しいジョブが緑になる | 判定できない（確認者はランナーで未実行）。PR の CI で `Rule Checks` が緑になったことを実行者が確認 |
 
 保証の固定テストと効き目（実装を壊すと落ちるか）はすべて合。
 
