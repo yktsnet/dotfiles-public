@@ -135,6 +135,21 @@ printf 'new\n' >"$repo/untracked.txt"
 run
 expect "作業ツリーの未ステージの変更は見ない" 0
 
+# 対象に無い追跡済みファイルを未ステージで変えても見ない
+newrepo
+put a.sh
+printf 'dirty\n' >>"$repo/base.txt"
+issue $'対象: a.sh\n内容: x'
+run
+expect "対象に無い追跡済みファイルの未ステージの変更は見ない" 0
+
+# --- 箇条書きのブロックは対象の後で終わる ---
+newrepo
+put a.sh
+issue $'対象:\n- a.sh\n内容: x\n\n---\n\n### 保証\n- 新たに宣言する保証:\n  - foo bar\n- other.txt'
+run
+expect "対象の後ろの別の箇条書きを対象に数えない" 0
+
 # --- 分岐元から見る ---
 newrepo
 put a.sh
