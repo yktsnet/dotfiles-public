@@ -1,3 +1,44 @@
+## PR記録: feat: 決定的に確かめられる規則を CI で走らせる
+issue: 33 (33_ci-deterministic-checks.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/95
+
+## 変更内容
+- `.github/workflows/ci.yml` に `rule-checks` ジョブを追加。`find .claude -path '*/tests/*.test.sh'` で見つけたテストを1本ずつ bash で流し（全部流してから失敗を返す）、続けて `check-refs.py` を流す。参照チェックはテストが落ちても流れる（`if: always()`）。発火条件は既存ジョブと同じ（main への push と PR）
+- `.claude/skills/consolidate-rules/scripts/check-refs.py` を新規追加（標準ライブラリのみ）。次を1件1行で出力し、あれば終了コード1
+  - Markdown の相対リンク先の不在（フェンス・インラインコード・`issues/done/` は見ない）
+  - settings.json のフック登録と `.claude/hooks/*.sh` の実体の食い違い（両方向）
+  - `.claude/skills/README.md` の一覧から張られていない skill
+- `.claude/skills/consolidate-rules/tests/check-refs.test.sh` を新規追加。最小のリポを一時に作り、壊した写しごとに終了コードと出力を確かめる。CI の find が自動で拾う
+- `consolidate-rules/SKILL.md` の観点 4・6 から CI が検出するものを外し、CI が受け持つ理由を1文で書いた
+
+## 保証
+- PR ごとの CI で `.claude/` 配下の `tests/*.test.sh` がすべて走り、1本でも落ちればジョブが落ちる → `ci.yml` の find ループ（足したテストは設定を直さずに拾われる）
+- 相対リンクの不在で落ち、ファイルとリンクを出す → `check-refs.test.sh` の broken-link / broken-link-with-anchor / fence-and-code-span-skipped / issues-done-skipped
+- フックの登録と実体の食い違いで落ち、どちらに欠けているかを出す → hook-registered-without-file / hook-file-unregistered
+- skill が README の一覧から張られていなければ落ちる → skill-unlisted
+
+## 静的確認結果
+- 既存のフックテスト5本と新テストの計6本が bash で終了コード0。`check-refs.py` は現状のリポで終了コード0
+- リンク切れ・フック未登録・skill 未掲載の写しで、それぞれ終了コード1と該当箇所の出力を確認
+- `ci.yml` は YAML として読め、PR と main への push で走る
+
+## 検証手順
+この PR の CI で `Rule Checks` ジョブが緑になることを確認する（ubuntu-latest と apt の zsh で6本が通ること）。
+
+## 確認者の判定
+| # | 項目 | 判定 |
+|---|---|---|
+| 1 | tests/*.test.sh の各ファイルを bash で流し、すべて終了コード0 | 合 |
+| 2 | check-refs.py が現状のリポで終了コード0 | 合 |
+| 3 | 存在しないリンクを足した写しで非0、ファイルとリンク先を出力 | 合 |
+| 4 | フックの登録を外した写しで非0、フック名を出力 | 合 |
+| 5 | ci.yml が YAML として読め、PR と main への push で走る | 合 |
+| 6 | PR で CI の新しいジョブが緑になる | 判定できない（GitHub のランナーで未実行。PR の CI で確かめる） |
+
+保証の固定テストと効き目（実装を壊すと落ちるか）はすべて合。
+
+---
+
 ## 決定的に確かめられる規則を CI で走らせる
 id: 33
 branch-slug: ci-deterministic-checks
