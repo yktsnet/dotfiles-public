@@ -1,9 +1,9 @@
 ## 決定的に確かめられる規則を CI で走らせる
 id: 33
 branch-slug: ci-deterministic-checks
-status: open
+status: close
 type: feat
-対象: .github/workflows/ci.yml, .claude/skills/consolidate-rules/scripts/check-refs.py (新規), .claude/skills/consolidate-rules/SKILL.md
+対象: .github/workflows/ci.yml, .claude/skills/consolidate-rules/scripts/check-refs.py (新規), .claude/skills/consolidate-rules/tests/check-refs.test.sh (新規), .claude/skills/consolidate-rules/SKILL.md
 内容: フックの回帰テストと、文書の参照切れ・フックの配線の食い違いを、LLM の棚卸しから外して PR ごとの CI で落とす。今の CI は `nix flake check` と `zsh -n` だけで、`.claude/hooks/tests/` の5本は誰も走らせておらず、参照切れは `consolidate-rules` が LLM で全件を読んで探している。
 対象外: 差分と Issue の `対象` の一致の検査（34 で扱う）。README の Design 節の書き換え（34 で扱う）。見出しへのアンカー（`#...`）の検査。散文中に書かれた skill 名・関数名の存在確認（LLM の棚卸しに残す）
 仮定: GitHub の `ubuntu-latest` ランナーに入っている bash・git・jq・python3 と、apt で入れる zsh で、既存のテスト5本が通る
