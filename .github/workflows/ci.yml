@@ -68,4 +68,5 @@ jobs:
           exit $status
 
       - name: Check references
+        if: always()
         run: python3 .claude/skills/consolidate-rules/scripts/check-refs.py
