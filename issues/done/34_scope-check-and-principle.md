@@ -1,7 +1,7 @@
 ## 差分と Issue の対象の一致をスクリプトで確かめ、確かめ方の振り分けを README に書く
 id: 34
 branch-slug: scope-check-and-principle
-status: open
+status: close
 depends: 33
 type: feat
 対象: .claude/skills/pr-workflow/scripts/check-scope.sh (新規), .claude/skills/pr-workflow/tests/check-scope.test.sh (新規), .claude/skills/pr-workflow/SKILL.md, .claude/agents/issue-verifier.md, README.md, README.en.md
