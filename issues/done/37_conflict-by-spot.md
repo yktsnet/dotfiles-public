@@ -1,7 +1,7 @@
 ## 動いている実行者とのぶつかりを、ファイル名ではなく直す箇所で判定する
 id: 37
 branch-slug: conflict-by-spot
-status: open
+status: close
 type: cleanup
 対象: .claude/skills/local-issue/SKILL.md, .claude/skills/local-issue/reference/issue-template.md
 内容: local-issue の手順4の「動いている実行者とぶつからないか」と、テンプレートの `depends` の説明を、同じファイルを触るかではなく、同じ箇所（関数や節）を書き換えるかで判定する書き方に改める。ファイル名だけで判定すると何でも重なって見え、並行できる Issue まで順番待ちになるためである
