@@ -1,7 +1,7 @@
 ## 確認者から、実装を壊して落ちるかを見る確かめを外す
 id: 35
 branch-slug: verifier-drop-break-check
-status: open
+status: close
 type: cleanup
 対象: .claude/agents/issue-verifier.md, README.md, README.en.md
 内容: 確認者（issue-verifier）の「テストの正しさ」から、実装を写しの上で1か所壊して証拠のテストが落ちるかを見る確かめを外す。期待値を Issue から自分で出し直す確かめは残す。この基盤で扱う変更の規模では、壊す確かめに見合う誤りの検出が見込めず、確認の手間と時間だけが増えるためである。README の Design 2 の記述を、日英とも外したあとの振る舞いに合わせる
