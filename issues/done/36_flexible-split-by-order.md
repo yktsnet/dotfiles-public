@@ -1,7 +1,7 @@
 ## 順序依存のある変更を、粒度に収まれば1本にまとめてよいとする
 id: 36
 branch-slug: flexible-split-by-order
-status: open
+status: close
 type: cleanup
 対象: .claude/skills/local-issue/reference/issue-template.md
 内容: Issue 作成ルールの「分割の判断基準」で、「バックエンドとフロントエンドは原則別PR」と「順序依存がある場合は必ず分割」を、分けるかを判断できる書き方に改める。順序依存のある変更は、分けても1本ずつ順にしか進まず、確認者の判定と PR の手間だけが本数分かかるためである。粒度の上限に収まるなら1本にまとめてよく、収まらなければ分けて `depends:` で順を書く
