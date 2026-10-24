@@ -80,7 +80,7 @@ flowchart TD
     end
 ```
 
-役割の境目は、zsh の関数 `i` 1つで渡す。worktree ごとに実行者を起動し、マージと後片付けまでを受け持つ（[docs/issue-workflow.md](docs/issue-workflow.md)、[Zenn: Issue 駆動ワークフロー](https://zenn.dev/yktsnet/articles/202604-issue-driven-workflow)）。並行する実行者のあいだに取りまとめのセッションは置かない。前後のある Issue は `depends:` に先の Issue を書き、`i` は先の Issue がマージされるまで後の Issue を候補に出さない。順序を見張る役を置かず、Issue 自身に持たせる。並行するセッションの外からは、[session-nudge](.claude/skills/session-nudge/SKILL.md) が読み手として助言を起こす。
+役割の境目は、zsh の関数 `i` 1つで渡す。worktree ごとに実行者を起動し、マージと後片付けまでを受け持つ（[docs/issue-workflow.md](docs/issue-workflow.md)、[Zenn: Issue 駆動ワークフロー](https://zenn.dev/yktsnet/articles/202604-issue-driven-workflow)）。並行する実行者のあいだに取りまとめのセッションは置かない。前後のある Issue は `depends:` に先の Issue を書き、`i` は先の Issue がマージされるまで後の Issue を候補に出さない。順序を見張る役を置かず、Issue 自身に持たせる。
 
 ### 3. 人には書けない判断だけを残す
 
