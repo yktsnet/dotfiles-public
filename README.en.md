@@ -80,7 +80,7 @@ flowchart TD
     end
 ```
 
-Role boundaries are handed over through a single zsh function, `i`. It launches an executor per worktree and takes care of merging and cleanup ([docs/issue-workflow.md](docs/issue-workflow.md), [Zenn: Issue-Driven Workflow](https://zenn.dev/yktsnet/articles/202604-issue-driven-workflow)). No coordinating session sits between parallel executors. An Issue that must come after another names it in `depends:`, and `i` keeps the later Issue out of the candidates until the earlier one is merged. Order is held by the Issues themselves, not by a role that watches over them. From outside the parallel sessions, [session-nudge](.claude/skills/session-nudge/SKILL.md) acts as a reader and drafts advice.
+Role boundaries are handed over through a single zsh function, `i`. It launches an executor per worktree and takes care of merging and cleanup ([docs/issue-workflow.md](docs/issue-workflow.md), [Zenn: Issue-Driven Workflow](https://zenn.dev/yktsnet/articles/202604-issue-driven-workflow)). No coordinating session sits between parallel executors. An Issue that must come after another names it in `depends:`, and `i` keeps the later Issue out of the candidates until the earlier one is merged. Order is held by the Issues themselves, not by a role that watches over them.
 
 ### 3. Leave Humans Only the Judgments That Cannot Be Written Down
 
