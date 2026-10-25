@@ -112,7 +112,7 @@
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/reap-merged-branches.sh",
             "timeout": 45,
-            "statusMessage": "マージ済みの claude/* を畳み中"
+            "statusMessage": "マージ済みの claude/* を後片付け中"
           }
         ]
       }

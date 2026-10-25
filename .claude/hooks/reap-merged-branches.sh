@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# SessionStart hook: マージ済みの claude/* を畳み、main を取り直す。
+# SessionStart hook: マージ済みの claude/* のブランチと worktree を消し、main を取り直す。
 #
-# 畳む処理は i() の _aiagent_reap が持つが、i() を開き直さないと走らず、マージ後に
+# この後片付けは i() の _aiagent_reap が持つが、i() を開き直さないと走らず、マージ後に
 # ブランチ・worktree・main の遅れが残る。セッションを開くたびに同じ関数を呼んで拾う。
 # 判定を書き分けないよう、関数は aiagent.sh を source して使う。
 #
 # 元のチェックアウトが main に居るときだけ動く（_aiagent_reap が main 以外では何もしない）。
-# 実行者の worktree で開いたセッションは、自分のブランチを畳まない。
+# 実行者の worktree で開いたセッションは、自分のブランチを消さない。
 # 対象は i() が横断するリポ（AIAGENT_REPO_ROOTS）だけで、ほかのリポには触らない。
 set -u
 

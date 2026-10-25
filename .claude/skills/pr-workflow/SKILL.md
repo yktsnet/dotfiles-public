@@ -71,4 +71,4 @@ disable-model-invocation: true
        ```
     5. 以下を出力して終える。マージは user が `i` か GitHub で押す。user に頼まれたときだけ squash でマージする
        ✅ PR: {PR の URL}
-       Next: このセッションを閉じる → `i` でマージ（worktree は閉じたときに、ブランチはマージで畳まれる）
+       Next: このセッションを閉じる → `i` でマージ（worktree は閉じたときに、ブランチはマージで消える）

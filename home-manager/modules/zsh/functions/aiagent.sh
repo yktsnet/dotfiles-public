@@ -106,7 +106,7 @@ _aiagent_issue_branch() {
   print -r -- "claude/${id}${slug:+-${slug}}"
 }
 
-# カレントのリポの現在地。マージ済みは畳んだ後に呼ぶので、残る claude/* は PR 待ちか作業中
+# カレントのリポの現在地。マージ済みのブランチを消した後に呼ぶので、残る claude/* は PR 待ちか作業中
 _aiagent_status() {
   emulate -L zsh
   local base
@@ -162,7 +162,7 @@ _aiagent_sweep_wt() {
   rmdir "$wt_base" 2>/dev/null || true
 }
 
-# worktree を畳んでよいかの判定。未コミットの変更が残っていれば畳まない
+# worktree を消してよいかの判定。未コミットの変更が残っていれば消さない
 _aiagent_wt_clean() {
   emulate -L zsh
   local wt="$1"
@@ -189,7 +189,7 @@ _aiagent_abort() {
   echo "Aborted: $branch"
 }
 
-# PR を出し終えた Builder の worktree を畳む。マージは後から user が押すのでブランチは残し、
+# PR を出し終えた Builder の worktree を消す。マージは後から user が押すのでブランチは残し、
 # マージ後に _aiagent_reap が消す。途中でやめたセッションの worktree は残す
 _aiagent_retire_wt() {
   emulate -L zsh
@@ -226,10 +226,10 @@ _aiagent_purge_untracked() {
   done
 }
 
-# カレントのリポのマージ済み claude/* を畳む。PR は実装役が出し、マージは user が GitHub で
+# カレントのリポのマージ済み claude/* のブランチと worktree を消す。PR は実装役が出し、マージは user が GitHub で
 # 押すので、次に i() を開いたときか、SessionStart の reap-merged-branches.sh がここで拾う。
 # squash マージはブランチのコミットを main の履歴に残さず --merged で拾えないため、
-# PR の状態で判定する。畳んだ本数を REPLY に返す
+# PR の状態で判定する。消した本数を REPLY に返す
 _aiagent_reap() {
   emulate -L zsh
   REPLY=0
@@ -284,7 +284,7 @@ _aiagent_repos() {
   done
 }
 
-# 全リポのマージ済み claude/* を畳む。ブランチの無いリポは gh を呼ばずに飛ばす
+# 全リポのマージ済み claude/* のブランチと worktree を消す。ブランチの無いリポは gh を呼ばずに飛ばす
 _aiagent_reap_all() {
   emulate -L zsh
   local repo
@@ -374,7 +374,7 @@ _aiagent_back_to_main() {
   echo "Switched to main from merged ${cur}."
 }
 
-# 1本の Issue の実行者を、その worktree で前面に起動する。閉じたら、PR を出し終えていれば worktree を畳む。
+# 1本の Issue の実行者を、その worktree で前面に起動する。閉じたら、PR を出し終えていれば worktree を消す。
 # 並行の2本目以降は、_aiagent_run が分けたペインでこれを打つ
 _aiagent_builder() {
   emulate -L zsh
@@ -452,7 +452,7 @@ _aiagent_run() {
     wt_dirs+=("${git_root}/.claude/worktrees/${branch_leaf}")
   done
 
-  # i は先にマージ済みを畳むので、残る claude/* は作業中か PR 待ちの実行者である
+  # i は先にマージ済みのブランチを消すので、残る claude/* は作業中か PR 待ちの実行者である
   local -a running=(${(f)"$(git for-each-ref --format='%(refname:short)' 'refs/heads/claude/*')"})
   if (( ${#running} + ${#files} > _AIAGENT_CANDIDATES )); then
     echo "Already running in ${git_root:t}: ${#running}"
@@ -510,7 +510,7 @@ _aiagent_run() {
   _aiagent_builder "$git_root" "${wt_dirs[1]}" "${branch_names[1]}" "${rels[1]}"
 }
 
-# 実行者が出した PR を squash でマージし、そのまま畳んで main を追従させる。
+# 実行者が出した PR を squash でマージし、そのままブランチを消して main を追従させる。
 # 実行者にはマージさせない（system prompt と pr-workflow で止めている）。人がここで押すのは流れのうち
 _aiagent_merge() {
   emulate -L zsh
