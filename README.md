@@ -44,21 +44,21 @@ AI がコードを書くようになって、時間がかかるのは書くこ�
 
 エージェントは、書かれていない条件を推論で埋める。だから人が決めることは、作る前に書いて渡す。
 
-中心は**保証駆動開発**（Guarantee-Driven Development, GDD）である。何が壊れてはいけないか（保証）を人が Issue の保証節で裁可し、それを固定するテストと実装はエージェントが書く。TDD がテストを先に書く規律なら、GDD は約束の裁可を先に行う規律である。裁可した保証は各リポの保証台帳 `docs/guarantees.md` に、裏付けるテストと一緒に積み上がる。台帳に載っていない振る舞いは約束ではない（[guarantee-audit](.claude/skills/guarantee-audit/SKILL.md)、[Zenn: 保証駆動開発](https://zenn.dev/yktsnet/articles/202608-guarantee-driven-development)）。
+中心は**保証駆動開発**（Guarantee-Driven Development, GDD）である。何が壊れてはいけないか（保証）を人が Issue の保証節で裁可し、それを固定するテストと実装はエージェントが書く。TDD がテストを先に書く規律なら、GDD は約束の裁可を先に行う規律である。裁可した保証は各リポの保証台帳 `docs/guarantees.md` に、裏付けるテストと一緒に積み上がる。台帳に載っていない振る舞いは約束ではない（guarantee-audit、[Zenn: 保証駆動開発](https://zenn.dev/yktsnet/articles/202608-guarantee-driven-development)）。
 
-開発は2つのフェーズで**駆動文書を交代させる**。方向が固まらない立ち上げ期は PLAN.md（残作業）と JUDGE.md（設計判断）が開発を駆動し（[mvp-docs](.claude/skills/mvp-docs/SKILL.md)）、保証台帳が正式運用に上がった時点で台帳へ交代して Issue 駆動期に入る。考え方の全体は sdlc-kit の [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md) にある。
+開発は2つのフェーズで**駆動文書を交代させる**。方向が固まらない立ち上げ期は PLAN.md（残作業）と JUDGE.md（設計判断）が開発を駆動し（mvp-docs）、保証台帳が正式運用に上がった時点で台帳へ交代して Issue 駆動期に入る。考え方の全体は sdlc-kit の [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md) にある。
 
-約束のほかにも、作る前に書いて渡すものがある。リポの型（類型と検証手段、README の種別）は書き始める前に決める（[repo-standardize](.claude/skills/repo-standardize/SKILL.md)・[repo-readme](.claude/skills/repo-readme/SKILL.md)・[module-dev](.claude/skills/module-dev/SKILL.md)）。規則は読まれる場面で置き場を分け、毎回守らせるものは CLAUDE.md に、「〜するとき」と条件を言える手順は skill に置く（[skill-dev](.claude/skills/skill-dev/SKILL.md)）。
+約束のほかにも、作る前に書いて渡すものがある。リポの型（類型と検証手段、README の種別）は書き始める前に決める（repo-standardize・repo-readme・module-dev）。規則は読まれる場面で置き場を分け、毎回守らせるものは CLAUDE.md に、「〜するとき」と条件を言える手順は skill に置く（skill-dev）。
 
 ### 2. 確かめるのは仕組みと別の文脈
 
 エージェントは自信を持ったまま静かに間違える。人が気をつけるという約束は形骸化するので、確かめることを人の注意に預けない。
 
-**仕組み**：外れてはいけないもの（`rebuild` 系、`flake.lock` の編集、`ssh`、機密の対応表）は deny と[フック](.claude/hooks/)で止める。フックの拒否文には、止めた理由と正しい経路を書く。エージェントは拒否されると別の手を試し、何を試すかは拒否文で決まるからである。元のチェックアウトでのブランチの切り替えはフックが止め、永続メモリへの書き込みには承認を挟む。subagent を呼ぶことも、その都度頼まずに手順へ組み込む。書き換えた日本語の文書は、コミットの前に書き手が校正役（[jp-proofreader](.claude/agents/jp-proofreader.md)）に通す。
+**仕組み**：外れてはいけないもの（`rebuild` 系、`flake.lock` の編集、`ssh`、機密の対応表）は deny とフックで止める。フックの拒否文には、止めた理由と正しい経路を書く。エージェントは拒否されると別の手を試し、何を試すかは拒否文で決まるからである。元のチェックアウトでのブランチの切り替えはフックが止め、永続メモリへの書き込みには承認を挟む。subagent を呼ぶことも、その都度頼まずに手順へ組み込む。書き換えた日本語の文書は、コミットの前に書き手が校正役（jp-proofreader）に通す。
 
-**別の文脈**：同じモデルが作って確かめると、外したことに自分では気づけない。相談者が Issue を設計し（[local-issue](.claude/skills/local-issue/SKILL.md)）、実行者が実装し（[pr-workflow](.claude/skills/pr-workflow/SKILL.md)）、確認者（[issue-verifier](.claude/agents/issue-verifier.md)）が Issue だけを基準に確かめる。確認者に実行者の説明を渡さないのは、渡すと実行者の意図を前提に読み、約束から外れたところが見えなくなるからである。テストも実行者が書くので、実装の出力を写した期待値は誤りごと通る。確認者は、証拠にしたテストの期待値を Issue から自分で出し直す。画面に出る変更は [screen-operator](.claude/agents/screen-operator.md) が操作して、見えたものを返す。subagent は、すでに別の文脈が確かめている段には足さない。足す理由は客観性・速さ・自動化に限る（skill-dev の 6）。規則同士の食い違いも書いた本人には見つけにくいので、[consolidate-rules](.claude/skills/consolidate-rules/SKILL.md) が別に棚卸しする。
+**別の文脈**：同じモデルが作って確かめると、外したことに自分では気づけない。相談者が Issue を設計し（local-issue）、実行者が実装し（pr-workflow）、確認者（[issue-verifier](.claude/agents/issue-verifier.md)）が Issue だけを基準に確かめる。確認者に実行者の説明を渡さないのは、渡すと実行者の意図を前提に読み、約束から外れたところが見えなくなるからである。テストも実行者が書くので、実装の出力を写した期待値は誤りごと通る。確認者は、証拠にしたテストの期待値を Issue から自分で出し直す。画面に出る変更は screen-operator が操作して、見えたものを返す。subagent は、すでに別の文脈が確かめている段には足さない。足す理由は客観性・速さ・自動化に限る（skill-dev の 6）。規則同士の食い違いも書いた本人には見つけにくいので、consolidate-rules が別に棚卸しする。
 
-**振り分け**：確かめる手段は、決定的な検査（フック・スクリプト・CI）、別の文脈（確認者などの LLM）、人の順に振り分ける。LLM の確認は、同じ入力でも判定が変わることがある。決定的に確かめられるものは LLM に読ませず、スクリプトやフックに実装させる。別の文脈が受け持つのは、読まないと答えられないもの（期待値の出し直し、約束から外れていないか、規則同士の矛盾）だけにする。人に残すのは、書いて渡せない判断だけで、次の節で扱う。このリポでは、フックの回帰テスト・文書の参照切れ・フックの配線は CI が、差分と Issue の `対象` の一致は[スクリプト](.claude/skills/pr-workflow/scripts/check-scope.sh)が検査する。件数・一覧・索引のように他から導ける値も、手で書かずにスクリプトと CI が書き出し、ずれがあれば失敗させる。
+**振り分け**：確かめる手段は、決定的な検査（フック・スクリプト・CI）、別の文脈（確認者などの LLM）、人の順に振り分ける。LLM の確認は、同じ入力でも判定が変わることがある。決定的に確かめられるものは LLM に読ませず、スクリプトやフックに実装させる。別の文脈が受け持つのは、読まないと答えられないもの（期待値の出し直し、約束から外れていないか、規則同士の矛盾）だけにする。人に残すのは、書いて渡せない判断だけで、次の節で扱う。このリポでは、フックの回帰テスト・文書の参照切れ・フックの配線は CI が、差分と Issue の `対象` の一致はスクリプト（`check-scope.sh`）が検査する。件数・一覧・索引のように他から導ける値も、手で書かずにスクリプトと CI が書き出し、ずれがあれば失敗させる。
 
 ```mermaid
 flowchart TD
@@ -105,7 +105,7 @@ macOS と Linux の開発機を1つの Flake で管理する。端末ごとに�
 | `linux-desktop` | NixOS（disko / SSD） | 主開発機。相談者チャットと `i` の起動元 |
 | `macbook` | macOS（nix-darwin） | home-manager 層を Linux 機と共有する |
 
-OS の差は、Nix 側では `pkgs.stdenv.isDarwin`、シェル側では `os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）に閉じ込め、それ以外は両 OS が同じファイルを読む。エージェントが `brew` や `npm -g` に手を伸ばすと `block-non-nix-install.sh` が止め、Nix で入れる手順（[nix-tool-install](.claude/skills/nix-tool-install/SKILL.md)）へ案内する。
+OS の差は、Nix 側では `pkgs.stdenv.isDarwin`、シェル側では `os.sh` のシム（`_is_darwin` / `_sed_i` / `_open` / `_linux_only`）に閉じ込め、それ以外は両 OS が同じファイルを読む。エージェントが `brew` や `npm -g` に手を伸ばすと `block-non-nix-install.sh` が止め、Nix で入れる手順（nix-tool-install）へ案内する。
 
 ### 規則を1か所から全セッションへ配る
 
@@ -115,13 +115,13 @@ OS の差は、Nix 側では `pkgs.stdenv.isDarwin`、シェル側では `os.sh`
 
 Issue・PR・コミットの地の文には、IP・ポート・実ホスト名を書かずに `<PLACEHOLDER>` を使う。実値とプレースホルダの対応表は `secrets-agents/` に置き、エージェントからは読み書きさせない。
 
-対応表が1台にしか無いと、別の端末では何を伏せるべきか分からないまま書くことになる。対応表は sops（age）で暗号化して git で配り、各端末が自分の鍵で復号する（[sops-secrets](.claude/skills/sops-secrets/SKILL.md)）。
+対応表が1台にしか無いと、別の端末では何を伏せるべきか分からないまま書くことになる。対応表は sops（age）で暗号化して git で配り、各端末が自分の鍵で復号する（sops-secrets）。
 
 ---
 
 ## Skills
 
-手順と基準は、それを使う skill が持ち、Design の各節から指している。全体の一覧と、何を公開するかの基準は [.claude/skills/README.md](.claude/skills/README.md) にある。subagent の定義は [.claude/agents/](.claude/agents/)、フックは [.claude/hooks/](.claude/hooks/) にある。
+手順と基準は、それを使う skill が持つ。全体の一覧と、何を公開するかの基準は [.claude/skills/README.md](.claude/skills/README.md) にある。subagent の定義は [.claude/agents/](.claude/agents/)、フックは [.claude/hooks/](.claude/hooks/) にある。
 
 ---
 
