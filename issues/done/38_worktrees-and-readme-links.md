@@ -1,7 +1,7 @@
 ## i の worktree を .claude/worktrees/ へ移し、README のリンクを絞る
 id: 38
 branch-slug: worktrees-and-readme-links
-status: open
+status: close
 type: cleanup
 対象: home-manager/modules/zsh/functions/aiagent.sh, .gitignore, README.md, README.en.md
 内容: (1) `i` は worktree をリポの兄弟 `{repo}.wt/` に作る。リポを並べたディレクトリの直下に `.wt` が出るので、そこを一覧するツール（リポを選んで tmux セッションを開く関数など）の候補に紛れる。置き場を、手で作る worktree と同じ `{repo}/.claude/worktrees/<id>` にそろえ、置き場の規則を1つにする。 (2) README の本文に28本のリンクがあり、Design 節では1文に4本並ぶ箇所もある。多くは `.claude/skills/README.md` から辿れる個々の skill への内部リンクで、読む流れを切る。仕組みの主張を裏付ける先、または考え方の全体を説明する先だけを残し、ほかは名前だけにする。
