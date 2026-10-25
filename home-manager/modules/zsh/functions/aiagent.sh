@@ -227,8 +227,9 @@ _aiagent_purge_untracked() {
 }
 
 # カレントのリポのマージ済み claude/* を畳む。PR は実装役が出し、マージは user が GitHub で
-# 押すので、次に i() を開いたときにここで拾う。squash マージはブランチのコミットを main の履歴に
-# 残さず --merged で拾えないため、PR の状態で判定する。畳んだ本数を REPLY に返す
+# 押すので、次に i() を開いたときか、SessionStart の reap-merged-branches.sh がここで拾う。
+# squash マージはブランチのコミットを main の履歴に残さず --merged で拾えないため、
+# PR の状態で判定する。畳んだ本数を REPLY に返す
 _aiagent_reap() {
   emulate -L zsh
   REPLY=0
