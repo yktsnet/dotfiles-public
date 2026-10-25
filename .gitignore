@@ -7,6 +7,7 @@ result-*
 # 公開リポのため harness（settings.json / skills / CLAUDE.md / context / issues）は追跡する。
 # 個人ローカル上書きのみ無視。
 .claude/settings.local.json
+.claude/worktrees/
 
 # Python
 __pycache__/

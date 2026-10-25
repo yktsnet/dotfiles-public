@@ -144,12 +144,12 @@ _aiagent_status() {
   done
 }
 
-# git の管理簿に居ない {repo}.wt/ 配下の残骸を消す（.wt は i() 専用領域なので安全）
+# git の管理簿に居ない .claude/worktrees/ 配下の残骸を消す。手で作った登録済みの worktree も同居するので、登録済みは消さない
 _aiagent_sweep_wt() {
   emulate -L zsh
   local git_root wt_base
   git_root=$(git rev-parse --show-toplevel 2>/dev/null) || return 0
-  wt_base="${git_root}.wt"
+  wt_base="${git_root}/.claude/worktrees"
   [[ -d "$wt_base" ]] || return 0
   local -a registered=(${(f)"$(git worktree list --porcelain | awk '$1=="worktree"{print $2}')"})
   local d
@@ -265,7 +265,7 @@ _aiagent_reap() {
 }
 
 # i() が横断するリポ。要素それ自体が git リポならそのリポを、そうでなければ直下の git
-# リポを対象にする（`{repo}.wt/` のように .git を持たないものは外れる）。未設定なら
+# リポを対象にする（.git を持たないディレクトリは外れる）。未設定なら
 # $HOME/dotfiles-public を1つだけ対象にする
 _aiagent_repos() {
   emulate -L zsh
@@ -442,13 +442,13 @@ _aiagent_run() {
       echo "Branch claude/${branch_leaf} already exists. Abort or delete it first."
       return 1
     fi
-    if [[ -e "${git_root}.wt/${branch_leaf}" ]]; then
-      echo "Worktree ${git_root}.wt/${branch_leaf} already exists. Remove it first."
+    if [[ -e "${git_root}/.claude/worktrees/${branch_leaf}" ]]; then
+      echo "Worktree ${git_root}/.claude/worktrees/${branch_leaf} already exists. Remove it first."
       return 1
     fi
 
     branch_names+=("claude/${branch_leaf}")
-    wt_dirs+=("${git_root}.wt/${branch_leaf}")
+    wt_dirs+=("${git_root}/.claude/worktrees/${branch_leaf}")
   done
 
   # i は先にマージ済みを畳むので、残る claude/* は作業中か PR 待ちの実行者である
