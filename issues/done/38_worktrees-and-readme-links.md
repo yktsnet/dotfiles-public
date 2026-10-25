@@ -1,3 +1,39 @@
+## PR記録: cleanup: i の worktree を .claude/worktrees/ へ移し、README のリンクを絞る
+issue: 38 (38_worktrees-and-readme-links.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/101
+
+## 変更内容
+- `i` が作る worktree の置き場を `{repo}.wt/<id>` から `{repo}/.claude/worktrees/<id>` に変え、手で作る worktree と置き場の規則をそろえた。`_aiagent_sweep_wt` の対象も同じ場所にし、登録済みの worktree は消さない旨をコメントに書いた
+- `.gitignore` に `.claude/worktrees/` を足した
+- README.md / README.en.md の本文のリンクを、仕組みの主張を裏付ける先と考え方の全体を説明する先に絞った。外したリンクの名前は地の文に残した。Skills 節の「Design の各節から指している」は索引から辿る形に直した。日英で残したリンクの集合は同じ
+
+## 保証
+- `i` が作る worktree は `{repo}/.claude/worktrees/<branch_leaf>` に置かれる: テストなし（`aiagent.sh` を検査するテスト基盤が無い。`grep -n '\.wt'` が空であることと、手動実行で確認）
+- `_aiagent_sweep_wt` は未登録のディレクトリだけを消し、登録済みは残す: テストなし（同上。一時 git リポでの実行で確認）
+- 維持する保証（同名の worktree があれば止める・後片付けで消える・畳む条件）は変更していない
+- README の変更は挙動に触れないので、保証は無い
+
+## 静的確認結果
+- `zsh -n` が通る。`grep -n '\.wt' aiagent.sh` は空
+- 一時 git リポで、未登録のディレクトリだけが消え、登録済みの worktree が残ることを確認。`.claude/` は `git status --porcelain` に出ない
+- README の本文リンクは日英とも同じ9本
+- 文書の参照切れの検査は通る（Issue を `issues/done/` へ移した状態）
+
+## 検証手順
+- home-manager の switch 後に `i` で実行者を1本起動し、worktree が `{repo}/.claude/worktrees/<id>` にでき、セッションを閉じると畳まれること
+- 絞ったあとの README を GitHub 上で読み、辿りたいのに辿れない箇所が無いか
+
+## 確認者の判定
+| 項目 | 判定 |
+|---|---|
+| `zsh -n` / `.wt` の grep | 合 |
+| sweep が未登録だけを消す / `.gitignore` で `.claude/` が出ない | 合 |
+| README のリンク集合が一覧と一致・日英で同じ・名前が残る | 合 |
+| 参照切れの検査 | README は合。Issue ファイルの例示リンクは `done/` へ移して解消 |
+| 新しい2保証を固定するテスト | 否（テスト基盤が無く、user の裁可でテスト無しとして採用） |
+
+---
+
 ## i の worktree を .claude/worktrees/ へ移し、README のリンクを絞る
 id: 38
 branch-slug: worktrees-and-readme-links
