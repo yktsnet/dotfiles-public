@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# aiagent.sh の _aiagent_wt_clean が、未コミットの変更が無い worktree は畳んでよいと返し、
-# 残っていれば畳まずに失敗で返すことを確かめる。
+# aiagent.sh の _aiagent_wt_clean が、未コミットの変更が無い worktree は消してよいと返し、
+# 残っていれば消さずに失敗で返すことを確かめる。
 #
 #   bash .claude/hooks/tests/aiagent-wt-clean.test.sh
 SRC="${1:-$(dirname "$0")/../../../home-manager/modules/zsh/functions/aiagent.sh}"
@@ -25,11 +25,11 @@ check() { # check <名前> <出力に含まれるべき文字列>
 }
 
 out=$(run)
-check "未コミットの変更が無ければ畳んでよい" "rc=0"
+check "未コミットの変更が無ければ消してよい" "rc=0"
 
 printf 'x\n' >"$wt/dirty.txt"
 out=$(run)
-check "未コミットの変更が残っていれば畳まない" "rc=1"
+check "未コミットの変更が残っていれば消さない" "rc=1"
 check "残っている変更を示す" "dirty.txt"
 
 if [ "$fails" -eq 0 ]; then
