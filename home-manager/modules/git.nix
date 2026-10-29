@@ -3,9 +3,9 @@
 {
   programs.git = {
     enable = true;
-    userName = "yktsnet";
-    userEmail = "<YOUR_EMAIL>";
-    extraConfig = {
+    settings = {
+      user.name = "yktsnet";
+      user.email = "<YOUR_EMAIL>";
       init.defaultBranch = "main";
       push.autoSetupRemote = true;
       pull.rebase = true;
