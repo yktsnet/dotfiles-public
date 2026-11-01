@@ -60,7 +60,7 @@ type: feat
   - macOS (nix-darwin) と Linux (NixOS) の両エントリポイントから同じ実装が読まれる。`_aiagent_sed_inplace` の BSD / GNU 吸収を残す
   - 台帳は `issues/` 単一のままとする。稼働側にある backlog-md 台帳アダプタは持ち込まない
 
-**テスト欠落について（user の裁可が要る）**: 上記の新保証はシェル関数の外から観測できる契約だが、本リポに zsh を対象にしたテスト基盤が無く、`docs/guarantees.md` も存在しない。既存の `zsh/functions/*.sh` も同じ扱い（CI は `zsh -n` の構文確認まで）。本 Issue では静的確認に留める。
+**テスト欠落について（user の承認が要る）**: 上記の新保証はシェル関数の外から観測できる契約だが、本リポに zsh を対象にしたテスト基盤が無く、`docs/guarantees.md` も存在しない。既存の `zsh/functions/*.sh` も同じ扱い（CI は `zsh -n` の構文確認まで）。本 Issue では静的確認に留める。
 
 ---
 

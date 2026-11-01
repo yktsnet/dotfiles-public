@@ -11,12 +11,12 @@ Issue 14 で敷いた sops レイヤの上に、マスク辞書（`secrets-agent
 - `.claude/skills/sops-secrets/`（新規3ファイル）: 私物 `~/dotfiles` の運用手順を移植・一般化。実デバイス名（neo/het/T14等）は役割名（macbook/linux-desktop等）に、私物固有のカテゴリ名は一般形に置き換え、本リポに無いクロスビルド委譲の記述は削除した。frontmatter は自動発火のまま（`disable-model-invocation` は付けない）
 - `README.md` / `README.en.md`: Foundation の「機密情報の分離」に、辞書を暗号化して git 経路で配る旨を1項目内で追記
 
-### 実装中に見つかった2点の前提欠落（user 裁可済み、対象外だったが追加）
+### 実装中に見つかった2点の前提欠落（user 承認済み、対象外だったが追加）
 - `.gitignore`: `secrets-agents/*` を追加。復号先ディレクトリが gitignore 済みという新規保証を満たすため。既存の追跡済みサンプル（`secrets-agents/production-server.md`）はこのルールの影響を受けない
 - `flake.nix`: `home-manager.sharedModules = [ inputs.sops-nix.homeManagerModules.sops ];` を nixosConfigurations / darwinConfigurations.macbook に追加。Issue 14 では system 側の sops module しか配線されておらず、home-manager 側の `sops.secrets` オプション自体が存在しないため `nix flake check` が失敗していた
 
 ## 保証
-- 復号先が `.gitignore` 済みで平文の辞書が git に乗らない → 裏付けテストなし（Issue の「テスト欠落について」で裁可済み。`.gitignore` 追加で担保）
+- 復号先が `.gitignore` 済みで平文の辞書が git に乗らない → 裏付けテストなし（Issue の「テスト欠落について」で承認済み。`.gitignore` 追加で担保）
 - `secrets/agents/` 配下の `.age` は module 変更なしに1つずつ復号先へ配置される → 裏付けテストなし（同上。`builtins.pathExists` ガードは `nix flake check` で確認済み）
 - 復号先はリポジトリ内の `secrets-agents/` である → 裏付けテストなし（同上）
 - 復号ファイルのパーミッションは `0400` → 裏付けテストなし（同上。`secrets-agents.nix` にハードコード）
@@ -28,7 +28,7 @@ Issue 14 で敷いた sops レイヤの上に、マスク辞書（`secrets-agent
 - 目視確認: skill 本文・references 2本に固有デバイス名（neo/het/T14/sv6/rpi3）・私物カテゴリ名（ops/ntf/common/keepass/kissfx）が残っていないことを grep で確認済み。`references/linux.md`・`references/macos.md` への相対リンクは解決する。README.md / README.en.md の追記内容は対応関係が一致
 - caller・import整合性: `devices/gui/macbook/home.nix` と `devices/gui/home.nix`（`linux-desktop`・`linux-laptop` から import される共通ファイル）の imports に `secrets-agents.nix` を追加し、いずれも評価成功
 - 観察事項（Issue 15 の対象外、対応不要と判断）: `.claude/settings.json` は現状 `secrets-agents/**` の Read/Edit deny のみを持ち、`secrets/**` 全般の deny と `secrets/**/*.json.age` の allow 例外は未配線（Issue 09 の背景に「dotfiles-public はまだ `secrets/*.json.age` を置いていない」とあり、追跡済みの意図的な未着手と判断）。今回公開した `sops-secrets` skill 本文はこの安全網の"設計意図"を説明しており、実際に `secrets/*.json.age` を使い始める際は settings.json 側の配線が別途必要
-- `git diff --name-only --cached`: .claude/skills/sops-secrets/SKILL.md, .claude/skills/sops-secrets/references/linux.md, .claude/skills/sops-secrets/references/macos.md, .gitignore, README.en.md, README.md, devices/gui/home.nix, devices/gui/macbook/home.nix, flake.nix, home-manager/modules/secrets-agents.nix（Issue の対象8ファイル + user 裁可済みの.gitignore/flake.nixの計10ファイルで一致）
+- `git diff --name-only --cached`: .claude/skills/sops-secrets/SKILL.md, .claude/skills/sops-secrets/references/linux.md, .claude/skills/sops-secrets/references/macos.md, .gitignore, README.en.md, README.md, devices/gui/home.nix, devices/gui/macbook/home.nix, flake.nix, home-manager/modules/secrets-agents.nix（Issue の対象8ファイル + user 承認済みの.gitignore/flake.nixの計10ファイルで一致）
 
 ## 検証手順
 - macbook で `git pull` → `darwin-rebuild switch --flake ~/dotfiles#macbook` を実施し、secrets/agents/ が空でも rebuild が壊れないことを確認する
@@ -70,7 +70,7 @@ type: feat
   - 本リポに実際の暗号文（`.age`）をコミットしない方針を変えない
   - `.claude/settings.json` の `secrets/` に対する deny を緩めない
 
-**テスト欠落について（裁可済み・見送る）**: 「復号先が `secrets-agents/` である」「パーミッションが `0400`」「二重復号が起きない」は外部から観測可能な契約だが、`nix flake check` は評価エラーの検出までで実際の復号結果を検証せず、妥当なテスト手段が本リポに無い。裏付けテストを含めない。**「二重復号が起きない」は Issue 14 の `hmManagedCategories` による除外に依存しているので、実装時にその除外が効いていることを目視で確認すること。**
+**テスト欠落について（承認済み・見送る）**: 「復号先が `secrets-agents/` である」「パーミッションが `0400`」「二重復号が起きない」は外部から観測可能な契約だが、`nix flake check` は評価エラーの検出までで実際の復号結果を検証せず、妥当なテスト手段が本リポに無い。裏付けテストを含めない。**「二重復号が起きない」は Issue 14 の `hmManagedCategories` による除外に依存しているので、実装時にその除外が効いていることを目視で確認すること。**
 
 ### 背景
 
@@ -78,7 +78,7 @@ type: feat
 
 解決は、暗号文を git 経路に載せて各機が自分の age 鍵で復号する形にすること。ただし復号先は `/run/secrets` ではいけない。CLAUDE.md の機密マスク規則が参照先をリポジトリ内の固定パスとして書いているためで、system 側の sops ではなく home-manager 側でそこへ復号する必要がある。だから Issue 14 の `devices/secrets.nix` は `agents` カテゴリを除外している（両方で拾うと二重復号になる）。
 
-### skill の一般化をどこまでやるか（裁可済み）
+### skill の一般化をどこまでやるか（承認済み）
 
 `sops-secrets` skill（89行 + references 2本）は私物の運用手順そのもので、公開にあたって落とす／置き換える必要がある固有情報が多い。
 
@@ -102,7 +102,7 @@ type: feat
 
 frontmatter の `allowed-tools` は `inject.py` のパスを含む。本リポでも `apps/zsh/inject.py` は公開済み（Issue 08）なので、パス表記を本リポの形に直したうえで残す。
 
-`disable-model-invocation` は**付けない**（裁可済み）。この skill の description は「secret を触るとき・sops 関連エラーの対処時に必ず使用する」であり、自動発火してこそ事故を防ぐ性格のもの。Issue 12 の `skill-dev` / `module-dev` と同じく `block-new-skill-md.sh` に拒否されるため、Write → Edit の順で作ること。
+`disable-model-invocation` は**付けない**（承認済み）。この skill の description は「secret を触るとき・sops 関連エラーの対処時に必ず使用する」であり、自動発火してこそ事故を防ぐ性格のもの。Issue 12 の `skill-dev` / `module-dev` と同じく `block-new-skill-md.sh` に拒否されるため、Write → Edit の順で作ること。
 
 ### 仕様
 

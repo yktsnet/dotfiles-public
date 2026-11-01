@@ -4,7 +4,7 @@ PR: https://github.com/yktsnet/dotfiles-public/pull/38
 Merged: 4534a92e378931eff678a72c31af2e92f49a56c7
 
 ## 変更内容
-- `.claude/skills/skill-dev/SKILL.md` を新規作成。skillの配置先（global の `~/dotfiles/.claude/skills/` か repo-local か）を判断する基準を公開する。裁可済みの例外として `disable-model-invocation: true` を付けずに公開する（自動発火してこそ意味がある2skillのため）。
+- `.claude/skills/skill-dev/SKILL.md` を新規作成。skillの配置先（global の `~/dotfiles/.claude/skills/` か repo-local か）を判断する基準を公開する。承認済みの例外として `disable-model-invocation: true` を付けずに公開する（自動発火してこそ意味がある2skillのため）。
 - `.claude/skills/module-dev/SKILL.md` を新規作成。`docs-agents/module-guide.md` への薄い入口。参照パスを本リポの相対パスに直した。同じく自動発火のまま公開する。
 - `.claude/skills/comment-cleanup/SKILL.md` を新規作成。§3「適用」の参照先を、私物 `~/dotfiles/.claude/CLAUDE.md` の章名から本リポの `docs-agents/issue-driven-workflow.md` に差し替え、私物固有の例示をリポ種別の一般形に書き換えた。それ以外（検出方法・分類基準・完了報告）はそのまま移植。
 - `plugins/public-skills/skills/comment-cleanup/SKILL.md` を新規作成。`.claude/skills/comment-cleanup/SKILL.md` と同一内容。
@@ -14,7 +14,7 @@ Merged: 4534a92e378931eff678a72c31af2e92f49a56c7
 
 ## 保証
 - 新たに宣言する保証:
-  - `plugins[0].description`（plugin.json・marketplace.json）と README 日英の skill 列挙が4箇所で一致する → 目視確認（本文参照）。テスト基盤なし（裁可済み・見送る、Issue本文の記載どおり）
+  - `plugins[0].description`（plugin.json・marketplace.json）と README 日英の skill 列挙が4箇所で一致する → 目視確認（本文参照）。テスト基盤なし（承認済み・見送る、Issue本文の記載どおり）
   - `.claude/skills/comment-cleanup/SKILL.md` と `plugins/public-skills/skills/comment-cleanup/SKILL.md` が同一内容である → `diff` コマンドで確認（差分なしを確認済み）
   - 追加する3 skill の frontmatter が `name` と `description` を持つ → 目視確認（本文参照）
 - 維持する保証:
@@ -25,7 +25,7 @@ Merged: 4534a92e378931eff678a72c31af2e92f49a56c7
 ## 静的確認結果
 - `nix flake check`: darwinConfigurations.macbook ✅（既存の deprecated warning のみ、本変更に起因するエラーなし）
 - `jq empty plugins/public-skills/.claude-plugin/plugin.json` / `jq empty .claude-plugin/marketplace.json`: 両方とも構文OK
-- frontmatter確認: skill-dev / module-dev は `disable-model-invocation` を持たない（Issueで裁可された意図的例外）。comment-cleanup は `disable-model-invocation: true` を保持
+- frontmatter確認: skill-dev / module-dev は `disable-model-invocation` を持たない（Issueで承認された意図的例外）。comment-cleanup は `disable-model-invocation: true` を保持
 - `diff .claude/skills/comment-cleanup/SKILL.md plugins/public-skills/skills/comment-cleanup/SKILL.md`: 差分なし
 - plugin.json / marketplace.json / README.md / README.en.md の skill 列挙（6 skill + comment-cleanup = 7）が4箇所で一致することを確認
 - `git diff --name-only --cached`:
@@ -76,9 +76,9 @@ type: feat
   - `.claude/skills/` の既存 skill を変更しない
   - `/plugin marketplace add` → `/plugin install public-skills` の導入手順を変えない
 
-**テスト欠落について（裁可済み・見送る）**: 「4箇所の一覧が一致する」「2箇所の comment-cleanup が同一内容」は機械的に検証できる契約だが、本リポに skill 群を対象にしたテスト基盤が無く、目視確認に留める。既存の6 skill も同じ扱いになっている。Python のテスト基盤は Issue 16 で `apps/lpt/` にのみ敷く。
+**テスト欠落について（承認済み・見送る）**: 「4箇所の一覧が一致する」「2箇所の comment-cleanup が同一内容」は機械的に検証できる契約だが、本リポに skill 群を対象にしたテスト基盤が無く、目視確認に留める。既存の6 skill も同じ扱いになっている。Python のテスト基盤は Issue 16 で `apps/lpt/` にのみ敷く。
 
-### skill-dev / module-dev は自動発火のまま公開する（裁可済み）
+### skill-dev / module-dev は自動発火のまま公開する（承認済み）
 
 本リポの `block-new-skill-md.sh` は、新規 SKILL.md の frontmatter に `disable-model-invocation: true`（または `manual: true`）が無ければ **Write を拒否する**。フリートの既定が「skill は明示呼び出し専用」だからである。
 
@@ -86,7 +86,7 @@ type: feat
 
 つまりこの2つは既定に対する意図的な例外であり、そのまま移植すると**本リポのフック自身が作成を拒否する**。
 
-**裁可の結果、自動発火のまま公開する。** 実行者は `disable-model-invocation: true` を付けた状態で Write し、その直後に Edit でその行だけ削ること（フックが検査するのは Write による新規作成のみ）。「フックの既定を、フックを説明する skill 自身が破る」形になるが、この2 skill が自動発火してこそ意味があるという判断を公開物としても保つ。
+**承認の結果、自動発火のまま公開する。** 実行者は `disable-model-invocation: true` を付けた状態で Write し、その直後に Edit でその行だけ削ること（フックが検査するのは Write による新規作成のみ）。「フックの既定を、フックを説明する skill 自身が破る」形になるが、この2 skill が自動発火してこそ意味があるという判断を公開物としても保つ。
 
 `comment-cleanup` は私物側でも `disable-model-invocation: true` なので、この論点に関係しない。
 

@@ -12,13 +12,13 @@ Merged: f930fe5da8186c1ed48ac8e30b4d4dd345ff4ccc
 - `docs-agents/harness-guide.md` / `harness-guide.en.md` の 4.5 永続メモリ節に、正本の説明直後（索引の生成物である旨の前）へ1段落追加。`~/memory` が symlink であること・`memory.nix` の activation script が張ること・フック類は `$HOME/memory` 参照のまま変更不要であることを記載。日英で内容を一致させた。
 
 ## 保証
-- `~/memory` が存在しないとき、dotfiles 配下の実体への symlink を新規作成する → `home-manager/modules/memory.nix` の `else` 分岐（`ln -s "$src" "$dst"`）で担保。テスト無し（裁可済み、Issue 参照）
-- `~/memory` が既に symlink のとき、リンク先を dotfiles 配下の実体へ張り替える → `elif [ -L "$dst" ]` 分岐（`ln -sfn "$src" "$dst"`）で担保。テスト無し（裁可済み）
-- `~/memory` が実体のディレクトリとして存在するとき、何も削除せず・上書きせず、退避を促すメッセージを標準エラーへ出して activation を継続する → `elif [ -e "$dst" ]` 分岐（`echo ... >&2` のみで `ln` を呼ばない）で担保。分岐を `ln -sfn` に一本化していないことをコード上維持。テスト無し（裁可済み、実装時に一本化しないことを明記）
-- dotfiles 配下に実体が無いとき、警告を出して activation を継続する（activation 全体を失敗させない） → `if [ ! -d "$src" ]` 分岐（`echo ... >&2` のみで `exit` しない）で担保。テスト無し（裁可済み）
+- `~/memory` が存在しないとき、dotfiles 配下の実体への symlink を新規作成する → `home-manager/modules/memory.nix` の `else` 分岐（`ln -s "$src" "$dst"`）で担保。テスト無し（承認済み、Issue 参照）
+- `~/memory` が既に symlink のとき、リンク先を dotfiles 配下の実体へ張り替える → `elif [ -L "$dst" ]` 分岐（`ln -sfn "$src" "$dst"`）で担保。テスト無し（承認済み）
+- `~/memory` が実体のディレクトリとして存在するとき、何も削除せず・上書きせず、退避を促すメッセージを標準エラーへ出して activation を継続する → `elif [ -e "$dst" ]` 分岐（`echo ... >&2` のみで `ln` を呼ばない）で担保。分岐を `ln -sfn` に一本化していないことをコード上維持。テスト無し（承認済み、実装時に一本化しないことを明記）
+- dotfiles 配下に実体が無いとき、警告を出して activation を継続する（activation 全体を失敗させない） → `if [ ! -d "$src" ]` 分岐（`echo ... >&2` のみで `exit` しない）で担保。テスト無し（承認済み）
 - `sync-memory-index.sh` / `block-project-scoped-memory.sh` の挙動、既存 home-manager モジュールの activation 順序 → 両フックのファイル・既存モジュールを一切変更していないため維持
 
-なし（理由）: `nix flake check` は評価エラーの検出までで activation の実行時分岐を検証できず、activation を対象にした妥当なテスト手段が本リポに無いため。Issue内で裁可済み。
+なし（理由）: `nix flake check` は評価エラーの検出までで activation の実行時分岐を検証できず、activation を対象にした妥当なテスト手段が本リポに無いため。Issue内で承認済み。
 
 ## 静的確認結果
 - `nix flake check`: darwinConfigurations.macbook 評価成功（既存の programs.git / programs.ssh 非推奨警告のみ、本変更と無関係）。x86_64-linux は未評価環境のため対象外表示。
@@ -69,13 +69,13 @@ type: feat
   - `block-project-scoped-memory.sh`（プロジェクトスコープへの書き込みを拒否し正しい配置先を返す）の挙動を変えない
   - 既存の home-manager モジュールの activation 順序に影響を与えない
 
-**テスト欠落について（裁可済み・見送る）**: 上記4つは activation script の外部から観測可能な契約（特に「実体があるとき何も壊さない」は失うと実害が出る）だが、`nix flake check` は評価エラーの検出までで実行時の分岐を検証せず、activation を対象にした妥当なテスト手段が本リポに無い。裏付けテストを含めない。**「実体があるとき何も削除・上書きしない」は失うと実害が出るため、実装時に分岐を `ln -sfn` へ一本化しないこと**（テストが無い以上、ここはコードの形で守る）。
+**テスト欠落について（承認済み・見送る）**: 上記4つは activation script の外部から観測可能な契約（特に「実体があるとき何も壊さない」は失うと実害が出る）だが、`nix flake check` は評価エラーの検出までで実行時の分岐を検証せず、activation を対象にした妥当なテスト手段が本リポに無い。裏付けテストを含めない。**「実体があるとき何も削除・上書きしない」は失うと実害が出るため、実装時に分岐を `ln -sfn` へ一本化しないこと**（テストが無い以上、ここはコードの形で守る）。
 
-### `memory/` の実体は公開せず、module は配線する（裁可済み）
+### `memory/` の実体は公開せず、module は配線する（承認済み）
 
 私物側の `memory/` の中身は user 個人の事実（`user` / `feedback` / `project` / `reference` の4型）であり、**公開しない**。したがって本リポで module を imports に足すと、実体が無い状態で rebuild され、毎回「実体が無い」旨の警告が出る。
 
-**裁可の結果、module を公開し imports にも足す。** 実体が無い環境では警告が出るが activation は継続する（module 側でそう作ってある）。利用者は自分の `memory/` を作れば警告が消える。`.gitignore` に `memory/` を足し、実体が誤ってコミットされないようにする。
+**承認の結果、module を公開し imports にも足す。** 実体が無い環境では警告が出るが activation は継続する（module 側でそう作ってある）。利用者は自分の `memory/` を作れば警告が消える。`.gitignore` に `memory/` を足し、実体が誤ってコミットされないようにする。
 
 警告文は私物前提の文面（「dotfiles を pull してから再実行すること」）になっているので、公開版では「`memory/` を作るか、この module を imports から外すこと」と読める文面に直す。
 

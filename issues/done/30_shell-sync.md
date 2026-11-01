@@ -3,7 +3,7 @@ issue: 30 (30_shell-sync.md)
 PR: https://github.com/yktsnet/dotfiles-public/pull/89
 
 ## 変更内容
-- aiagent.sh: 実行者の system prompt に「指摘の無い crit の Finish Review を PR を出す明示とみなす」を追加。`i` の fzf に C-o（エディタで開く）・折り返し・bat によるプレビューを足し、draft の裁可の前にエディタで全文を読ませて確認を挟む
+- aiagent.sh: 実行者の system prompt に「指摘の無い crit の Finish Review を PR を出す明示とみなす」を追加。`i` の fzf に C-o（エディタで開く）・折り返し・bat によるプレビューを足し、draft の承認の前にエディタで全文を読ませて確認を挟む
 - menu.sh: `_pick_multi`（Tab で複数選択する fzf ピッカー）を追加
 - tmux.nix: status-right のエージェント表示を、エージェントごとのチップから状態別の件数（waiting / idle / busy）に変更。M-u の説明コメントを実態（起動は c() に一本化）に合わせた
 - ctx.nix: daemon を有効にする `~/.ctx/config.toml` を宣言
@@ -29,7 +29,7 @@ tmux.nix のうち、公開範囲を絞った際に外した pane 格子・ス�
 
 ## 検証手順
 - 各デバイスで `home-manager switch`（または `darwin-rebuild` / `nixos-rebuild`）を適用し、tmux の status-right が件数表示になること、`~/.ctx/config.toml` が生成されることを確認する
-- `i` で C-o と draft の裁可前のエディタ表示が動くことを確認する
+- `i` で C-o と draft の承認前のエディタ表示が動くことを確認する
 
 
 ## 確認者の判定
