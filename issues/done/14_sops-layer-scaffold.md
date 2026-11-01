@@ -11,8 +11,8 @@ Merged: 99c1252e3971fc0e3de97de0cd1219f45d9f48e6
 - `docs-agents/repo-guide.md` / `repo-guide.en.md`: 機密管理の節に sops レイヤの方針（自動登録・format 判定・平文を置かない・デバイス追加の順序）を追記。運用コマンドは skill 側の管轄として二重化していない。
 
 ## 保証
-- 「`secrets/` にカテゴリディレクトリが1つも無い状態でも `nix flake check` が通る」→ `nix eval .#nixosConfigurations.linux-laptop.config.sops.secrets --json` を強制評価し `{}` を返すことを確認（`nix flake check` は `config.sops.secrets` を遅延評価のため通過するだけでは検証にならず、直接評価で確認した）。テスト基盤が無いため自動テストは追加していない（Issue に記載の裁可済み欠落）。
-- 「`secrets/<カテゴリ>/<名前>.age` を置くと `secrets.nix` の変更なしに登録される」「format はファイル名拡張子で決まる」「`legacyBinaryCategories` は拡張子によらず binary」→ なし（実際に復号して初めて分かるため、Issue で裁可済みのテスト欠落）
+- 「`secrets/` にカテゴリディレクトリが1つも無い状態でも `nix flake check` が通る」→ `nix eval .#nixosConfigurations.linux-laptop.config.sops.secrets --json` を強制評価し `{}` を返すことを確認（`nix flake check` は `config.sops.secrets` を遅延評価のため通過するだけでは検証にならず、直接評価で確認した）。テスト基盤が無いため自動テストは追加していない（Issue に記載の承認済み欠落）。
+- 「`secrets/<カテゴリ>/<名前>.age` を置くと `secrets.nix` の変更なしに登録される」「format はファイル名拡張子で決まる」「`legacyBinaryCategories` は拡張子によらず binary」→ なし（実際に復号して初めて分かるため、Issue で承認済みのテスト欠落）
 - 「本リポに実際の暗号文と `.sops.yaml` の実体はコミットされない」→ `git check-ignore` で `.sops.yaml` / `secrets/**/*.age` が除外対象であることを確認。今回のコミットに `.age` ファイルと `.sops.yaml` の実体は含まれない
 - 「既存の nixosConfigurations / darwinConfigurations のビルド対象と評価結果を変えない」→ `nix flake check` で全 nixosConfigurations（linux-laptop / linux-desktop / linux-server-a / linux-server-b / linux-netboot）と darwinConfigurations.macbook が変更前と同じ集合で評価に成功
 - 「flake.lock の既存 input のリビジョンを、sops-nix 追加に伴う解決以外で動かさない」→ `git diff -- flake.lock` で `sops-nix` エントリの追加のみであることを確認（既存 input の rev は無変更）
@@ -65,7 +65,7 @@ type: feat
   - 既存の `nixosConfigurations` / `darwinConfigurations` のビルド対象と評価結果を変えない（sops-nix の module を配線するだけで、既存モジュールの挙動を変えない）
   - `flake.lock` の既存 input のリビジョンを、sops-nix 追加に伴う解決以外で動かさない
 
-**テスト欠落について（裁可済み・見送る）**: 「空でも評価が通る」は `nix flake check` が裏付ける。「拡張子から format が決まる」は評価が通るだけでは検証されず（実際に復号して初めて分かる）、本リポに Nix の評価結果を検査するテスト基盤が無いため裏付けテストを含めない。**「空でも評価が通る」は私物側で踏まれたことのない経路なので、実装時に必ず手で確認すること。**
+**テスト欠落について（承認済み・見送る）**: 「空でも評価が通る」は `nix flake check` が裏付ける。「拡張子から format が決まる」は評価が通るだけでは検証されず（実際に復号して初めて分かる）、本リポに Nix の評価結果を検査するテスト基盤が無いため裏付けテストを含めない。**「空でも評価が通る」は私物側で踏まれたことのない経路なので、実装時に必ず手で確認すること。**
 
 ### 背景
 
@@ -75,11 +75,11 @@ README の Foundation は「公開リポジトリ側のコードや Issue ファ
 
 本 Issue は土台だけを敷く。辞書の配布そのものは Issue 15 で扱う。
 
-### 空の `secrets/` は user が用意する（裁可済み）
+### 空の `secrets/` は user が用意する（承認済み）
 
 `devices/secrets.nix` は `builtins.readDir` でカテゴリディレクトリを走査する。`secrets/` が存在しないと評価時にエラーになるため、公開リポでは空のディレクトリを維持する必要がある。git は空ディレクトリを持てないので `secrets/.gitkeep` を置く。
 
-一方、`.claude/settings.json` は `secrets/` 配下の読み書きを deny している（`.json.age` を除く）。**裁可の結果、`secrets/.gitkeep` は user が置く。** Agent に `secrets/` を触らせない原則を崩さないためで、deny に例外を作らない。
+一方、`.claude/settings.json` は `secrets/` 配下の読み書きを deny している（`.json.age` を除く）。**承認の結果、`secrets/.gitkeep` は user が置く。** Agent に `secrets/` を触らせない原則を崩さないためで、deny に例外を作らない。
 
 したがって実行者は `secrets/.gitkeep` を作らない。それが無いことで `nix flake check` が通らない場合は、**その時点で報告して止まること**（回避のために `secrets.nix` の走査経路を変えない）。
 

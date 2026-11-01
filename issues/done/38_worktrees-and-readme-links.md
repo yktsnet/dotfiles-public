@@ -30,7 +30,7 @@ PR: https://github.com/yktsnet/dotfiles-public/pull/101
 | sweep が未登録だけを消す / `.gitignore` で `.claude/` が出ない | 合 |
 | README のリンク集合が一覧と一致・日英で同じ・名前が残る | 合 |
 | 参照切れの検査 | README は合。Issue ファイルの例示リンクは `done/` へ移して解消 |
-| 新しい2保証を固定するテスト | 否（テスト基盤が無く、user の裁可でテスト無しとして採用） |
+| 新しい2保証を固定するテスト | 否（テスト基盤が無く、user の承認でテスト無しとして採用） |
 
 ---
 

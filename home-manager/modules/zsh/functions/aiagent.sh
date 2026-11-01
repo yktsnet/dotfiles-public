@@ -580,7 +580,7 @@ i() {
   case "$action" in
     run) _aiagent_run "${targets[@]}" ;;
     approve)
-      # 裁可の前に全文を読ませる。開いた先で直してから閉じてもよい
+      # 承認の前に全文を読ませる。開いた先で直してから閉じてもよい
       ${EDITOR:-nvim} "${targets[1]}"
       _confirm "Approve ${targets[1]:t}?" || return 0
       _sed_i "s/^status: draft$/status: open/" "${targets[1]}"

@@ -74,7 +74,7 @@ type: feat
 稼働側に合わせる。差分は description・前提の段落・手順4（画面に出る変更は `screen-operator` で確かめる）・手順8（crit の前に `issue-inspector` に検収させる。渡すのは Issue と worktree のパスだけ）・手順9（`Inspection:` に検収の表、`Verify:` に user に残る確認だけ）・手順10（直したら検収を受け直す）・手順11（PR 本文に `## 検収`）。
 
 ### .claude/skills/local-issue/SKILL.md・reference/issue-template.md
-稼働側に合わせる。user の担当を「保証節の裁可・使い心地の判断・デプロイ・サービス再起動・実機での確認・マージ」にし、Issue の型の `確認` を検収役の基準として書き直し、`人が見るもの` の欄を足す。
+稼働側に合わせる。user の担当を「保証節の承認・使い心地の判断・デプロイ・サービス再起動・実機での確認・マージ」にし、Issue の型の `確認` を検収役の基準として書き直し、`人が見るもの` の欄を足す。
 
 ### home-manager/modules/claude.nix
 activation script で、`agents` を `settings.json`・`skills`・`hooks` と同じく消してから実体コピーする。稼働側の `claude.nix` と同じ形にする。

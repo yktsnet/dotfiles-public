@@ -4,15 +4,15 @@ PR: https://github.com/yktsnet/dotfiles-public/pull/25
 Merged: dd57aac893502215a3569a28de1bdcf69875c686
 
 ## 変更内容
-私物dotfiles側で導入した保証運用（Issueの「保証」節をuserがdraft→openで裁可・保証台帳 docs/guarantees.md・Issueテンプレート正本のスキル側一本化）を、公開ワークフロー文書に反映した。
+私物dotfiles側で導入した保証運用（Issueの「保証」節をuserがdraft→openで承認・保証台帳 docs/guarantees.md・Issueテンプレート正本のスキル側一本化）を、公開ワークフロー文書に反映した。
 
 - docs-agents/issue-driven-workflow.md / .en.md:
   - 「Issue フォーマット」節にテンプレートの `### 保証` 節を追記し、保証節の記法（自然言語で振る舞いを書く／テストなしは理由付きで明示）を一文追加
-  - 「ライフサイクル」節の `draft → open` 遷移に「user が保証節を裁可」を明記し、`open` の意味に保証裁可済みを含めた
-  - 「担当分離」の表に user の作業として「Issue保証節の裁可」を追加し、相談者がIssueを演じる場合の書き出し既定を `status: draft` に変更（user 裁可後に `open` へ）
+  - 「ライフサイクル」節の `draft → open` 遷移に「user が保証節を承認」を明記し、`open` の意味に保証の承認済みを含めた
+  - 「担当分離」の表に user の作業として「Issue保証節の承認」を追加し、相談者がIssueを演じる場合の書き出し既定を `status: draft` に変更（user 承認後に `open` へ）
   - 「プロジェクト構成」節のツリーから `issues/00_template.md` を除去し、テンプレート正本がグローバルスキル側（`~/.claude/skills/repo-standardize/reference/issue-template.md`、`new-issue` が参照）にある旨を追記
   - 英語版は日本語版と同内容に同期
-- docs-agents/test-policy.md / .en.md（新規）: テスト方針を明文化。テストは変更可能性の担保／保証はIssueの保証節で人間が裁可・実装は実行者／濃淡はリスクベース／fixに回帰テスト同梱／外部依存はDI+fake／保証台帳 docs/guarantees.md の運用を記載
+- docs-agents/test-policy.md / .en.md（新規）: テスト方針を明文化。テストは変更可能性の担保／保証はIssueの保証節で人間が承認・実装は実行者／濃淡はリスクベース／fixに回帰テスト同梱／外部依存はDI+fake／保証台帳 docs/guarantees.md の運用を記載
 - issues/00_template.md / .en.md: テンプレート正本一本化に伴いドリフトしていたコピーを削除
 
 ## 保証
@@ -52,7 +52,7 @@ type: feat
 - docs-agents/test-policy.en.md (新規)
 - issues/00_template.md（削除）
 - issues/00_template.en.md（削除）
-内容: 私物dotfiles側で導入した保証運用（Issueの「保証」節をuserがdraft→openで裁可・保証台帳 docs/guarantees.md・Issueテンプレート正本のスキル側一本化）を、公開ワークフロー文書に反映する。テスト方針文書 test-policy.md を新設し、ドリフトしていた issues/00_template.md は正本一本化に伴い削除する。
+内容: 私物dotfiles側で導入した保証運用（Issueの「保証」節をuserがdraft→openで承認・保証台帳 docs/guarantees.md・Issueテンプレート正本のスキル側一本化）を、公開ワークフロー文書に反映する。テスト方針文書 test-policy.md を新設し、ドリフトしていた issues/00_template.md は正本一本化に伴い削除する。
 確認: 目視確認（全対象がMarkdown）
 
 ---
@@ -65,7 +65,7 @@ type: feat
 
 私物dotfilesのIssue 19で以下を導入した。本リポの docs-agents はワークフローの公開版のため追従する。
 
-1. Issueテンプレートに「保証」節（この変更で新たに宣言する保証・維持する保証を自然言語で列挙）を追加し、user が draft→open の裁可で保証節を必ず読む運用にした（open は保証裁可済みを意味する）
+1. Issueテンプレートに「保証」節（この変更で新たに宣言する保証・維持する保証を自然言語で列挙）を追加し、user が draft→open の承認で保証節を必ず読む運用にした（open は保証の承認済みを意味する）
 2. テスト方針を docs-agents/test-policy.md として明文化した
 3. 各リポにコピー配布していた issues/00_template.md を廃止し、テンプレート正本を local-issue スキルが読む単一ファイルに一本化した
 
@@ -74,9 +74,9 @@ type: feat
 #### issue-driven-workflow.md / .en.md
 
 - 「Issue フォーマット」節: フィールド一覧の後に「保証」節を追記し、テンプレートの引用例を新形式（`### 保証` を含む）に更新する
-- 「ライフサイクル」節: `open` の意味に「user が保証節を裁可済み」を含める。相談者の書き出し既定が `draft` になったことを反映する
+- 「ライフサイクル」節: `open` の意味に「user が保証節を承認済み」を含める。相談者の書き出し既定が `draft` になったことを反映する
 - 「プロジェクト構成」節: ツリーから `issues/00_template.md` を除去し、テンプレート正本はグローバルスキル側（local-issue が参照）にある旨を一文添える
-- 担当分離の表: user の作業に「Issue保証節の裁可」を加える
+- 担当分離の表: user の作業に「Issue保証節の承認」を加える
 - 英語版は日本語版と同内容に同期する（readme-i18n の規範に従う）
 
 #### test-policy.md / .en.md（新規）
@@ -84,7 +84,7 @@ type: feat
 私物dotfiles側の test-policy.md と同内容で作成する（公開に際して固有情報は含まれないことを確認する）。骨子:
 
 - テストは変更可能性の担保。実行者（AI）が壊したことに自分で気づくための装置であり、注意し続ける人間を前提にしない
-- 保証（何が壊れてはいけないか）はIssueの保証節で人間が裁可し、テストの実装は実行者が書く
+- 保証（何が壊れてはいけないか）はIssueの保証節で人間が承認し、テストの実装は実行者が書く
 - 濃淡はリスクベース: 公開API・契約面は厚く、内部実装は薄く、UI・見た目は user の手動検証に回す
 - fix には回帰テストを同梱する
 - 外部依存はDIで受け、テストは fake で差し替える
