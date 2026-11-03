@@ -13,7 +13,6 @@
       "Bash(zsh -n *)"
     ],
     "deny": [
-      "Bash(ssh *)",
       "Bash(nixos-rebuild *)",
       "Bash(darwin-rebuild *)",
       "Bash(home-manager switch *)",
