@@ -35,7 +35,7 @@ PR: https://github.com/yktsnet/dotfiles-public/pull/95
 | 5 | ci.yml が YAML として読め、PR と main への push で走る | 合 |
 | 6 | PR で CI の新しいジョブが緑になる | 判定できない（確認者はランナーで未実行）。PR の CI で `Rule Checks` が緑になったことを実行者が確認 |
 
-保証の固定テストと効き目（実装を壊すと落ちるか）はすべて合。
+保証の固定テストと、実装を壊すと落ちるかの確認はすべて合。
 
 ---
 

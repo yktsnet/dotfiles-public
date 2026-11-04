@@ -109,7 +109,7 @@ OS の差は、Nix 側では `pkgs.stdenv.isDarwin`、シェル側では `os.sh`
 
 ### 規則を1か所から全セッションへ配る
 
-`.claude/` の settings・hooks・skills と `home-manager/config/claude/common.md` が正本で、`home-manager/modules/claude.nix` が rebuild のたびに `~/.claude` へ実体コピーする。どのリポジトリ、どの端末で Claude Code を開いても、同じ規則が効く。`~/.claude` 側は生成物になるので、そこを直接編集しようとすると `block-live-claude-config-edit.sh` が止め、正本のパスを返す。永続メモリは `memory.nix` で git の経路に乗せ、端末間で揃える。
+`.claude/` の settings・hooks・skills と `home-manager/config/claude/common.md` が正本で、`home-manager/modules/claude.nix` が rebuild のたびに `~/.claude` へ実体コピーする。どのリポジトリ、どの端末で Claude Code を開いても、同じ規則が適用される。`~/.claude` 側は生成物になるので、そこを直接編集しようとすると `block-live-claude-config-edit.sh` が止め、正本のパスを返す。永続メモリは `memory.nix` で git の経路に乗せ、端末間で揃える。
 
 ### 機密を地の文に出さない
 
@@ -142,6 +142,6 @@ Issue・PR・コミットの地の文には、IP・ポート・実ホスト名�
 
 ## Scope
 
-稼働中の dotfiles から、エージェントとの開発に関わる層（Claude Code・メモリ・機密・レビュー・tmux のセッション管理）だけを抜き出している。稼働側の Flake は、ここに載せた2台のほかに headless のサーバーや WSL も束ね、エディタ・デスクトップの設定やフリートの状態確認も持つが、それらは含めていない。Nix による道具の統一・`~/.claude` の配布・対応表の復号・永続メモリは端末に紐づき、チームのリポジトリからは効かせられないので、sdlc-kit には入れずここに残している。
+稼働中の dotfiles から、エージェントとの開発に関わる層（Claude Code・メモリ・機密・レビュー・tmux のセッション管理）だけを抜き出している。稼働側の Flake は、ここに載せた2台のほかに headless のサーバーや WSL も束ね、エディタ・デスクトップの設定やフリートの状態確認も持つが、それらは含めていない。Nix による道具の統一・`~/.claude` の配布・対応表の復号・永続メモリは端末に紐づき、チームのリポジトリからは配れないので、sdlc-kit には入れずここに残している。
 
 clone して各自の端末へ適用することは想定しておらず、動かす手順も載せていない。デバイス構成は実機のハードウェアと鍵を前提にしていて、`secrets/` の暗号文も含めていないためである。CI の `nix flake check` は、公開している構成が評価できる状態にあることを確かめている。
