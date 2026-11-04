@@ -62,21 +62,21 @@ Agents are confidently and quietly wrong. A promise that people will be careful 
 
 ```mermaid
 flowchart TD
-    U([User]) -->|approve| I[Issue in issues/]
-    C([Consultant]) -->|design| I
+    U([👤 User]) -->|approve| I[📋 Issue in issues/]
+    C([💬 Consultant]) -->|design| I
     subgraph local [Local worktree, executor's session]
-        I -->|launched by i| E([Executor])
-        E --> L[Commit]
-        L --> J{{Verifier}}
+        I -->|launched by i| E([🛠️ Executor])
+        E --> L[💾 Commit]
+        L --> J{{🔍 Verifier}}
         J -->|fail| E
-        J -->|pass| V{{Anything for the user to look at?}}
-        V -->|yes| H{{Check feel, drift from the agreement, real machine}}
+        J -->|pass| V{{❓ Anything for the user to look at?}}
+        V -->|yes| H{{🧪 Check feel, drift from the agreement, real machine}}
         H -->|comments| E
     end
     V -->|no| P
     H -->|OK| P
     subgraph remote [GitHub]
-        P[Executor opens the PR] -->|user merges| M[main]
+        P[📬 Executor opens the PR] -->|user merges| M[🌿 main]
     end
 ```
 
