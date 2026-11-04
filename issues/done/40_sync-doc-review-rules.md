@@ -1,7 +1,40 @@
+## PR記録: feat: 文書の校正・点検と画面確認の規範を dotfiles に揃える
+issue: 40 (40_sync-doc-review-rules.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/109
+
+## 変更内容
+dotfiles で入った規範のうち、環境に依らないものを写した。
+- common.md: 校正は1回で終える。校正役が報告に回した点は書き手が決め、決めた結果を報告に添える。新しい .md を作ったときと見出しを動かしたときは md-reviewer も呼ぶ
+- md-writing skill と md-reviewer agent を新しく置き、skills/README.md の一覧に載せる
+- screen-operator・issue-verifier・pr-workflow・issue-template: ヘッドレスのブラウザで再現できない操作の扱いと、見せる画面の準備
+- mermaid-diagram: 「ノードの絵文字」の節
+
+## 保証
+なし（skill・agent・共通ガイドの文書だけの変更で、コードの挙動を変えない）
+
+## 静的確認結果
+- 確認の項目にある文言を grep で確かめた
+- check-refs.py: 通過（rc=0）
+- nix flake check: all checks passed
+- 校正役と点検役の報告は採らず、dotfiles の文面のまま残した。例外は、screen-operator と issue-verifier の「ヘッドレスのブラウザで再現できない操作」で、Issue の確認の文言に揃えた
+
+## 確認者の判定
+| # | 項目 | 判定 |
+|---|---|---|
+| 1 | common.md に「校正は1回で終える」「点検も1回で終える」「md-reviewer」がある | 合 |
+| 2 | md-writing/SKILL.md と md-reviewer.md があり、md-reviewer が md-writing を読む | 合 |
+| 3 | skills/README.md の一覧に md-writing と md-reviewer がある | 合 |
+| 4a | pr-workflow と issue-template に再現できない操作の扱いがある | 合 |
+| 4b | screen-operator と issue-verifier に再現できない操作の扱いがある | 合 |
+| 5 | mermaid-diagram に「ノードの絵文字」の節がある | 合 |
+| 6 | check-refs.py が通る | 合 |
+
+---
+
 ## 文書の校正・点検と画面確認の規範を dotfiles に揃える
 id: 40
 branch-slug: sync-doc-review-rules
-status: open
+status: close
 type: feat
 対象: home-manager/config/claude/common.md, .claude/skills/md-writing/SKILL.md (新規), .claude/agents/md-reviewer.md (新規), .claude/skills/README.md, .claude/skills/pr-workflow/SKILL.md, .claude/agents/screen-operator.md, .claude/agents/issue-verifier.md, .claude/skills/local-issue/reference/issue-template.md, .claude/skills/mermaid-diagram/SKILL.md
 内容: dotfiles で入った規範のうち、環境に依らないものを持ってくる。(1) 校正を1回で終え、校正役が報告に回した点は書き手が決める。(2) 文書の組み立てを点検する `md-writing` skill と `md-reviewer` agent を足し、新しい `.md` を作ったか見出しを動かしたときに呼ぶ。(3) ヘッドレスのブラウザで再現できない操作の扱いと、user に見せる画面の準備。(4) mermaid-diagram の「ノードの先頭に絵文字」の規則（README の図には #108 で適用済み）
