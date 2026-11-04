@@ -9,7 +9,7 @@ let
   # age 鍵で復号する形にして解消する。
   #
   # devices/secrets.nix（system 側）は agents カテゴリを除外している（二重復号を避けるため）。
-  # 本モジュールは macbook・linux-desktop 等、imports した GUI デバイスの home-manager 経由で効く。
+  # 本モジュールは macbook・linux-desktop 等、imports した GUI デバイスの home-manager 経由で適用される。
   secretsDir = ../../secrets/agents;
   ageFiles =
     if builtins.pathExists secretsDir then

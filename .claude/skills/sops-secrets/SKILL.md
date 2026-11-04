@@ -13,7 +13,7 @@ allowed-tools: Bash(python3 ~/.claude/skills/sops-secrets/scripts/inject.py *)
 ## 安全規則
 
 - 平文の secret をリポ内・ディスクバックの領域に置かない。生ファイルは RAM ディスク上でのみ作成する
-- `secrets/` の読み取り・編集・作成は settings.json で deny されている。format による例外はない（`Read` / `Edit` の deny がパス全体に効き、`Edit` の deny は Write を含む全編集ツールを覆う）。Agent が触れるのは `inject` による新規書き込みだけ
+- `secrets/` の読み取り・編集・作成は settings.json で deny されている。format による例外はない（`Read` / `Edit` の deny がパス全体に適用され、`Edit` の deny は Write を含む全編集ツールを覆う）。Agent が触れるのは `inject` による新規書き込みだけ
   - 復号値そのもの（`sops --decrypt` の出力）を確認する必要があるときは、値を表示せずコマンドに直接食わせるか user に依頼する（この規則は format に関わらず変わらない）
 - Issue / PR / コミット等の説明文に実値を書かない。`secrets-agents/` の辞書を読み `<PLACEHOLDER>` を使う（グローバル CLAUDE.md の機密マスク規則）
 

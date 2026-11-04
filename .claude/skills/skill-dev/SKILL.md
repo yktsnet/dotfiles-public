@@ -57,7 +57,7 @@ description: sops / age による secret の暗号化・復号・再暗号化の
 
 - `name` / `description` は必須。description に「〜するとき使用する」と起動条件を列挙し、暗黙知を宣言に変える
 - 既定は `disable-model-invocation: true`（明示呼び出し専用）。外すのは、条件を言語化できて、その条件が起きたときに読み落とすと事故る skill だけ。外すときは user に確認する
-- 自動発火させる skill のうち、**効く場面がファイルで言えるものは `paths` で絞る**
+- 自動発火させる skill のうち、**使う場面がファイルで言えるものは `paths` で絞る**
 
 ```yaml
 paths:

@@ -49,7 +49,7 @@ type: feat
 
 私物 `~/dotfiles` の `.claude/hooks/backup-secret-json.sh` は、`settings.json` が `secrets/**/*.json.age` の Read/Edit を例外的に許可している（常に sops の暗号文で平文が見えないため）ことを前提に、Agent が暗号文を壊す編集をしても復元できるよう、上書き直前に `.bak.<timestamp>` を作るバックアップフック。内容にドメイン実値・固有パス等の機密は含まれておらず、汎用的なフックとしてそのまま公開できる。
 
-dotfiles-public 自体は現時点で `secrets-agents/`（機密辞書、読み書き禁止）のみを持ち、sops で暗号化した `secrets/*.json.age` は置いていない。本フックは「他者がこのリポをテンプレートとして自分の `secrets/` 運用を組んだときに効く」ハーネス部品として公開する（`docs-agents/` 配下の他ドキュメントと同じ、テンプレート/ガイド層としての位置づけ）。
+dotfiles-public 自体は現時点で `secrets-agents/`（機密辞書、読み書き禁止）のみを持ち、sops で暗号化した `secrets/*.json.age` は置いていない。本フックは「他者がこのリポをテンプレートとして自分の `secrets/` 運用を組んだときに使える」ハーネス部品として公開する（`docs-agents/` 配下の他ドキュメントと同じ、テンプレート/ガイド層としての位置づけ）。
 
 ### 仕様
 
