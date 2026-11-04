@@ -5,6 +5,10 @@
 
 Claude Code は本ファイルを最優先の指示として実行すること。
 
+## フェーズ
+
+このリポは Issueドリブン期である。
+
 ## 動作フロー
 - 起動時に `issues/` 内の対象 Issue（`status: open`）を確認する。
 - 実装開始前に `context/conventions.md` と `context/structure.md` を読み、規約と構造を把握する。
