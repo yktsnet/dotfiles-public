@@ -59,6 +59,28 @@ printf 'x\n' >"$wt/dirty.txt"
 out=$(GH_STATE=MERGED GH_HEAD=$head run)
 [ -d "$wt" ]; check "未コミットの変更があれば残す" $?
 
+setup nopr; branch=claude/nopr
+out=$(cd "$repo" && zsh -c '
+  source "$1"
+  gh() { return 1; }
+  _aiagent_retire_wt "$2" "$3"
+' _ "$SRC" "$wt" "$branch" 2>&1)
+[ -d "$wt" ]; check "PR が無ければ残す" $?
+
+# i は、カレントディレクトリが消えていてもホームへ移ってから一覧を出す。
+# 消えたディレクトリで起動した zsh は PWD を . にするので、開いていたシェルに合わせて PWD を戻す
+gone="$work/gone"
+mkdir "$gone"
+out=$(cd "$gone" && rmdir "$gone" && HOME="$work" zsh -c '
+  source "$1"
+  _aiagent_reap_all() { print -r -- "pwd=$PWD"; }
+  _aiagent_entries() { :; }
+  _aiagent_status_all() { :; }
+  PWD=$2
+  i
+' _ "$SRC" "$gone" 2>&1)
+printf '%s' "$out" | grep -qxF "pwd=$work"; check "i はカレントディレクトリが消えていればホームへ移る" $?
+
 git -C "$repo" rev-parse -q --verify claude/match >/dev/null; check "ブランチは消さない" $?
 
 if [ "$fails" -eq 0 ]; then
