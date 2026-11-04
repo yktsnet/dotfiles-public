@@ -18,7 +18,7 @@ The first is **verification**: it takes time to confirm that what was written ca
 
 The second is **conveying intent**: conditions missing from a request get filled in by the agent's own inference, and it still finishes something that runs. Because it runs, the gap is easy to miss. Decisions that used to be made inside the implementer's head now have to be written down outside the code and handed over before implementation starts.
 
-So this platform **does not assume a human who stays attentive**. Removing environment differences, blocking destructive commands, and isolating secrets are fixed in code and configuration, with a human merge as the final gate. The human decides "what must not break" and approves it in writing; implementation and tests are left to the agents. When a promise is broken, a machine detects it and stops, so nobody has to sit and watch.
+So this platform **does not assume a human who stays attentive**. The human decides "what must not break" and approves it; implementation and tests are left to the agents. When a promise is broken, a machine detects it and stops, so nobody has to sit and watch.
 
 The dividing line is **whether it can be written down and handed over**. Behavior can be, so the agent runs the checks written in the Issue and confirms it itself. Feel, how it is to use, cannot: the agent has little sense of intent or feeling, and even in words a person cannot hand it over completely. So a person touches it and decides. The human's job moves from writing code and matching behavior by hand to approving promises and judging what cannot be written down.
 
@@ -32,7 +32,7 @@ The machinery rests on three principles.
 2. **Let mechanisms and separate contexts do the checking**
 3. **Leave humans only the judgments that cannot be written down**
 
-Principles 1 and 2 answer the two bottlenecks in Why (conveying intent and verification); principle 3 answers the dividing line between them (whether something can be written down and handed over). The order has dependencies. Without written promises, the mechanisms do not know what to enforce, and a separate context does not know what to check against. Without mechanisms that check, matching and watching creep back into the judgments meant to be left to humans.
+The order has dependencies. Without written promises, the mechanisms do not know what to enforce, and a separate context does not know what to check against. Without mechanisms that check, matching and watching creep back into the judgments meant to be left to humans.
 
 Deciding the repository type, placing the rules, and deny rules with hooks are needed from the start, whatever the scale. The guarantee ledger and role separation are added when there is something published, or when several sessions start running in parallel.
 
@@ -42,7 +42,7 @@ Deciding the repository type, placing the rules, and deny rules with hooks are n
 
 ### 1. Write the Promises Down First
 
-Agents fill in unwritten conditions by inference. So whatever a human decides is written down and handed over before anything is built.
+Whatever a human decides is written down and handed over before anything is built.
 
 At the center is **Guarantee-Driven Development (GDD)**. A human approves what must not break (the guarantees) in the Issue's guarantee section, and the agent writes the tests that pin it down along with the implementation. If TDD is the discipline of writing tests first, GDD is the discipline of approving the promises first. Approved guarantees accumulate, together with the tests behind them, in each repository's guarantee ledger, `docs/guarantees.md`. Behavior not in the ledger is not a promise (guarantee-audit, [Zenn: Guarantee-Driven Development](https://zenn.dev/yktsnet/articles/202608-guarantee-driven-development)).
 
@@ -52,9 +52,9 @@ Promises are not the only thing written down before building. The repository typ
 
 ### 2. Let Mechanisms and Separate Contexts Do the Checking
 
-Agents are confidently and quietly wrong. A promise that people will be careful decays into a formality, so checking is not left to human attention.
+Checking is not left to human attention.
 
-**Mechanisms**: what must not be crossed (`rebuild` commands, edits to `flake.lock`, `ssh`, the secrets mapping) is stopped by deny rules and hooks. Each hook's rejection message states why it stopped and the correct route, because a rejected agent tries something else and what it tries comes from the message. Hooks also stop branch switching in the main checkout and put an approval in front of writes to persistent memory. Calling a subagent is built into the procedure too, not requested each time: before committing edited Japanese documents, the writer passes them to the proofreader (jp-proofreader).
+**Mechanisms**: what must not be crossed (`rebuild` commands, edits to `flake.lock`, the secrets mapping) is stopped by deny rules and hooks. Each hook's rejection message states why it stopped and the correct route, because a rejected agent tries something else and what it tries comes from the message. Hooks also stop branch switching in the main checkout and put an approval in front of writes to persistent memory. Calling a subagent is built into the procedure too, not requested each time: before committing edited Japanese documents, the writer passes them to the proofreader (jp-proofreader).
 
 **Separate contexts**: when the same model builds and checks, it cannot notice on its own that it has gone off course. The consultant designs the Issue (local-issue), the executor implements it (pr-workflow), and the verifier ([issue-verifier](.claude/agents/issue-verifier.md)) checks the work against the Issue alone. The verifier is never given the executor's explanation, because it would then read the work through the executor's intent and lose sight of where it drifts from the promise. The executor also writes the tests, so an expected value copied from the implementation's output passes along with the bug. The verifier re-derives the expected values of the tests used as evidence from the Issue on its own. For changes that show up on a screen, screen-operator operates the screen and returns what it saw. A subagent is not added at a step that another context already checks, and is added for one of three reasons only: objectivity, speed, or automation (skill-dev, section 6). Contradictions between rules are also hard for their authors to see, so consolidate-rules audits them separately.
 
@@ -80,11 +80,11 @@ flowchart TD
     end
 ```
 
-Role boundaries are handed over through a single zsh function, `i`. It launches an executor per worktree and takes care of merging and cleanup ([docs/issue-workflow.md](docs/issue-workflow.md), [Zenn: Issue-Driven Workflow](https://zenn.dev/yktsnet/articles/202604-issue-driven-workflow)). No coordinating session sits between parallel executors. An Issue that must come after another names it in `depends:`, and `i` keeps the later Issue out of the candidates until the earlier one is merged. Order is held by the Issues themselves, not by a role that watches over them.
+Role boundaries are handed over through a single zsh function, `i`. It launches an executor per worktree and takes care of merging and cleanup ([docs/issue-workflow.md](docs/issue-workflow.md)). No coordinating session sits between parallel executors. An Issue that must come after another names it in `depends:`, and `i` keeps the later Issue out of the candidates until the earlier one is merged. Order is held by the Issues themselves, not by a role that watches over them.
 
 ### 3. Leave Humans Only the Judgments That Cannot Be Written Down
 
-The dividing line is whether something can be written down and handed over. Behavior can, so it is promised under principle 1 and checked under principle 2. How it feels to use, and whether it matches the intent, cannot: the agent has little sense of intent or feeling, and even in words a person cannot hand it over completely. Only this is left to humans.
+Behavior can be written down and handed over, so it is promised under principle 1 and checked under principle 2. Only what cannot be handed over is left to humans: how it feels to use, and whether it matches the intent.
 
 The user holds four things: approving the guarantee section, checking feel and real-machine behavior in the executor's session, deciding whether to accept anything that strays from the promise, and merging. The executor stops only when there is something for the second or third, and otherwise goes on to the PR. The only gate to the remote that is always passed is the merge. The user is never asked to match behavior, and nothing is shown at two steps.
 
@@ -129,7 +129,7 @@ Procedures and criteria are owned by the skill that uses them. The full index an
 
 | Layer | Technology | Reason |
 |---|---|---|
-| Configuration | Nix Flakes, home-manager | Builds every machine's tools and settings from one declaration, so agents do not stall on machine differences |
+| Configuration | Nix Flakes, home-manager | Builds every machine's tools and settings from one declaration |
 | macOS | nix-darwin | Lets macOS share the home-manager layer with the Linux machine |
 | Disk | disko | Brings even the partition layout into the Nix declaration |
 | Secrets | sops-nix, age | Ships ciphertext through git and lets each machine decrypt with its own key; plaintext never travels between machines |
