@@ -195,12 +195,14 @@ _aiagent_retire_wt() {
   emulate -L zsh
   local wt="$1" branch="$2"
 
-  local state
-  state=$(gh pr view "$branch" --json state --jq '.state' 2>/dev/null)
+  local state head
+  IFS=$'\t' read -r state head < <(gh pr view "$branch" --json state,headRefOid \
+    --jq '[.state, .headRefOid] | @tsv' 2>/dev/null)
   [[ "$state" == OPEN || "$state" == MERGED ]] || return 0
-  # push 後のコミットは PR に載っていないので、worktree ごと消すと失う
-  [[ "$(git rev-parse "$branch")" == "$(git rev-parse "refs/remotes/origin/${branch}" 2>/dev/null)" ]] || {
-    echo "Kept ${wt}: ${branch} has commits not pushed to origin."
+  # origin の追跡ブランチとは比べない。マージ時にリモートのブランチを消すリポでは、
+  # fetch --prune のあと参照が無くなり、マージ済みでも消せなくなる
+  [[ -n "$head" && "$(git rev-parse "$branch")" == "$head" ]] || {
+    echo "Kept ${wt}: ${branch} has commits not in the PR."
     return 0
   }
   _aiagent_wt_clean "$wt" || { echo "Kept ${wt}."; return 0 }
@@ -547,6 +549,8 @@ _aiagent_merge() {
 # （Issue 駆動の入口）
 i() {
   emulate -L zsh
+  # 消えた worktree の中で呼ぶと、fzf のプレビューが getcwd で失敗する
+  [[ -d "$PWD" ]] || cd ~
 
   _aiagent_reap_all
 
