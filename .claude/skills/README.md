@@ -11,7 +11,7 @@
 | 型の判定 | [repo-standardize](repo-standardize/SKILL.md) | リポ類型と検証手段・settings.json・CLAUDE.md と context/・ファイル衛生。CI/CD は [reference/cicd.md](repo-standardize/reference/cicd.md) |
 | | [repo-readme](repo-readme/SKILL.md) | README の種別判定（Type A / B / C）・下限・コアメッセージ・アウトライン |
 | | [module-dev](module-dev/SKILL.md) | モジュール型リポの型・境界・デモ |
-| | [mermaid-diagram](mermaid-diagram/SKILL.md) | 図を描くかの判断・幅の制約・形と線種 |
+| | [mermaid-diagram](mermaid-diagram/SKILL.md) | 図を描くかの判断・幅の制約・形と線種と絵文字 |
 | 知識の置き場 | [skill-dev](skill-dev/SKILL.md) | 置き場の基準・自動発火の絞り方・探索の分け方・subagent を足す段 |
 | | [consolidate-rules](consolidate-rules/SKILL.md) | 規則同士の矛盾・陳腐化の棚卸し |
 | 保証 | [guarantee-audit](guarantee-audit/SKILL.md) | テスト方針（GDD）・保証台帳の敷設と棚卸し |
@@ -20,8 +20,9 @@
 | | [pr-workflow](pr-workflow/SKILL.md) | 実行者の実装からローカルコミットまで |
 | | [issue-verifier](../agents/issue-verifier.md) | 実行者のブランチを Issue だけで確かめる subagent |
 | | [screen-operator](../agents/screen-operator.md) | 画面を操作して確かめる subagent |
+| | [md-reviewer](../agents/md-reviewer.md) | 文書の組み立てを md-writing で点検する subagent |
 | 公開 | [readme-i18n](readme-i18n/SKILL.md)・[repo-publish](repo-publish/SKILL.md)・[repo-about](repo-about/SKILL.md) | 英語版 README・公開手続き・About と topics |
-| 前提 | [nix-tool-install](nix-tool-install/SKILL.md)・[sops-secrets](sops-secrets/SKILL.md)・[jp-writing](jp-writing/SKILL.md)・[memory-write](memory-write/SKILL.md) | Nix 経由の導入・機密の暗号化・日本語の文章規範・永続メモリの書き場と書式 |
+| 前提 | [nix-tool-install](nix-tool-install/SKILL.md)・[sops-secrets](sops-secrets/SKILL.md)・[jp-writing](jp-writing/SKILL.md)・[md-writing](md-writing/SKILL.md)・[memory-write](memory-write/SKILL.md) | Nix 経由の導入・機密の暗号化・日本語の文章規範・Markdown 文書の組み立ての規範・永続メモリの書き場と書式 |
 
 ## 公開の基準
 
