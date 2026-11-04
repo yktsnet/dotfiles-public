@@ -1,3 +1,38 @@
+## PR記録: fix: マージ後の worktree を、PR の head と比べて片付ける
+issue: 39 (39_retire-wt-head-compare.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/110
+
+## 変更内容
+- `_aiagent_retire_wt` が、未 push の判定で比べる先を `refs/remotes/origin/<branch>` から PR の `headRefOid` に変えた（`gh pr view --json state,headRefOid` で一度に取る）。マージ時にリモートのブランチを消すリポでは、`fetch --prune` のあとに比べる先が無くなり、マージ済みの worktree が毎回残っていた。不一致のときの文言は `has commits not in the PR.`
+- `i()` の冒頭で、カレントディレクトリが消えていればホームへ移る。消えた worktree の中で呼ぶと、fzf のプレビューが getcwd で失敗していた
+
+## 保証
+- OPEN/MERGED で head が一致し、未コミットの変更が無ければ、追跡ブランチが無くても消す → aiagent-retire-wt.test.sh「追跡ブランチが無くても head が一致すれば消す」「OPEN でも head が一致すれば消す」
+- head に無いコミットがあれば残し、その旨を出す → 同「head に無いコミットがあれば残す」「残した理由を出す」
+- PR が無いか CLOSED なら残す → 同「PR が無ければ残す」「CLOSED なら残す」
+- 未コミットの変更があれば残す → 同「未コミットの変更があれば残す」、aiagent-wt-clean.test.sh
+- ブランチは消さない → 同「ブランチは消さない」
+- `i` はカレントディレクトリが消えていればホームへ移る → 同「i はカレントディレクトリが消えていればホームへ移る」
+
+## 静的確認結果
+- `zsh -n home-manager/modules/zsh/functions/aiagent.sh`: OK
+- `bash .claude/hooks/tests/aiagent-retire-wt.test.sh`: 9件すべて通過
+- `bash .claude/hooks/tests/aiagent-wt-clean.test.sh`: すべて通過
+
+## 検証手順
+- 適用後に Issue を1本マージし、セッションを閉じたあと worktree が残らないこと
+- worktree が消えたあとのシェルで `i` を呼び、fzf のプレビューに getcwd のエラーが出ないこと
+
+## 確認者の判定
+| 対象 | 判定 |
+|---|---|
+| `zsh -n aiagent.sh` | 合 |
+| 新しいテスト（9件）・既存の aiagent-wt-clean.test.sh | 合 |
+| 保証6件 | すべて合 |
+| 範囲の外 | なし |
+
+---
+
 ## マージ後の worktree を、PR の head と比べて片付ける
 id: 39
 branch-slug: retire-wt-head-compare
