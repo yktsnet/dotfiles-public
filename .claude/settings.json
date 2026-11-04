@@ -38,6 +38,12 @@
           },
           {
             "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/relay-target-repo-hooks.sh",
+            "timeout": 30,
+            "statusMessage": "宛先のリポのフックと deny を検査中"
+          },
+          {
+            "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/route-browser-to-crit.sh",
             "timeout": 10,
             "statusMessage": "ブラウザ起動を crit live へ回すか検査中"
