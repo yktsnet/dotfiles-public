@@ -1,7 +1,7 @@
 ## マージ後の worktree を、PR の head と比べて片付ける
 id: 39
 branch-slug: retire-wt-head-compare
-status: open
+status: close
 type: fix
 対象: home-manager/modules/zsh/functions/aiagent.sh, .claude/hooks/tests/aiagent-retire-wt.test.sh (新規)
 内容: `_aiagent_retire_wt` は、ローカルのブランチを `refs/remotes/origin/<branch>` と比べて未 push のコミットが無いかを見ている。本リポはマージ時にリモートのブランチを消す設定で、`_aiagent_pull_main` の `fetch --prune` のあとは比べる先が無くなるため、マージ済みの worktree が「未 push のコミットあり」と判定されて毎回残る。比べる先を PR の `headRefOid` に変える。あわせて、消えた worktree の中で `i` を呼ぶと fzf のプレビューが getcwd で失敗する問題を直す。
