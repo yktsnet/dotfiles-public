@@ -12,7 +12,7 @@ disable-model-invocation: true
 2. `git status` で、ブランチが `claude/{id}-{branch-slug}` かつワーキングツリーがクリーンなことを確認する（ブランチとworktreeは `i` が作成済み）。違えば報告して止まる
 3. 対象ファイルを読んで実装
    - Issue の「対象」と「内容」から外れる作業に気づいたら、手を付ける前に AskUserQuestion で「新しい Issue にする / この Issue の中で直す / 見送る」を聞く。黙って直さず、黙って捨てない
-   - 「新しい Issue にする」なら、local-issue skill の書式（テンプレート・`id` の振り方）で `status: draft` の Issue を書き、本筋に戻る。置き場は worktree ではなく**元リポ（main のチェックアウト）の `issues/`** で、ステージもコミットもしない。main 側の Issue ファイルは untracked のまま `i` に拾われる前提で、worktree に置くと手順6の対象一致を崩し、worktree の削除で消える。`id` は書く直前に元リポの `issues/`（`done/` を含む）を見て決める。並行で走る別の Builder と番号がぶつからないようにするため
+   - 「新しい Issue にする」なら、local-issue skill の書式（テンプレート・`id` の振り方）で `status: draft` の Issue を書き、本筋に戻る。置き場は worktree ではなく**元リポ（main のチェックアウト）の `issues/`** で、ステージもコミットもしない。main 側の Issue ファイルは untracked のまま `i` に拾われる前提で、worktree に置くと手順6の対象一致を崩し、worktree の削除で消える。`id` は書く直前に元リポの `issues/`（`done/` を含む）を見て決める。相談者が同じ `issues/` に書いた draft と番号がぶつからないようにするため
    - 他の Issue ファイルの `status:` は変えない。この Issue は手順11で閉じる
    - **画面に出る変更は、画面を先に見せる。** 画面を持たない Issue はこの箇条を飛ばす。使い心地で形が変わると、先に書いたテストと台帳が無駄になるため
      1. 画面を動く形まで作る。テスト・台帳はまだ書かない。コミットもしない
