@@ -1,14 +1,8 @@
----
-name: repo-readme
-description: 公開前にリポの README を作成・更新する。中身が固まった段階で実行する。種別判定（Type A/B/C）・コアメッセージとターゲットからのアウトライン設計・Tech Stack の選定理由・Design Decisions・JUDGE.md/PLAN.md 統合（統合後は削除）・docs/ 分離・構成図まで含む本格 README を書きたいときに使う。
-disable-model-invocation: true
----
-
-# repo-readme
+# readme：README を書く
 
 README の基準と手順を持つ。目的は README を一律のテンプレートに揃えることではなく、**各リポの README をそれぞれ筋の通った1本の主張にする**こと。筋が通っているとは、コアメッセージ（ひとことで何のリポか）→ ターゲット（誰に向けるか）→ アウトライン（それが最も伝わる H2 構成）が一直線につながっていること。固定の必須セクションは置かず、種別ごとの下限だけを決める。
 
-**公開パイプラインの固定順**: `repo-standardize → guarantee-audit → repo-readme → readme-i18n → repo-publish → repo-about`。本 Skill は**第3**。足場とコアメッセージは `repo-standardize` が、保証台帳は `guarantee-audit` が先に作る（README が台帳へリンクするため）。中身（アーキテクチャ・技術選定・判断）が固まった publish 前に走らせる。この順は都度再判断しない。
+中身（アーキテクチャ・技術選定・判断）が固まった publish 前に走らせる。保証台帳（`docs/guarantees.md`）があれば README からリンクする。
 
 考える順序は次のとおり。下限は満たすべき観点であって、H2 の並びや名前を固定しない。
 
@@ -121,7 +115,7 @@ Type C には課題→解決ナラティブも、技術選定の Why の本文�
 - **動かす手順**: 最短で動く経路を先に書く。前提の少ない経路（依存不要・ワンライナー）を優先し、言語ランタイムの個別導入は Local Development へ分ける。Prerequisites は実際に要るものだけ。Type C では追試手順がこの位置に来る。大きな素材の取得が要るならサイズと取得先を書き、結果だけ読む人が踏まない導線（生成済みデータの Releases 添付など）を用意する
 - **Tech Stack**: `| Layer | Technology | Reason |` の表で、なぜそれかまで書く
 - **図**: Mermaid をインラインで埋め、SVG に焼かない。描くかどうかと描き方は `mermaid-diagram` Skill に従う（Architecture 節を書く前に「描かない判断」を必ず通す）。画像は `src/` か `docs/` に置いて相対パスで参照し、外部ホスティングに依存しない
-- **Deploy**: デプロイ方式の概要とデモ URL だけ。Secrets 一覧・初回セットアップ・サーバー側設定は書かない（`repo-standardize/reference/cicd.md` と運用ドキュメントの管轄）
+- **Deploy**: デプロイ方式の概要とデモ URL だけ。Secrets 一覧・初回セットアップ・サーバー側設定は書かない（`cicd.md` と運用ドキュメントの管轄）
 - **Secrets**: ドメイン実値・Tunnel UUID 等を README に載せない（`secrets-agents/` の `<PLACEHOLDER>` 方針）
 
 ## 5. 妥当性で取捨する
@@ -150,7 +144,7 @@ Type C には課題→解決ナラティブも、技術選定の Why の本文�
 
 ## 7. docs/ 分離を判断する
 
-分離は README を1本の主張に保つための退避先で、目的ではない。**書き終えてから、肥大した節だけ**退避する。
+分離は README を1本の主張に保つための退避先で、目的ではない。**書き終えてから、肥大した節だけ**退避する。README 全体の目安は100行前後で、超えたら分離する節を探す。
 
 - 分離する: その節の全文が深掘り・参照・運用など別の読者モーメントに仕える／README には要点だけあれば足り、全文は読み飛ばされる分量
 - 分離しない: 全文でも数行〜十数行／README 側の要約と原本がほぼ同文になる
@@ -160,7 +154,7 @@ Type C には課題→解決ナラティブも、技術選定の Why の本文�
 | ファイル | 中身 | 対象 |
 |---|---|---|
 | `docs/design-decisions.md` | 判断の全文（何を捨てたか・再検討の境界） | JUDGE.md があるリポ |
-| `docs/guarantees.md` | 保証台帳。README の Scope 節からリンクする（敷設は `guarantee-audit`） | テストがあるリポ |
+| `docs/guarantees.md` | 保証台帳。README の Scope 節からリンクする（敷設は `guarantee-audit`） | 共有のリポでテストを持つもの |
 | `docs/method.md` / `docs/reproduce.md` | 方法・追試の全文 | Type C |
 | `docs/usage.md` | API 表・環境変数・CLI 詳細 | Type B / アプリ系 |
 | `docs/release.md` | リリース・publish 手順 | レジストリ公開リポ |
@@ -170,10 +164,10 @@ Type C には課題→解決ナラティブも、技術選定の Why の本文�
 - `README.en.md` があるリポでは `docs/*.en.md` も対で作り、両ファイル冒頭に言語リンクを置く（英語版だけインライン、の非対称を作らない）
 - **Type C の結果は分離しない**。docs/ へ送るのは方法の全文・生データ・追加のグラフまで
 
-## 8. 出して止まる
+## 8. 報告する
 
-変更はワーキングツリーに残し、追加/削除した節・docs/ 分離の判断・削除したファイルを要約して報告する。コミット/push は user の指示があったときのみ。
+変更はワーキングツリーに残し、追加/削除した節・docs/ 分離の判断・削除したファイルを要約して報告する。
 
-`.claude/`・LICENSE・.gitignore 等の足場は `repo-standardize` の管轄で、本 Skill は触らない。
+`.claude/`・LICENSE・.gitignore 等の足場は scaffold 段（`scaffold.md`）の管轄で、この段では触らない。
 
 <sub>*Acknowledgement — the "core message → target → outline" framing draws on yoshiko-pg's talk at ZennFes 2026: <https://yoshiko-pg.github.io/talks/zennfes-2026/>. With thanks and respect.*</sub>

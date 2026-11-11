@@ -3,7 +3,7 @@
 # CI/CD Guide
 
 CI/CD design guide for repositories. Use this to decide the verification and deployment paths when creating a new repo.
-Corresponds to Layer 3 (public verification) in `repo-standardize` and connects with the role separation in `local-issue`.
+Corresponds to Layer 3 (public verification) in `scaffold.md` and connects with the role separation in `local-issue`.
 
 Two design principles: **CI runs the same checks the Agent runs locally** (redundancy catches what the Agent missed before PR). **Deployment is automatic push-style after CI passes** (no manual operations).
 
@@ -26,7 +26,7 @@ Public apps are externally visible, so they require CI and deployment. Internal 
 
 ## 2. CI
 
-`.github/workflows/ci.yml`. Triggered on push / pull_request, runs the same verification chosen in `repo-standardize` §1.
+`.github/workflows/ci.yml`. Triggered on push / pull_request, runs the same verification chosen in `scaffold.md` §1.
 
 | Category | CI Runs |
 |---|---|
@@ -101,7 +101,7 @@ deploy:
         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 ```
 
-`wrangler` is denied in the Agent's settings.json (the Web category in `repo-standardize` §2). Deployment is run by CI or the user, never by the Agent.
+`wrangler` is denied in the Agent's settings.json (the Web category in `scaffold.md` §2). Deployment is run by CI or the user, never by the Agent.
 
 ---
 
@@ -131,6 +131,8 @@ When Pages is operated through the GitHub integration, the Cloudflare entries in
 
 ## 6. Dependency Updates (Dependabot)
 
+Add it only to shared repos (see `../SKILL.md`) that have CI.
+
 Decide by rule, not per PR — don't deliberate over each individual PR.
 
 | Situation | Handling |
@@ -141,7 +143,7 @@ Decide by rule, not per PR — don't deliberate over each individual PR.
 | Repo without CI | Auto-merge prohibited. Use grouping for notification only |
 | Private repo | Auto-merge prohibited. The free plan has no branch protection / rulesets, so required status checks cannot be set; `gh pr merge --auto` then has nothing to wait for and merges before CI finishes. Triage minor/patch by hand too |
 
-The setup is three pieces. Templates live in `repo-standardize`'s `reference/`.
+The setup is three pieces. Templates live in this directory.
 
 1. `.github/dependabot.yml` — weekly for every ecosystem, with minor/patch grouped. For registry-based ecosystems (npm/pip/composer/gomod), add `cooldown: default-days: 7` (supply-chain hardening: many malicious releases are pulled within a few days of publishing)
 2. `.github/workflows/dependabot-auto-merge.yml` — runs `gh pr merge --auto` for everything except major

@@ -48,7 +48,7 @@ At the center is **Guarantee-Driven Development (GDD)**. A human approves what m
 
 Development runs in two phases, **handing over the driving documents**. In the launch phase, before the direction is settled, PLAN.md (remaining work) and JUDGE.md (design decisions) drive the work (mvp-docs). Once the guarantee ledger goes into formal use, it takes over and the repository moves to the Issue-driven phase. The full idea is in sdlc-kit's [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md).
 
-Promises are not the only thing written down before building. The repository type (its kind and verification means, the kind of README) is decided before anything is written (repo-standardize, repo-readme, module-dev). Rules are placed according to when they are read: what applies every time goes in CLAUDE.md, and procedures whose trigger can be stated as "when doing X" go in skills (skill-dev).
+Promises are not the only thing written down before building. The repository type (its kind and verification means, the kind of README) is decided before anything is written (repo-ship, module-dev). Rules are placed according to when they are read: what applies every time goes in CLAUDE.md, and procedures whose trigger can be stated as "when doing X" go in skills (skill-dev).
 
 ### 2. Let Mechanisms and Separate Contexts Do the Checking
 

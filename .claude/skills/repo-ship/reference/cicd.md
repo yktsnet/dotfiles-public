@@ -3,7 +3,7 @@
 # CI/CD Guide
 
 リポの CI/CD 設計ガイド。新規リポを作るとき、検証とデプロイの経路をここから決める。
-`repo-standardize` の層3（公開検証）に対応し、`local-issue` の担当分離と接続する。
+`scaffold.md` の層3（公開検証）に対応し、`local-issue` の担当分離と接続する。
 
 設計意図は2点。**CI は Agent のローカル検証と同じものを回す**（二重化で PR 前の見落としを拾う）。**デプロイは CI 通過後の自動プッシュ型**（手動オペを挟まない）。
 
@@ -26,7 +26,7 @@
 
 ## 2. CI
 
-`.github/workflows/ci.yml`。push / pull_request をトリガーに、`repo-standardize` §1 で決めた検証手段と同じものを走らせる。
+`.github/workflows/ci.yml`。push / pull_request をトリガーに、`scaffold.md` §1 で決めた検証手段と同じものを走らせる。
 
 | 類型 | CI で走らせる |
 |---|---|
@@ -101,7 +101,7 @@ deploy:
         accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 ```
 
-`wrangler` は Agent の settings.json で deny する（`repo-standardize` §2 の Web 類型）。デプロイを打つのは CI か user であって、Agent ではない。
+`wrangler` は Agent の settings.json で deny する（`scaffold.md` §2 の Web 類型）。デプロイを打つのは CI か user であって、Agent ではない。
 
 ---
 
@@ -131,6 +131,8 @@ Pages を GitHub 連携で運用する場合、この表の Cloudflare 系は不
 
 ## 6. 依存更新（Dependabot）
 
+入れるのは共有のリポ（`../SKILL.md`）で CI を持つものだけ。
+
 判断は PR 単位でなくルール単位で行う。個別 PR を見て毎回悩まない。
 
 | 状況 | 扱い |
@@ -141,7 +143,7 @@ Pages を GitHub 連携で運用する場合、この表の Cloudflare 系は不
 | CI が無いリポ | 自動マージ禁止。グループ化して通知としてのみ使う |
 | private リポ | 自動マージ禁止。無料プランはブランチ保護 / ruleset を持てず required status checks を設定できないため、`gh pr merge --auto` は待つ対象が無く CI 完了前にマージする。minor/patch も人手で棚卸しする |
 
-構成は3点セット。雛形は `repo-standardize` の `reference/` にある。
+構成は3点セット。雛形はこのディレクトリにある。
 
 1. `.github/dependabot.yml` — 全 ecosystem を weekly ＋ minor/patch グループ化。レジストリ系（npm/pip/composer/gomod）は `cooldown: default-days: 7` を付ける（サプライチェーン対策: 悪性リリースの多くは公開後数日で取り下げられる）
 2. `.github/workflows/dependabot-auto-merge.yml` — major 以外に `gh pr merge --auto` を打つ

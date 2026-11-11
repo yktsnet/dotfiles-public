@@ -15,7 +15,7 @@ description: CLAUDE.md群・基準のガイド（skill の reference/）・自�
 - `.claude/skills/*/SKILL.md` のうち、frontmatter `description` が**日本語で書かれているもの**
 - `.claude/settings.json` と `.claude/hooks/`（`*.sh` と `README.md`。層1）
 
-層1 を含めるのは、ガイドが規定していて実体が別ファイルにある唯一の層だからである。`repo-standardize` スキルは deny の共通項目・attribution を、`hooks/README.md` はフックの書き方を規定しているが、満たしているかは settings.json と `hooks/` を読まない限り分からない。
+層1 を含めるのは、ガイドが規定していて実体が別ファイルにある唯一の層だからである。`repo-ship` の scaffold 段（`reference/scaffold.md`）は deny の共通項目・attribution を、`hooks/README.md` はフックの書き方を規定しているが、満たしているかは settings.json と `hooks/` を読まない限り分からない。
 
 **層1 だけは実体が正で、ガイドが従である。** deny の増減は運用の中で決まっており、それを追認していないガイドの側が古い。食い違ったら実体に合わせてガイドを直す。
 
