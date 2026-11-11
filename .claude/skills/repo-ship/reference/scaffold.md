@@ -59,12 +59,18 @@ deny は文字列の前方一致しか見ない。禁止したい対象が文字
 
 | 成果物 | 書くべき内容 |
 |---|---|
-| `CLAUDE.md` | `@context/conventions.md` と `@context/structure.md` の import、実際に動くコマンド（setup / dev / build / 検証）、アーキテクチャの要点、検証手段。200行以下 |
+| `CLAUDE.md` | `context/` に置いたファイルの `@` import、実際に動くコマンド（setup / dev / build / 検証）、アーキテクチャの要点、検証手段。200行以下 |
 | `context/conventions.md` | 実コードから読み取った命名規則・コード規約。汎用ルール（「PEP8 準拠」等）の羅列ではなく**このリポ固有の判断** |
 | `context/structure.md` | **実在するファイル**のディレクトリ構成・データフロー・レイヤー構成 |
 | `context/domain.md` | このリポの世界に何が存在するか。エンティティ・処理段・情報ソースの**名前と境界**（何を乗せてよく、何を乗せてはいけないか）。`PLAN.md` があればその概念定義を移設する。概念が実質1つなら作らない |
 
 CLAUDE.md に**書かないもの**: 禁止・強制（→ deny）、attribution（→ settings.json）、長大な仕様、秘密情報（→ `secrets-agents/` を参照する指示だけを書く）。
+
+`context/` の各ファイルは置き場が無いときにだけ作る。
+
+- README がファイル単位の構成を説明しているリポ（外向けの読者がいない内部のリポ）では `structure.md` を作らない。CLAUDE.md から README を指す。構成の説明を2か所に持つと片方だけが直されて食い違う
+- `context/` に入るのが1ファイルだけになるなら、ディレクトリを作らずに CLAUDE.md に直接書く
+- `context/` に置いたファイルは CLAUDE.md から `@` で読み込む。読み込まれないファイルは誰にも直されずに古くなる
 
 `domain.md` は構造ではなく**区別**を書く。`structure.md` が「どう流れるか」なら、`domain.md` は「なぜ A と B を別のものとして扱うか」。
 
@@ -103,7 +109,7 @@ CLAUDE.md に**書かないもの**: 禁止・強制（→ deny）、attribution
 [ ] 追跡済みに成果物（bin/dist/db/node_modules/.env）なし（git ls-files）
 [ ] .gitignore に無関係スタックの残骸・重複行なし
 [ ] .env 非追跡 ＋ .env.example 有（.env 使用時）
-[ ] CLAUDE.md / context/{conventions,structure}.md 有・非空
+[ ] CLAUDE.md 有・非空。context/ があれば各ファイルが CLAUDE.md から @ で読み込まれている
 [ ] README の H1 直下にコアメッセージ1文がある（型は readme.md §3）。無ければ種別を判定（同 §1）して1文を書く。それ以上のセクションは書かない（肉付けは publish 前に readme 段が行う）
 [ ] CI 有（Public / 自動デプロイ時）
 [ ] 地の文・コミット・PR にシークレット直書きなし
@@ -114,5 +120,5 @@ CLAUDE.md に**書かないもの**: 禁止・強制（→ deny）、attribution
 ```
 [ ] .claude/settings.json 有（JSON 妥当・deny に push --force/-f、attribution 空）
 [ ] skills/pr-workflow/SKILL.md 有・非空
-[ ] CI 有なら dependabot.yml（grouping＋レジストリ系 cooldown）＋ auto-merge workflow（cicd.md §6）
+[ ] CI 有なら dependabot.yml（grouping＋レジストリ系と github-actions の cooldown）＋ auto-merge workflow（cicd.md §6）
 ```
