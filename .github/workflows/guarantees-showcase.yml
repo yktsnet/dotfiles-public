@@ -1,0 +1,40 @@
+name: guarantees-showcase
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: guarantees-showcase
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      # main のルールセットを bypass できるのはデプロイキーだけなので、push は SSH の remote で行う
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ssh-key: ${{ secrets.SHOWCASE_DEPLOY_KEY }}
+
+      - name: Generate showcase
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/guarantees-showcase.sh docs/guarantees-showcase.md
+
+      - name: Commit and push if changed
+        run: |
+          if git diff --quiet -- docs/guarantees-showcase.md; then
+            echo "No changes in showcase."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/guarantees-showcase.md
+          git commit -m 'docs: update guarantees showcase'
+          git push origin HEAD:main
