@@ -18,11 +18,20 @@ count_rows() {
 repos=$(gh api --paginate "users/$owner/repos?type=owner&per_page=100" \
   --jq '.[] | select(.private | not) | select(.archived | not) | select(.fork | not) | "\(.name) \(.default_branch)"' | sort)
 
+err=$(mktemp)
+trap 'rm -f "$err"' EXIT
+
 rows=""
 t_repos=0 t_guar=0 t_files=0 latest=
 while read -r repo branch; do
   [[ -n "$repo" ]] || continue
-  files=$(gh api "repos/$owner/$repo/contents/docs/guarantees?ref=$branch" --jq '.[] | select(.type == "file") | .name' 2>/dev/null) || continue
+  # 404 だけを「台帳なし」とみなす。ほかの失敗で飛ばすと、行の欠けた一覧がコミットされる
+  if ! files=$(gh api "repos/$owner/$repo/contents/docs/guarantees?ref=$branch" --jq '.[] | select(.type == "file") | .name' 2>"$err"); then
+    grep -q 'HTTP 404' "$err" && continue
+    echo "Failed to list docs/guarantees in $repo:" >&2
+    cat "$err" >&2
+    exit 1
+  fi
   grep -qx 'README.md' <<<"$files" || continue
   echo "Found ledger: $repo" >&2
 
