@@ -145,7 +145,7 @@ Pages を GitHub 連携で運用する場合、この表の Cloudflare 系は不
 
 構成は3点セット。雛形はこのディレクトリにある。
 
-1. `.github/dependabot.yml` — 全 ecosystem を weekly ＋ minor/patch グループ化。レジストリ系（npm/pip/composer/gomod）は `cooldown: default-days: 7` を付ける（サプライチェーン対策: 悪性リリースの多くは公開後数日で取り下げられる）
+1. `.github/dependabot.yml` — 全 ecosystem を weekly ＋ minor/patch グループ化。レジストリ系（npm/pip/composer/gomod）と github-actions には `cooldown: default-days: 7` を付ける（サプライチェーン対策: 悪性リリースや乗っ取られた action のリリースの多くは公開後数日で取り下げられる）
 2. `.github/workflows/dependabot-auto-merge.yml` — major 以外に `gh pr merge --auto` を打つ
 3. リポ設定 — `allow_auto_merge: true` ＋ main への ruleset（required status checks に CI のジョブ名、bypass に Repository admin / always。これで user の直 push は塞がない）
 

@@ -14,7 +14,7 @@ disable-model-invocation: true
 |---|---|---|
 | scaffold | `reference/scaffold.md`（CI/CD は `reference/cicd.md`） | 類型と検証手段を決め、衛生・LICENSE・CLAUDE.md・CI を整え、README にコアメッセージ1文を置く |
 | readme | `reference/readme.md` | 種別を判定し、README を1本の主張として書く |
-| i18n | `reference/i18n.md` | 日本語の README から `README.en.md` を作る・同期する |
+| i18n | `reference/i18n.md` | トップの README と重要な文書の英語版を作る・同期する |
 | publish | `reference/publish.md` | 全履歴のシークレットスキャンをして、Public にする |
 | about | `reference/about.md` | README から About と topics を設定する |
 

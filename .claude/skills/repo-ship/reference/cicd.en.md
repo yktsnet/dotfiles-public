@@ -145,7 +145,7 @@ Decide by rule, not per PR — don't deliberate over each individual PR.
 
 The setup is three pieces. Templates live in this directory.
 
-1. `.github/dependabot.yml` — weekly for every ecosystem, with minor/patch grouped. For registry-based ecosystems (npm/pip/composer/gomod), add `cooldown: default-days: 7` (supply-chain hardening: many malicious releases are pulled within a few days of publishing)
+1. `.github/dependabot.yml` — weekly for every ecosystem, with minor/patch grouped. For registry-based ecosystems (npm/pip/composer/gomod) and github-actions, add `cooldown: default-days: 7` (supply-chain hardening: many malicious releases and hijacked action releases are pulled within a few days of publishing)
 2. `.github/workflows/dependabot-auto-merge.yml` — runs `gh pr merge --auto` for everything except major
 3. Repo settings — `allow_auto_merge: true` plus a ruleset on main (required status checks list the CI job name; bypass allows Repository admin / always, so the user's direct pushes are not blocked)
 
