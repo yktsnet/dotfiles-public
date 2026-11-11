@@ -1,3 +1,52 @@
+## PR記録: feat: Publish a weekly showcase of public guarantee ledgers
+issue: 41 (41_guarantees-showcase.md)
+PR: https://github.com/yktsnet/dotfiles-public/pull/126
+
+## 変更内容
+- `.github/scripts/guarantees-showcase.sh`: `yktsnet` の public リポ（archive・fork を除く）から `docs/guarantees/README.md` を持つものを探し、リポ・保証件数・対象ファイル数を保証の多い順（同数はリポ名の順）に並べた表を書き出す。`*.en.md` と README は数えない。表の上に、全リポの台帳の最終更新日のうち最も新しいものを1行で出す。台帳の一覧の取得が 404 のときだけ「台帳なし」として飛ばし、ほかの API エラーでは止めて書き出さない。出力先は第1引数か `SHOWCASE_OUT`、既定は `docs/guarantees-showcase.md`
+- `.github/workflows/guarantees-showcase.yml`: 週1回（月曜 00:00 UTC）と手動で走らせ、差分があるときだけ `github-actions[bot]` でコミットし、デプロイキー `SHOWCASE_DEPLOY_KEY` の SSH remote で main へ push する。`permissions: contents: read`、API の読み取りは `GITHUB_TOKEN`。重ねて走らないよう `concurrency` を付けた
+- `docs/guarantees-showcase.md`: スクリプトの出力（12 リポ・1309 件・95 ファイル）
+- `README.md`: GDD の段落から一覧へリンク
+
+起票時から、表は件数だけの3列に絞り（Gaps・状態・行ごとの最終更新を外した）、並びを保証の多い順に変えた。
+
+## 保証
+なし（このリポに保証台帳もテスト基盤も無い。出力の正しさは確認の項目で確かめた）
+
+## 静的確認結果
+- スクリプトを続けて走らせ、出力が一致
+- ccreel の 153 件・6 ファイルを独自に数え直して一致。etax-prep は `*.en.md` を除いて 69 件・4 ファイル
+- 一覧の12行が、`gh repo list` と contents API で突き合わせた集合と一致
+- 404 以外の失敗（偽の `gh` で 403 を返す）では rc=1 で止まり、出力ファイルを作らない
+- `check-refs.py` 通過、`bash -n` 通過、`check-scope.sh` 通過
+
+## 検証手順
+マージ後に `gh workflow run guarantees-showcase` を1回走らせる。差分があればデプロイキー経由でコミットと main への push ができ、無ければ何も起きないことを確かめる。
+
+## 確認者の判定
+| # | 項目（要約） | 判定 |
+|---|---|---|
+| 1 | 書き出し、2回走らせても差分なし | 合 |
+| 2 | 一覧の行が対象リポの集合と一致 | 合 |
+| 3 | ccreel の保証件数と対象ファイル数 | 合 |
+| 4 | etax-prep が `*.en.md` を数えない | 合 |
+| 5 | 合計の行が各行の和と一致 | 合 |
+| 6 | 台帳が変わらなくても変わる値が無い | 合 |
+| 7 | 起動・権限・トークン・secret の要件 | 合 |
+| 8 | 差分が無ければコミットしない | 合 |
+| 9 | README からのリンクと check-refs | 合 |
+
+範囲: 合。目的に届かない点: なし。
+
+## 手戻り
+
+| 何が起きたか | 失ったもの | 原因の分類 | 仕組みで防げたか |
+|---|---|---|---|
+| Issue の `対象` が全角の「、」区切りで、`check-scope.sh` が半角カンマでしか分割せず、範囲の判定が否になった | 判定のやり直し1回。10分 | Issue の切り方 | 防げた：`check-scope.sh` が「、」も区切りとして扱うか、local-issue skill のテンプレートに半角カンマ区切りを明記していれば |
+| 台帳の一覧の取得で、404 以外の失敗も「台帳なし」として飛ばしており、確認者に目的に届かない点として挙げられた | 追加のコミット1回。10分 | 実装者の不注意 | 防げない |
+
+---
+
 ## Publish a weekly showcase of public guarantee ledgers
 id: 41
 branch-slug: guarantees-showcase
