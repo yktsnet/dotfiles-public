@@ -302,15 +302,16 @@ _aiagent_reap_all() {
 _aiagent_entries() {
   emulate -L zsh
   local -a runs drafts merges aborts
-  local repo d f b pr
+  local repo d f b pr busy
   for repo in ${(f)"$(_aiagent_repos)"}; do
+    # 実行者が動いているリポは、マージか破棄で空くまで次の run を出さない
+    busy=$(git -C "$repo" for-each-ref --count=1 --format=x 'refs/heads/claude/*')
     for d in ${(f)"$(_aiagent_get_issues_dirs "$repo")"}; do
       for f in "$d"/*.md(N); do
         _aiagent_is_template "$f" && continue
         case "$(_aiagent_issue_status "$f")" in
           open)
-            # main 側のファイルはマージまで open のまま残る。ブランチがあれば実装中か PR 待ち
-            b=$(_aiagent_issue_branch "$f") && git -C "$repo" show-ref --verify --quiet "refs/heads/${b}" && continue
+            [[ -n "$busy" ]] && continue
             # 前提の Issue がマージされるまでは出さない。待っているものは status に出る
             [[ -n "$(_aiagent_deps_unmet "$f")" ]] && continue
             runs+=("run"$'\t'"$repo"$'\t'"$f"$'\t'"$(printf 'run      %-20s %s' "${repo:t}" "${f:t}")") ;;
@@ -319,7 +320,7 @@ _aiagent_entries() {
       done
     done
     # PR を見に行くのは claude/* のブランチが残るリポだけ。gh の呼び出しは1リポ1回に収める
-    if [[ -n "$(git -C "$repo" for-each-ref --format=x 'refs/heads/claude/*')" ]]; then
+    if [[ -n "$busy" ]]; then
       for pr in ${(f)"$(cd "$repo" && gh pr list --state open --json number,title,headRefName \
         --jq '.[] | select(.headRefName | startswith("claude/")) | "\(.number)\t#\(.number) \(.title)"' 2>/dev/null)"}; do
         merges+=("merge"$'\t'"$repo"$'\t'"${pr%%$'\t'*}"$'\t'"$(printf 'merge    %-20s %s' "${repo:t}" "${pr#*$'\t'}")")
@@ -349,9 +350,6 @@ _aiagent_status_all() {
   done
 }
 
-# 並行させる本数。選ぶ判断を軽くするために絞る。1回に選べる数と、動いている実行者との合計の両方の上限になる
-_AIAGENT_CANDIDATES=3
-
 _aiagent_builder_prompt() {
   local issues_dirs="$1"
   print -r -- "You are the Builder. Follow pr-workflow: implement and commit, stop in this session only where pr-workflow asks the user to check or decide something, and fix what they point out with additional commits. Close this Issue and open the PR only after the user approves, or without stopping when pr-workflow step 9 leaves nothing for the user to decide. Push only your own branch; never push to main, and never merge unless the user asks. Do NOT change the status of any other issue file. If you find work outside this Issue's scope, ask the user with AskUserQuestion whether to (a) file it as a new Issue, (b) fix it within this Issue, or (c) skip it. For (a), write it as status: draft following the local-issue skill's format into the main checkout's issues directory (${issues_dirs}), never into this worktree, then return to the original task. Do not stage or commit the draft."
@@ -376,8 +374,7 @@ _aiagent_back_to_main() {
   echo "Switched to main from merged ${cur}."
 }
 
-# 1本の Issue の実行者を、その worktree で前面に起動する。閉じたら、PR を出し終えていれば worktree を消す。
-# 並行の2本目以降は、_aiagent_run が分けたペインでこれを打つ
+# Issue の実行者を、その worktree で前面に起動する。閉じたら、PR を出し終えていれば worktree を消す
 _aiagent_builder() {
   emulate -L zsh
   local git_root="$1" wt_dir="$2" branch_name="$3" rel="$4"
@@ -399,12 +396,12 @@ _aiagent_builder() {
   _aiagent_retire_wt "$wt_dir" "$branch_name"
 }
 
-# 渡された Issue ファイル（同じリポの open）ごとに worktree を切って Builder を起動する。
-# 1本目は今のペインで、2本目以降は見えるペインに並べる。ペインごとに使い心地を見て OK を出すため
+# 渡された Issue ファイル（open）の worktree を切って Builder を起動する。
+# 1リポで動かす実行者は1本に限る。分けた Issue は depends: で順に並べ、前の PR のマージを待って次を起動する
 _aiagent_run() {
   emulate -L zsh
-  local -a files=("$@")
-  (( ${#files} )) || return 0
+  local f="$1"
+  [[ -n "$f" ]] || return 0
 
   local git_root
   git_root=$(git rev-parse --show-toplevel) || return 1
@@ -415,101 +412,64 @@ _aiagent_run() {
   # 別の端末で進めた main から切らないと、PR が競合する
   _aiagent_pull_main || return 1
 
-  if (( ${#files} > 1 )) && [[ -z "$TMUX" ]]; then
-    echo "Launching multiple issues needs tmux. Run inside tmux, or select one."
-    return 1
-  fi
-  # 1窓に並べて使い心地を見比べられるのは6枚までとする
-  if (( ${#files} > 1 )) && (( $(tmux display-message -p -t "$TMUX_PANE" '#{window_panes}') + ${#files} - 1 > 6 )); then
-    echo "Too many panes for this window (max 6)."
-    return 1
-  fi
-
-  # 起動前に全件を検証する。途中で止まって一部だけ worktree が残るのを避ける
-  local -a branch_names wt_dirs
-  local f branch_leaf unmet
-  for f in "${files[@]}"; do
-    if ! branch_leaf=$(_aiagent_issue_branch "$f"); then
-      echo "Issue is missing an id: $f"
-      return 1
-    fi
-    branch_leaf="${branch_leaf#claude/}"
-
-    unmet=$(_aiagent_deps_unmet "$f")
-    if [[ -n "$unmet" ]]; then
-      echo "${f:t} depends on unmerged issue(s): ${(j:, :)${(f)unmet}}"
-      return 1
-    fi
-
-    if git show-ref --verify --quiet "refs/heads/claude/${branch_leaf}"; then
-      echo "Branch claude/${branch_leaf} already exists. Abort or delete it first."
-      return 1
-    fi
-    if [[ -e "${git_root}/.claude/worktrees/${branch_leaf}" ]]; then
-      echo "Worktree ${git_root}/.claude/worktrees/${branch_leaf} already exists. Remove it first."
-      return 1
-    fi
-
-    branch_names+=("claude/${branch_leaf}")
-    wt_dirs+=("${git_root}/.claude/worktrees/${branch_leaf}")
-  done
-
   # i は先にマージ済みのブランチを消すので、残る claude/* は作業中か PR 待ちの実行者である
   local -a running=(${(f)"$(git for-each-ref --format='%(refname:short)' 'refs/heads/claude/*')"})
-  if (( ${#running} + ${#files} > _AIAGENT_CANDIDATES )); then
-    echo "Already running in ${git_root:t}: ${#running}"
+  if (( ${#running} )); then
+    echo "Already running in ${git_root:t}. Merge or abort it first:"
     print -rl -- "  ${^running[@]}"
-    _confirm "Launching ${#files} more exceeds ${_AIAGENT_CANDIDATES}. Launch anyway?" || return 0
+    return 1
   fi
 
-  _confirm "Run pr-workflow with Claude Code for ${(j:, :)${files[@]:t}}?" || return 0
+  local branch_leaf unmet
+  if ! branch_leaf=$(_aiagent_issue_branch "$f"); then
+    echo "Issue is missing an id: $f"
+    return 1
+  fi
+  branch_leaf="${branch_leaf#claude/}"
 
+  unmet=$(_aiagent_deps_unmet "$f")
+  if [[ -n "$unmet" ]]; then
+    echo "${f:t} depends on unmerged issue(s): ${(j:, :)${(f)unmet}}"
+    return 1
+  fi
+
+  local branch_name="claude/${branch_leaf}"
+  local wt_dir="${git_root}/.claude/worktrees/${branch_leaf}"
+  if [[ -e "$wt_dir" ]]; then
+    echo "Worktree ${wt_dir} already exists. Remove it first."
+    return 1
+  fi
+
+  # 起動の確認は取らない。i の fzf で選んだことを意思表示とみなす
+
+  local rel="${f#${git_root}/}"
+
+  # worktree に隔離して実行する。main のチェックアウトを直接直す作業と混ざらない
+  git worktree add "$wt_dir" -b "$branch_name" || return 1
+
+  # issue ファイル（main 側では untracked のまま）をブランチにコピーし、ブランチ上でだけ open をコミットする
+  mkdir -p "$(dirname "${wt_dir}/${rel}")"
+  cp "$f" "${wt_dir}/${rel}"
+  git -C "$wt_dir" add "$rel"
+  git -C "$wt_dir" commit -q -m "chore(issues): open ${f:t}"
+
+  # ワークツリー等のディレクトリの信頼設定を足して、Claude Code の安全確認プロンプトをバイパスする。
+  # CLAUDE_CONFIG_DIR を設定していれば、読まれるのは ~/.claude.json ではなく config dir 側の .claude.json。
+  # jq が空を出したまま mv すると設定が消えるので、中身があるときだけ置き換える
   local trust_json="${CLAUDE_CONFIG_DIR:-$HOME}/.claude.json"
-
-  local -a rels
-  local i rel wt_dir tmp_json
-  for (( i = 1; i <= ${#files}; i++ )); do
-    f=${files[$i]}
-    rel="${f#${git_root}/}"
-    rels+=("$rel")
-    wt_dir=${wt_dirs[$i]}
-
-    # worktree に隔離して実行（main のチェックアウトを汚さない・並列実行可）
-    git worktree add "$wt_dir" -b "${branch_names[$i]}" || return 1
-
-    # issue ファイル（main 側では untracked のまま）をブランチにコピーしてコミットする。
-    # 各ブランチ上でのみ open コミットを行うことで、main 直積みに伴う並行 Issue の混入や
-    # 後発ブランチへの先発 open コミットの混入を防ぐ
-    mkdir -p "$(dirname "${wt_dir}/${rel}")"
-    cp "$f" "${wt_dir}/${rel}"
-    git -C "$wt_dir" add "$rel"
-    git -C "$wt_dir" commit -q -m "chore(issues): open ${f:t}"
-
-    # ワークツリー等のディレクトリの信頼設定を足して、Claude Code の安全確認プロンプトをバイパスする。
-    # CLAUDE_CONFIG_DIR を設定していれば、読まれるのは ~/.claude.json ではなく config dir 側の .claude.json。
-    # jq が空を出したまま mv すると設定が消えるので、中身があるときだけ置き換える
-    if [[ -f "$trust_json" ]]; then
-      tmp_json=$(mktemp)
-      if jq --arg r "$git_root" --arg w "$wt_dir" \
-        '.projects[$r].hasTrustDialogAccepted = true | .projects[$w].hasTrustDialogAccepted = true' \
-        "$trust_json" > "$tmp_json" && [[ -s "$tmp_json" ]]; then
-        mv "$tmp_json" "$trust_json"
-      else
-        rm -f "$tmp_json"
-      fi
+  if [[ -f "$trust_json" ]]; then
+    local tmp_json
+    tmp_json=$(mktemp)
+    if jq --arg r "$git_root" --arg w "$wt_dir" \
+      '.projects[$r].hasTrustDialogAccepted = true | .projects[$w].hasTrustDialogAccepted = true' \
+      "$trust_json" > "$tmp_json" && [[ -s "$tmp_json" ]]; then
+      mv "$tmp_json" "$trust_json"
+    else
+      rm -f "$tmp_json"
     fi
-  done
+  fi
 
-  # 2本目以降は新しいペインで _aiagent_builder を打つ。worktree は上で切り終えているので起動をずらさなくてよい。
-  # 末尾のペインの後ろへ足すと、並びが起動順になる
-  local pane last
-  for (( i = 2; i <= ${#files}; i++ )); do
-    last=$(tmux list-panes -t "$TMUX_PANE" -F '#{pane_id}' | tail -n 1)
-    pane=$(tmux split-window -t "$last" -c "$git_root" -P -F '#{pane_id}') || return 1
-    tmux send-keys -t "$pane" \
-      "_aiagent_builder ${(q)git_root} ${(q)wt_dirs[$i]} ${(q)branch_names[$i]} ${(q)rels[$i]}" Enter
-  done
-  _aiagent_builder "$git_root" "${wt_dirs[1]}" "${branch_names[1]}" "${rels[1]}"
+  _aiagent_builder "$git_root" "$wt_dir" "$branch_name" "$rel"
 }
 
 # 実行者が出した PR を squash でマージし、そのままブランチを消して main を追従させる。
@@ -561,38 +521,33 @@ i() {
   fi
   items+=("status"$'\t'$'\t'$'\t'"status   show where everything is")
 
-  # 複数選べるのは同じリポの run だけ。並行起動は1リポを前提にしている
-  local -a sel
-  sel=(${(f)"$(print -rl -- "${items[@]}" \
+  local sel
+  sel=$(print -rl -- "${items[@]}" \
     | fzf --prompt="issue> " --delimiter=$'\t' --with-nth=4 \
-          --multi="$_AIAGENT_CANDIDATES" --header="TAB: run up to ${_AIAGENT_CANDIDATES} from one repo / C-o: open in editor" \
+          --header="C-o: open in editor" \
           --bind="ctrl-o:execute([ -f {3} ] && ${EDITOR:-nvim} {3})" \
           --preview-window=wrap \
-          --preview='if [ {1} = merge ]; then cd {2} && gh pr view {3} && echo && gh pr diff {3} --name-only; elif [ -f {3} ]; then bat --style=plain --color=always --theme=ansi -l md {3}; fi')"})
-  (( ${#sel} )) || { print "i: cancelled" >&2; return 1 }
+          --preview='if [ {1} = merge ]; then cd {2} && gh pr view {3} && echo && gh pr diff {3} --name-only; elif [ -f {3} ]; then bat --style=plain --color=always --theme=ansi -l md {3}; fi')
+  [[ -n "$sel" ]] || { print "i: cancelled" >&2; return 1 }
 
-  local action repo
-  action=${sel[1]%%$'\t'*}
-  repo=$(print -r -- "${sel[1]}" | cut -f2)
-  if (( ${#sel} > 1 )) && [[ -n "$(print -rl -- "${sel[@]}" | awk -F'\t' -v r="$repo" '$1 != "run" || $2 != r')" ]]; then
-    print "i: multiple selection is for run within one repo." >&2
-    return 1
-  fi
-  local -a targets=(${(f)"$(print -rl -- "${sel[@]}" | cut -f3)"})
+  local action repo target
+  action=${sel%%$'\t'*}
+  repo=$(print -r -- "$sel" | cut -f2)
+  target=$(print -r -- "$sel" | cut -f3)
 
   [[ -n "$repo" ]] && { cd "$repo" || return 1 }
   case "$action" in
-    run) _aiagent_run "${targets[@]}" ;;
+    run) _aiagent_run "$target" ;;
     approve)
       # 承認の前に全文を読ませる。開いた先で直してから閉じてもよい
-      ${EDITOR:-nvim} "${targets[1]}"
-      _confirm "Approve ${targets[1]:t}?" || return 0
-      _sed_i "s/^status: draft$/status: open/" "${targets[1]}"
-      print "Opened: ${targets[1]:t}"
-      _confirm "continue to implement?" && _aiagent_run "${targets[1]}"
+      ${EDITOR:-nvim} "$target"
+      _confirm "Approve ${target:t}?" || return 0
+      _sed_i "s/^status: draft$/status: open/" "$target"
+      print "Opened: ${target:t}"
+      _confirm "continue to implement?" && _aiagent_run "$target"
       ;;
-    merge)  _aiagent_merge "${targets[1]}" ;;
-    abort)  _aiagent_abort "${targets[1]}" ;;
+    merge)  _aiagent_merge "$target" ;;
+    abort)  _aiagent_abort "$target" ;;
     status) _aiagent_status_all ;;
   esac
 }

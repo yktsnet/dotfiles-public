@@ -80,7 +80,7 @@ flowchart TD
     end
 ```
 
-Role boundaries are handed over through a single zsh function, `i`. It launches an executor per worktree and takes care of merging and cleanup ([docs/issue-workflow.md](docs/issue-workflow.md)). No coordinating session sits between parallel executors. An Issue that must come after another names it in `depends:`, and `i` keeps the later Issue out of the candidates until the earlier one is merged. Order is held by the Issues themselves, not by a role that watches over them.
+Role boundaries are handed over through a single zsh function, `i`. It launches an executor per worktree and takes care of merging and cleanup ([docs/issue-workflow.md](docs/issue-workflow.md)). Executors run one at a time per repository, with no coordinating session. An Issue that must come after another names it in `depends:`, and `i` keeps the later Issue out of the candidates until the earlier one is merged. Order is held by the Issues themselves, not by a role that watches over them.
 
 ### 3. Leave Humans Only the Judgments That Cannot Be Written Down
 
@@ -90,7 +90,7 @@ The user holds four things: approving the guarantee section, checking feel and r
 
 Feel is checked first. For changes that show up on a screen, the screen is handed over before the tests and the ledger are written. If feel changes the shape, tests written first are wasted.
 
-Narrowing this down also keeps human judgment from thinning out. As speed goes up, people grasp less and approvals drift into formality. Having handed off behavior matching, people no longer trace behavior themselves; in exchange, what they look at is narrowed to what only they can judge. Running at most three Issues in parallel, only ones that do not depend on each other, with checks and fixes closed within each executor's session, serves the same end: every approval still holds as the count grows.
+Narrowing this down also keeps human judgment from thinning out. As speed goes up, people grasp less and approvals drift into formality. Having handed off behavior matching, people no longer trace behavior themselves; in exchange, what they look at is narrowed to what only they can judge. Running one executor at a time per repository, with checks and fixes closed within its session, serves the same end: every approval still holds.
 
 ---
 

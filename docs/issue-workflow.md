@@ -33,7 +33,7 @@ status   show where everything is
 
 | 行 | 対象 | 選んだときの動き |
 |---|---|---|
-| `run` | open の Issue（実行者のブランチがまだ無いもの） | そのリポで worktree を切り、実行者を起動する |
+| `run` | open の Issue | そのリポで worktree を切り、実行者を起動する |
 | `approve` | draft の Issue | open に変える。y で続けて `run` に進む |
 | `merge` | 実行者が出した `claude/*` の open な PR | 確認のあと squash でマージし、後片付けと main の pull まで済ませる。必須チェックのあるリポでは、チェックが通ってマージされるまで待つ。落ちたら auto-merge を外して止まる。直しを同じブランチに push してから、もう一度 `merge` を選ぶ |
 | `abort` | 実行者の `claude/*` のブランチ | 確認（既定は No）のあと、ブランチを消す。worktree が残っていれば一緒に消す |
@@ -45,13 +45,11 @@ status   show where everything is
 - 選んだリポに移ったまま終わる
 - `run` は main から切る。マージ済みの作業ブランチに居残っていれば main へ戻ってから起動し、未マージのブランチや未コミットの変更があれば止まる
 
-### 複数を並行で走らせる
+### `run` が並ぶ条件
 
-同じリポの `run` なら、TAB で3件まで選べる。1件ごとに worktree を切り、1本目は今のペインで、2本目以降は分けたペインで実行者を起動する。1窓のペインが6枚を超えるときと、tmux の外では起動しない。
+実行者は1つのリポで1本ずつ動かす。そのリポに `claude/*` のブランチ（作業中か PR 待ちの実行者）が残っている間は、`run` を並べない。PR をマージするか `abort` で捨てると、次の `run` が並ぶ。別のリポの実行者は同時に動いてよい。
 
-前提のある Issue は frontmatter の `depends:` に先の Issue の id を持つ。先の Issue がマージされて main の `done/` に入るまで、open でも `run` に並ばない。待っているものは `status` の `waiting` に出る。並行する実行者のあいだに取りまとめのセッションは置かず、順序は Issue 自身が持つ。
-
-並行しても承認が成り立つのは、確認と直しが実行者のセッションごとに閉じているからである。
+前提のある Issue は frontmatter の `depends:` に先の Issue の id を持つ。先の Issue がマージされて main の `done/` に入るまで、open でも `run` に並ばない。待っているものは `status` の `waiting` に出る。取りまとめのセッションは置かず、順序は Issue 自身が持つ。
 
 ## 実行者のセッションでやること
 
