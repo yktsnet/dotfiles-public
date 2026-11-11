@@ -505,13 +505,14 @@ _aiagent_merge() {
   _aiagent_pull_main
 }
 
-# 私用の全リポから Issue と PR を選んで、実装・承認・マージ・破棄する（Issue 駆動の入口）
+# AIAGENT_REPO_ROOTS が指すリポを横断して Issue と PR を選び、実装・承認・マージ・破棄する
+# （Issue 駆動の入口）
 i() {
   emulate -L zsh
+  # 消えた worktree の中で呼ぶと、fzf のプレビューが getcwd で失敗する
+  [[ -d "$PWD" ]] || cd ~
 
   _aiagent_reap_all
-  # 消した worktree の中で呼ぶと、fzf のプレビューのシェルが getcwd で失敗する
-  [[ -d "$PWD" ]] || cd ~
 
   local -a items=(${(f)"$(_aiagent_entries)"})
   if (( ! ${#items} )); then
@@ -525,7 +526,7 @@ i() {
     | fzf --prompt="issue> " --delimiter=$'\t' --with-nth=4 \
           --header="C-o: open in editor" \
           --bind="ctrl-o:execute([ -f {3} ] && ${EDITOR:-nvim} {3})" \
-          --preview-window='right,50%,wrap,<120(down,60%,wrap)' \
+          --preview-window=wrap \
           --preview='if [ {1} = merge ]; then cd {2} && gh pr view {3} && echo && gh pr diff {3} --name-only; elif [ -f {3} ]; then bat --style=plain --color=always --theme=ansi -l md {3}; fi')
   [[ -n "$sel" ]] || { print "i: cancelled" >&2; return 1 }
 
@@ -540,13 +541,10 @@ i() {
     approve)
       # 承認の前に全文を読ませる。開いた先で直してから閉じてもよい
       ${EDITOR:-nvim} "$target"
-      local ans
-      print -n "Approve ${target:t}? [r]un now / [o]pen only / [N]o: "
-      read -r ans || ans=""
-      [[ "$ans" == [rRoO]* ]] || return 0
+      _confirm "Approve ${target:t}?" || return 0
       _sed_i "s/^status: draft$/status: open/" "$target"
       print "Opened: ${target:t}"
-      [[ "$ans" == [rR]* ]] && _aiagent_run "$target"
+      _confirm "continue to implement?" && _aiagent_run "$target"
       ;;
     merge)  _aiagent_merge "$target" ;;
     abort)  _aiagent_abort "$target" ;;
