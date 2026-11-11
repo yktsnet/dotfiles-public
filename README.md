@@ -48,7 +48,7 @@ AI がコードを書くようになって、時間がかかるのは書くこ�
 
 開発は2つのフェーズで**駆動文書を交代させる**。方向が固まらない立ち上げ期は PLAN.md（残作業）と JUDGE.md（設計判断）が開発を駆動し（mvp-docs）、保証台帳が正式運用に上がった時点で台帳へ交代して Issue 駆動期に入る。考え方の全体は sdlc-kit の [docs/lifecycle.md](https://github.com/yktsnet/sdlc-kit/blob/main/docs/lifecycle.md) にある。
 
-約束のほかにも、作る前に書いて渡すものがある。リポの型（類型と検証手段、README の種別）は書き始める前に決める（repo-standardize・repo-readme・module-dev）。規則は読まれる場面で置き場を分け、毎回守らせるものは CLAUDE.md に、「〜するとき」と条件を言える手順は skill に置く（skill-dev）。
+約束のほかにも、作る前に書いて渡すものがある。リポの型（類型と検証手段、README の種別）は書き始める前に決める（repo-ship・module-dev）。規則は読まれる場面で置き場を分け、毎回守らせるものは CLAUDE.md に、「〜するとき」と条件を言える手順は skill に置く（skill-dev）。
 
 ### 2. 確かめるのは仕組みと別の文脈
 

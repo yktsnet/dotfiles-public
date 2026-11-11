@@ -10,7 +10,7 @@ Mermaid 図の基準と手順を持つ。目的はきれいな図を描くこと
 
 前提は、**GitHub が ```` ```mermaid ```` フェンスを本文カラム幅（約 768px）に縮小して描画する**こと。図を SVG に焼かずフェンスのままコミットする（テーマ追従と差分閲覧ができなくなるため）。したがって図の幅はそのまま文字サイズになる。
 
-README の Architecture 節からは `repo-readme` Skill が本 Skill を呼ぶ。単体でも使える。
+README の Architecture 節からは `repo-ship` Skill の readme 段が本 Skill を呼ぶ。単体でも使える。
 
 ## 1. 基準
 

@@ -1,19 +1,11 @@
----
-name: repo-publish
-description: Private リポを Public 化する。全履歴のシークレットスキャン → 公開 → 公開時にしかできない設定（ruleset・auto-merge）までを一括で行う。公開したいとき、gh repo edit --visibility を打ちたくなったときに必ず使用する。
-disable-model-invocation: true
----
-
-# repo-publish
+# publish：Public にする
 
 Private → Public は**公開後に取り消せない唯一の不可逆点**（履歴は fork・クロール・アーカイブに残りうる）。gh 一発で公開せず、必ず本手順を踏む。
 
-**公開パイプラインの固定順**: `repo-standardize → guarantee-audit → repo-readme → readme-i18n → repo-publish → repo-about`。本 Skill は**第5**。この順は都度再判断しない。
-
 ## 前提
 
-- `repo-standardize` 済み（LICENSE・README コアメッセージ・CI・dependabot）。未実施ならそちらが先。
-- README 肉付け（`repo-readme`）・英語版（`readme-i18n`）は公開前に済んでいるのが既定。user が明示的に急ぐ場合のみ省略可。
+- scaffold 段が済んでいる（LICENSE・README コアメッセージ・CI。共有のリポなら dependabot も）。未実施ならそちらが先。
+- README の肉付け（readme 段）・英語版（i18n 段）は公開前に済んでいるのが既定。user が明示的に急ぐ場合のみ省略可。
 
 ## 1. 全履歴シークレットスキャン（公開前・必須）
 
@@ -43,7 +35,6 @@ git grep -I "{実値}" $(git rev-list --all) | head
 [ ] README の画像・GIF がリポ内パス参照（外部 URL や private 依存が無い）
 [ ] .env が追跡されていない（git ls-files | grep -c '\.env$' が 0）
 [ ] GitHub Secrets に登録済みの値がワークフロー YAML に直書きされていない
-[ ] docs/guarantees.md が存在する、または skip 理由（テストなし等）がチャットで明示されている
 ```
 
 ## 3. 公開
@@ -55,6 +46,8 @@ gh repo edit {owner}/{repo} --visibility public --accept-visibility-change-conse
 ```
 
 ## 4. 公開直後の設定（private/Free では設定できなかったもの）
+
+dependabot の auto-merge workflow を入れたリポだけで行う。入れていなければ飛ばす。
 
 ```bash
 # auto-merge 有効化（dependabot-auto-merge workflow の前提）
@@ -86,13 +79,12 @@ EOF
 ```
 [ ] リポページが匿名で見える（gh api repos/{owner}/{repo} --jq .private が false）
 [ ] README の CI バッジ・GIF が描画される
-[ ] ruleset が active（gh api repos/{owner}/{repo}/rulesets --jq '.[].name'）
-[ ] allow_auto_merge が true
+[ ] §4 を行ったなら、ruleset が active（gh api repos/{owner}/{repo}/rulesets --jq '.[].name'）で allow_auto_merge が true
 ```
 
 ## 6. ローカルの配置換え（~/github-private → ~/github-public）
 
-ローカルの規約は「visibility とディレクトリを一致させる」。公開が確認できたら作業コピーを**確認を取らずにそのまま移す**（user への確認は §3 の公開判断で済んでいる。mv は可逆であり、ここで止まると配置換えが漏れる。本スキルの完了条件に含む）。
+ローカルの規約は「visibility とディレクトリを一致させる」。公開が確認できたら作業コピーを**確認を取らずにそのまま移す**（user への確認は §3 の公開判断で済んでいる。mv は可逆であり、ここで止まると配置換えが漏れる。この段の完了条件に含む）。
 
 ```bash
 mv ~/github-private/{repo} ~/github-public/{repo}
@@ -107,5 +99,3 @@ grep -rn "github-private/{repo}" ~/dotfiles ~/github-private ~/github-public 2>/
 
 - venv（`pip install -e` 済み含む）は旧パスを記録しているため、移動後に作り直す
 - 開いているエディタ・実行中の Claude セッションは旧パスを見ているので、user に移動した旨を伝える
-
-About（description / topics）が未設定なら `repo-about` スキルを続けて実行する。

@@ -1,16 +1,8 @@
----
-name: repo-standardize
-description: 新規リポの組成、または既存リポの公開前点検を行う。リポ類型の判定・ファイル衛生・.gitignore・LICENSE・.claude/settings.json（deny/allow/attribution）・CLAUDE.md と context/・CI の要否を基準に照らして整える。リポを初期化・標準化・点検したいとき、新規ディレクトリを作って足場を整えたいときに使う。
-disable-model-invocation: true
----
+# scaffold：足場を整える
 
-# repo-standardize
+リポの足場の基準と手順を持つ。設計意図は3点。**衛生ラインは全リポ一律、足場は共有のリポにだけ足す**（軽いリポでも最低ラインは満たす。ユーザー設定で足りるものをリポに重ねない）。**禁止は設定に書き、指示ファイルは短く保つ**。**検証手段を Agent に与え、PR 前に自己確認させる**。
 
-リポの足場の基準と手順を持つ。設計意図は3点。**全リポ一律の衛生ラインを1本持つ**（軽いリポでも最低ラインは満たし、成熟度で分岐させない）。**禁止は設定に書き、指示ファイルは短く保つ**。**検証手段を Agent に与え、PR 前に自己確認させる**。
-
-CI/CD の基準は `reference/cicd.md`（`repo-readme` の Deploy 節も読む）。Issue まわりの運用は `local-issue` Skill、README の中身は `repo-readme` Skill、図は `mermaid-diagram` Skill の管轄で、本 Skill は触らない。
-
-**公開パイプラインの固定順**: `repo-standardize → guarantee-audit → repo-readme → readme-i18n → repo-publish → repo-about`。本 Skill は**第1**（足場とコアメッセージの確定が先、README の本格化は後）。この順は都度再判断しない。
+CI/CD の基準は `cicd.md`（`readme.md` の Deploy 節も読む）。Issue まわりの運用は `local-issue` Skill、README の中身は readme 段（`readme.md`）、図は `mermaid-diagram` Skill の管轄で、この段では触らない。
 
 動くソースコードがあるリポに対して実行する。コードがない段階では実行しない。
 
@@ -22,8 +14,11 @@ CI/CD の基準は `reference/cicd.md`（`repo-readme` の Deploy 節も読む�
 |---|---|---|
 | 類型 | 設定 / ロジック / Web / ツール | deny・allow、検証手段、CI |
 | 公開 | Public / Private | LICENSE、CI の要否 |
+| 共有 | 共有 / 持ち主だけ | settings.json・pr-workflow・dependabot・ruleset・保証台帳の要否 |
 | スタック | 例: Go+Vue / Python+React / Astro / Nix | コマンド・conventions・CI ステップ |
 | 検証手段 | 例: `make test` / `nix flake check` | CLAUDE.md・CI |
+
+共有かどうかの判定は `../SKILL.md` の「共有のリポ」に従う。
 
 類型ごとの検証手段。test とは限らず、「自分の変更が壊れていない」と確かめる経路を1つ以上持てばよい。
 
@@ -40,13 +35,13 @@ CI/CD の基準は `reference/cicd.md`（`repo-readme` の Deploy 節も読む�
 
 | 層 | 内容 | 適用 |
 |---|---|---|
-| 層1 事故防止 | `.claude/settings.json` の deny ＋ attribution（行為の判定が要るものは PreToolUse フック） | 全リポ |
+| 層1 事故防止 | `.claude/settings.json` の deny ＋ attribution（行為の判定が要るものは PreToolUse フック） | 共有のリポ |
 | 層2 運用基盤 | CLAUDE.md / context/ ＋ 検証手段 | Agent を走らせる全リポ |
-| 層3 公開検証 | CI（`reference/cicd.md`） | Public または自動デプロイあり |
+| 層3 公開検証 | CI（`cicd.md`） | Public または自動デプロイあり |
 
 ### 層1: settings.json
 
-`.claude/settings.json` をチェックインする（`.local.json` は gitignore される個人上書き用）。雛形は `reference/settings-json-{type}.json`。
+`.claude/settings.json` をチェックインする（`.local.json` は gitignore される個人上書き用）。雛形は `settings-json-{type}.json`。
 
 - **deny（共通）**: `git push --force *` と `git push -f *` だけを塞ぐ。`git push origin main` 自体は塞がない。実行者は main に push せず、マージもしない分業が `pr-workflow` で既に決まっており、同じ禁止を二重に敷かない
 - **deny（類型別に追加）**: 設定＝適用コマンド（`*-rebuild *` 等）・シークレット読み書き・ロックファイル編集／ロジック＝本番起動・外部副作用（実発注・実送信・実課金）／Web＝デプロイ CLI（`wrangler` 等）／ツール＝役割に応じた副作用コマンド。デプロイ経路は Agent に握らせない（リモートへ配る構成が残るリポでは `ssh`・`rsync` も）
@@ -80,23 +75,23 @@ CLAUDE.md に**書かないもの**: 禁止・強制（→ deny）、attribution
 - **0 バイト／プレースホルダだけのファイルを残さない。** 例外は、ディレクトリの存在自体が構成の一部であるときの `.gitkeep` のみ
 - **成果物を追跡しない。** ビルドバイナリ・`dist/`・`*.db`・`node_modules/`・`.env`。原本（設定の JSON 等）は追跡し、そこから生成される DB・ビルド資産は無視する
 - **LICENSE を置く（Public）。** 無いと法的に全権留保になる。`Copyright` の年と owner まで確かめる
-- **`.gitignore` はそのスタックに要る行だけ。** 他スタックの boilerplate を残さない。重複行を残さない。OS ファイル・依存・ビルド成果物・ローカル DB・`.env` はカバーする。既存の `.gitignore` は上書きせず、`reference/gitignore-base.txt` の共通行が不足していれば足す
-- **`.env` は無視し、`.env.example`（キーのみ）を置く。** ホスト側の本番 `.env` はリポの管轄外（`reference/cicd.md`）
+- **`.gitignore` はそのスタックに要る行だけ。** 他スタックの boilerplate を残さない。重複行を残さない。OS ファイル・依存・ビルド成果物・ローカル DB・`.env` はカバーする。既存の `.gitignore` は上書きせず、`gitignore-base.txt` の共通行が不足していれば足す
+- **`.env` は無視し、`.env.example`（キーのみ）を置く。** ホスト側の本番 `.env` はリポの管轄外（`cicd.md`）
 - **地の文に固有接続情報を直書きしない。** `secrets-agents/` の `<PLACEHOLDER>` を使う
 
 ## 4. 雛形から生成する
 
 雛形の `<!-- FILL: 説明 -->` の箇所だけを埋め、それ以外は一字一句変えない（FILL コメント自体は出力から消す）。
 
-| 雛形（`reference/`） | 出力先 |
+| 雛形（このディレクトリ） | 出力先 |
 |---|---|
 | `settings-json-{type}.json` | `.claude/settings.json`（JSON はコメント不可。allow にスタック固有の行を足し、deny・attribution は変えない） |
 | `gitignore-base.txt` | `.gitignore` |
 | `license-mit.txt` | `LICENSE`（Public のみ） |
-| `dependabot-base.yml` | `.github/dependabot.yml` |
-| `dependabot-auto-merge.yml` | `.github/workflows/dependabot-auto-merge.yml`（CI 有リポのみ。運用は `reference/cicd.md` §6） |
+| `dependabot-base.yml` | `.github/dependabot.yml`（共有かつ CI 有のリポのみ） |
+| `dependabot-auto-merge.yml` | `.github/workflows/dependabot-auto-merge.yml`（同上。運用は `cicd.md` §6） |
 
-`.claude/skills/pr-workflow/SKILL.md` は、正本（本リポの `.claude/skills/pr-workflow/SKILL.md`。稼働環境では home-manager が `~/.claude/skills/` へ配置したもの）をそのまま `cp` する（FILL を持たず、検証手段はリポの CLAUDE.md に委ねる設計）。`issues/done/.gitkeep` も作る。
+共有のリポでは `.claude/skills/pr-workflow/SKILL.md` に、正本（本リポの `.claude/skills/pr-workflow/SKILL.md`。稼働環境では home-manager が `~/.claude/skills/` へ配置したもの）をそのまま `cp` する（FILL を持たず、検証手段はリポの CLAUDE.md に委ねる設計）。`issues/done/.gitkeep` も作る。持ち主だけのリポでは作業の進め方を CLAUDE.md に数行で書けば足りる。
 
 ## 5. 決定的チェック
 
@@ -108,14 +103,16 @@ CLAUDE.md に**書かないもの**: 禁止・強制（→ deny）、attribution
 [ ] 追跡済みに成果物（bin/dist/db/node_modules/.env）なし（git ls-files）
 [ ] .gitignore に無関係スタックの残骸・重複行なし
 [ ] .env 非追跡 ＋ .env.example 有（.env 使用時）
-[ ] .claude/settings.json 有（JSON 妥当・deny に push --force/-f、attribution 空）
-[ ] CLAUDE.md / context/{conventions,structure}.md / skills/pr-workflow/SKILL.md 有・非空
-[ ] README の H1 直下にコアメッセージ1文がある（型は repo-readme Skill §3）。無ければ種別を判定（同 §1）して1文を書く。それ以上のセクションは書かない（肉付けは publish 前に repo-readme が行う）
+[ ] CLAUDE.md / context/{conventions,structure}.md 有・非空
+[ ] README の H1 直下にコアメッセージ1文がある（型は readme.md §3）。無ければ種別を判定（同 §1）して1文を書く。それ以上のセクションは書かない（肉付けは publish 前に readme 段が行う）
 [ ] CI 有（Public / 自動デプロイ時）
-[ ] dependabot.yml 有（grouping＋レジストリ系 cooldown）。CI 有なら auto-merge workflow＋allow_auto_merge＋ruleset（reference/cicd.md §6）
 [ ] 地の文・コミット・PR にシークレット直書きなし
 ```
 
-## 6. コミット・push はしない
+共有のリポでは次も確かめる。
 
-変更はワーキングツリーに残し、差分を要約して止まる。コミット/push は user の指示があったときのみ。
+```
+[ ] .claude/settings.json 有（JSON 妥当・deny に push --force/-f、attribution 空）
+[ ] skills/pr-workflow/SKILL.md 有・非空
+[ ] CI 有なら dependabot.yml（grouping＋レジストリ系 cooldown）＋ auto-merge workflow（cicd.md §6）
+```

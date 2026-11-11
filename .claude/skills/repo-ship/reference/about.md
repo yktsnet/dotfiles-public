@@ -1,13 +1,6 @@
----
-name: repo-about
-description: README（英語版優先）から GitHub リポの About (description) と topics を生成し、gh repo edit で設定する。
----
-
-# repo-about
+# about：About と topics を設定する
 
 README.en.md（なければ README.md）を読み、GitHub の About（description）と topics を生成して適用する。
-
-**公開パイプラインの固定順**: `repo-standardize → guarantee-audit → repo-readme → readme-i18n → repo-publish → repo-about`。本 Skill は**第6**（README 完成・公開後の仕上げ）。この順は都度再判断しない。
 
 ## 手順
 
