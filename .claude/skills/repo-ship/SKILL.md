@@ -1,6 +1,6 @@
 ---
 name: repo-ship
-description: リポを公開できる形に整える。足場（類型・衛生・LICENSE・CLAUDE.md・CI）→ README → 英語版 README → Public 化 → About と topics の5段を、段ごとの基準を reference から読んで進める。新規リポの組成、既存リポの公開前点検、README の作成・更新、英語版の同期、Public 化、About の設定のどれを頼まれたときにも使う。
+description: リポを公開できる形に整える。足場（類型・衛生・LICENSE・CLAUDE.md・CI）→ README → 英語版 README → Public 化 → About と topics の5段を、段ごとの基準を reference から読んで進める。動くコードができた新規リポの組成、既存リポの公開前点検、README の作成・更新、英語版の同期、Public 化、About の設定のどれを頼まれたときにも使う。
 disable-model-invocation: true
 ---
 

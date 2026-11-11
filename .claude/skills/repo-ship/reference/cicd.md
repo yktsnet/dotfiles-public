@@ -143,7 +143,7 @@ Pages を GitHub 連携で運用する場合、この表の Cloudflare 系は不
 | CI が無いリポ | 自動マージ禁止。グループ化して通知としてのみ使う |
 | private リポ | 自動マージ禁止。無料プランはブランチ保護 / ruleset を持てず required status checks を設定できないため、`gh pr merge --auto` は待つ対象が無く CI 完了前にマージする。minor/patch も人手で棚卸しする |
 
-構成は3点セット。雛形はこのディレクトリにある。
+構成は3点セット。雛形はこのディレクトリにある。3点目のリポ設定は、公開した直後に publish 段の §4 で入れる。
 
 1. `.github/dependabot.yml` — 全 ecosystem を weekly ＋ minor/patch グループ化。レジストリ系（npm/pip/composer/gomod）と github-actions には `cooldown: default-days: 7` を付ける（サプライチェーン対策: 悪性リリースや乗っ取られた action のリリースの多くは公開後数日で取り下げられる）
 2. `.github/workflows/dependabot-auto-merge.yml` — major 以外に `gh pr merge --auto` を打つ

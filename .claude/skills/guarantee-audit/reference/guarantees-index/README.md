@@ -1,8 +1,8 @@
 # guarantees-index
 
-フリート横断で保証台帳（`docs/guarantees.md`）の索引を作る道具の置き場。
+フリート横断で保証台帳（`docs/guarantees/`）の索引を作る道具の置き場。
 
-保証台帳は各リポの `docs/guarantees.md` に正本があり、複数リポを並行して回すと散らばる。ここに置くスクリプトは GitHub API で各リポを調べ、台帳を持つリポへの GitHub 上のリンクを1枚の Markdown に並べる。端末のディレクトリ配置に依存せず、GitHub 上でそのまま読める。
+保証台帳は各リポの `docs/guarantees/` に正本があり、複数リポを並行して回すと散らばる。ここに置くスクリプトは GitHub API で各リポを調べ、台帳を持つリポへの GitHub 上のリンクを1枚の Markdown に並べる。端末のディレクトリ配置に依存せず、GitHub 上でそのまま読める。
 
 | ファイル | 役割 |
 |---|---|

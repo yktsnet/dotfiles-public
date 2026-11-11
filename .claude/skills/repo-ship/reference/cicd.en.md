@@ -143,7 +143,7 @@ Decide by rule, not per PR — don't deliberate over each individual PR.
 | Repo without CI | Auto-merge prohibited. Use grouping for notification only |
 | Private repo | Auto-merge prohibited. The free plan has no branch protection / rulesets, so required status checks cannot be set; `gh pr merge --auto` then has nothing to wait for and merges before CI finishes. Triage minor/patch by hand too |
 
-The setup is three pieces. Templates live in this directory.
+The setup is three pieces. Templates live in this directory. The third, the repository settings, is applied right after going public, in §4 of the publish stage.
 
 1. `.github/dependabot.yml` — weekly for every ecosystem, with minor/patch grouped. For registry-based ecosystems (npm/pip/composer/gomod) and github-actions, add `cooldown: default-days: 7` (supply-chain hardening: many malicious releases and hijacked action releases are pulled within a few days of publishing)
 2. `.github/workflows/dependabot-auto-merge.yml` — runs `gh pr merge --auto` for everything except major
